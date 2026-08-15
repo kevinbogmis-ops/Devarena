@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DevArena | Joueur</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>📱</text></svg>">
+</head>
+<body class="player-page-body">
+
+  <!-- ==================== VUE 1 : REJOINDRE LA PARTIE ==================== -->
+  <section id="view-player-join" class="player-mobile-view" style="justify-content: center;">
+    
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-auth --pin</span>
+        <button id="sound-toggle-btn" class="btn-sound-toggle" style="padding: 2px 6px; font-size: 0.7rem;">🔊</button>
+      </div>
+
+      <div style="padding: 28px 20px; text-align: center;">
+        
+        <div style="font-size: 2.2rem; margin-bottom: 6px;">⚡</div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 20px;">
+          Rejoindre l'Arène
+        </h2>
+
+        <div id="player-join-error" style="display: none; background-color: rgba(248, 81, 73, 0.15); border: 1px solid var(--color-a); color: var(--color-a); padding: 10px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 16px; text-align: left;">
+        </div>
+
+        <form id="join-form" onsubmit="return false;">
+          
+          <div class="input-group">
+            <label class="input-label" for="player-pin-input">
+              <span class="syntax">$</span> PIN de l'Arène
+            </label>
+            <input 
+              type="text" 
+              id="player-pin-input" 
+              class="input-field" 
+              placeholder="Ex: 849201" 
+              maxlength="6" 
+              pattern="[0-9]*" 
+              inputmode="numeric" 
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="player-nick-input">
+              <span class="syntax">$</span> Pseudo / Handle
+            </label>
+            <input 
+              type="text" 
+              id="player-nick-input" 
+              class="input-field" 
+              placeholder="Ex: sudo_root" 
+              maxlength="16" 
+              required
+              autocomplete="nickname"
+            >
+          </div>
+
+          <button type="submit" id="btn-player-join" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 14px;">
+            $ connect --arena
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ==================== VUE 2 : SALLE D'ATTENTE (LOBBY JOUEUR) ==================== -->
+  <section id="view-player-waiting" class="player-mobile-view" style="display: none; justify-content: center; text-align: center;">
+    
+    <div class="terminal-window" style="padding: 36px 20px;">
+      <div id="waiting-player-avatar" style="font-size: 4rem; margin-bottom: 12px; animation: pulse-correct 1.5s infinite alternate;">
+        👾
+      </div>
+
+      <h2 id="waiting-player-name" style="font-size: 1.6rem; font-weight: 700; color: var(--color-d); margin-bottom: 6px;">
+        Hacker
+      </h2>
+
+      <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+        Connecté à l'arène <span id="waiting-pin-badge" style="color: var(--color-b); font-weight: 700;">#------</span>
+      </div>
+
+      <div class="code-snippet-box" style="text-align: left; font-size: 0.85rem; margin-bottom: 20px;">
+        <span style="color: var(--color-d);">$</span> status: CONNECTED<br>
+        <span style="color: var(--color-d);">$</span> protocol: WebSocket/Socket.io<br>
+        <span style="color: var(--color-d);">$</span> payload: READY_FOR_COMBAT
+      </div>
+
+      <p id="waiting-status-text" style="color: var(--text-muted); font-size: 0.95rem;">
+        Regardez l'écran du Maître du jeu... La partie va bientôt démarrer !
+      </p>
+    </div>
+
+  </section>
+
+  <!-- ==================== VUE 3 : GRILLE DE JEU & QUESTION ==================== -->
+  <section id="view-player-question" class="player-mobile-view" style="display: none;">
+    
+    <!-- Header joueur en jeu -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-panel); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: var(--radius-sm); margin-bottom: 8px;">
+      <span id="player-progress-text" style="color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">Q 1/10</span>
+      <span id="player-timer-text" style="color: var(--color-c); font-weight: 800; font-size: 1.1rem;">⏱️ 20s</span>
+      <span id="player-header-streak" style="color: var(--color-c); font-weight: 700;"></span>
+      <span id="player-header-score" style="color: var(--color-d); font-weight: 700; font-size: 0.95rem;">0 pts</span>
+    </div>
+
+    <!-- Barre de progression du timer -->
+    <div style="width: 100%; height: 4px; background-color: var(--bg-panel-secondary); border-radius: 2px; overflow: hidden; margin-bottom: 10px;">
+      <div id="player-timer-bar" style="width: 100%; height: 100%; background-color: var(--color-d); transition: width 1s linear, background-color 0.3s ease;"></div>
+    </div>
+
+    <!-- Carte de la Question Affichée au Joueur -->
+    <div class="question-card" style="padding: 14px 16px; margin-bottom: 12px; border-radius: var(--radius-sm);">
+      <div style="display: flex; gap: 6px; margin-bottom: 8px; align-items: center;">
+        <span id="player-category-badge" class="badge badge-docker" style="font-size: 0.7rem; padding: 2px 6px;">Docker</span>
+        <span id="player-difficulty-badge" class="badge badge-devops" style="font-size: 0.7rem; padding: 2px 6px;">Intermédiaire</span>
+      </div>
+      <h3 id="player-question-text" style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); line-height: 1.35; margin-bottom: 8px;">
+        Chargement de la question...
+      </h3>
+      <!-- Bloc de code (si présent) -->
+      <pre id="player-code-box" class="code-snippet-box" style="display: none; font-size: 0.82rem; padding: 8px 12px; margin-bottom: 0;"></pre>
+    </div>
+
+    <!-- Grille 4 touches de réponse -->
+    <div class="player-grid-mobile">
+      
+      <!-- Touche A -->
+      <button id="player-btn-a" class="key-btn key-a">
+        <span class="key-badge">A</span>
+        <span class="key-text">0x1</span>
+      </button>
+
+      <!-- Touche B -->
+      <button id="player-btn-b" class="key-btn key-b">
+        <span class="key-badge">B</span>
+        <span class="key-text">0x2</span>
+      </button>
+
+      <!-- Touche C -->
+      <button id="player-btn-c" class="key-btn key-c">
+        <span class="key-badge">C</span>
+        <span class="key-text">0x3</span>
+      </button>
+
+      <!-- Touche D -->
+      <button id="player-btn-d" class="key-btn key-d">
+        <span class="key-badge">D</span>
+        <span class="key-text">0x4</span>
+      </button>
+
+    </div>
+
+    <div style="text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 4px;">
+      Appuyez sur la touche correspondante
+    </div>
+
+  </section>
+
+  <!-- ==================== VUE 4 : RÉPONSE ENVOYÉE (ATTENTE VALIDATION) ==================== -->
+  <section id="view-player-answered" class="player-mobile-view" style="display: none; justify-content: center; text-align: center;">
+    
+    <div class="terminal-window" style="padding: 40px 20px;">
+      <div style="font-size: 3rem; margin-bottom: 16px; animation: pulse-dot 1s infinite;">
+        📡
+      </div>
+      <h3 style="font-size: 1.4rem; font-weight: 700; color: var(--color-b); margin-bottom: 8px;">
+        Payload Transmis !
+      </h3>
+      <p id="answered-status-msg" style="color: var(--text-muted); font-size: 0.95rem;">
+        Réponse verrouillée. En attente de la fin du compte à rebours...
+      </p>
+    </div>
+
+  </section>
+
+  <!-- ==================== VUE 5 : RÉSULTAT DU ROUND (FEEDBACK & BONNE RÉPONSE) ==================== -->
+  <section id="view-player-result" class="player-mobile-view" style="display: none; justify-content: center;">
+    
+    <!-- Feedback individuel (Gagné / Perdu / Points) -->
+    <div id="player-feedback-box" class="feedback-screen" style="margin-top: 0; padding: 24px 16px;">
+      <div id="player-feedback-icon" class="feedback-icon" style="font-size: 2.8rem; margin-bottom: 6px;">🎯</div>
+      <h2 id="player-feedback-title" style="font-size: 1.5rem; font-weight: 800;">EXCELLENT !</h2>
+      <div id="player-feedback-points" class="feedback-points" style="font-size: 1.5rem; margin-top: 4px;">+940 pts</div>
+      <div id="player-feedback-rank" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">
+        Tu es actuellement #1
+      </div>
+    </div>
+
+    <!-- Révélation de la Bonne Réponse & Explication Technique -->
+    <div class="question-card" style="margin-top: 14px; padding: 18px 20px; border-left: 4px solid var(--color-d); text-align: left;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+        ✓ SOLUTION VALIDÉE
+      </div>
+      <div id="player-correct-answer-text" style="font-size: 1.1rem; font-weight: 700; color: var(--color-d); margin-bottom: 10px; line-height: 1.35;">
+        [A] Option Correcte
+      </div>
+      <div id="player-explanation-text" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.4; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+        Explication...
+      </div>
+    </div>
+
+    <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">
+      ⏳ En attente de la question suivante par le Maître du jeu...
+    </div>
+
+  </section>
+
+  <!-- ==================== VUE 6 : GAME OVER JOUEUR ==================== -->
+  <section id="view-player-gameover" class="player-mobile-view" style="display: none; justify-content: center; text-align: center;">
+    
+    <div class="terminal-window" style="padding: 36px 20px;">
+      <div style="font-size: 3.5rem; margin-bottom: 12px;">🎖️</div>
+      <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--color-d); margin-bottom: 8px;">
+        Partie Terminée !
+      </h2>
+      <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+        Ton Rang Final :
+      </div>
+
+      <div id="final-player-rank" style="font-size: 3.5rem; font-weight: 800; color: var(--color-c); font-family: var(--font-mono); margin-bottom: 6px;">
+        #1
+      </div>
+      
+      <div id="final-player-score" style="font-size: 1.1rem; color: var(--text-main); font-weight: 600; margin-bottom: 28px;">
+        0 pts
+      </div>
+
+      <a href="player.html" class="btn btn-primary" style="width: 100%;">
+        Rejouer une Partie
+      </a>
+    </div>
+
+  <footer style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.75rem; border-top: 1px solid var(--border-color); margin-top: auto;">
+    &copy; 2026 <strong>DevArena</strong> &bull; Conçu par <strong>Kevin BOGMIS</strong>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/client.js"></script>
+  <script src="js/player.js"></script>
+</body>
+</html>

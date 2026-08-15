@@ -1,0 +1,482 @@
+[
+  {
+    "id": 1,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Quelle commande permet de passer du mode Utilisateur ('Switch>') au mode Privilégié ('Switch#') sur un équipement Cisco ?",
+    "codeSnippet": "Switch> ???\nSwitch#",
+    "options": [
+      "enable",
+      "configure terminal",
+      "sudo su",
+      "login root"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "La commande 'enable' (ou son raccourci 'en') permet d'accéder au mode d'exécution privilégié (Privileged EXEC Mode), reconnaissable au prompt '#'."
+  },
+  {
+    "id": 2,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Quelle commande sauvegarde la configuration active (RAM) vers la mémoire non-volatile (NVRAM) pour persister après un reboot ?",
+    "codeSnippet": "Switch# ???",
+    "options": [
+      "copy running-config startup-config",
+      "save running-config",
+      "write flash:config.text",
+      "commit changes"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "'copy running-config startup-config' (ou 'copy run start' / 'write memory') copie la configuration en RAM dans la NVRAM afin qu'elle soit rechargée au démarrage."
+  },
+  {
+    "id": 3,
+    "category": "Réseau",
+    "difficulty": "Base",
+    "question": "Combien d'adresses d'hôtes utilisables contient un sous-réseau avec un masque /26 (255.255.255.192) ?",
+    "codeSnippet": "Réseau : 192.168.10.0/26",
+    "options": [
+      "62 hôtes",
+      "64 hôtes",
+      "30 hôtes",
+      "126 hôtes"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "32 - 26 = 6 bits pour la partie hôte. 2^6 = 64 adresses au total. On soustrait l'adresse réseau (.0) et de broadcast (.63), ce qui donne 64 - 2 = 62 hôtes utilisables."
+  },
+  {
+    "id": 4,
+    "category": "Réseau",
+    "difficulty": "Base",
+    "question": "Quel port de transport TCP standard est utilisé par le protocole SSH pour l'administration distante sécurisée ?",
+    "codeSnippet": "$ ssh admin@10.0.0.1 -p ???",
+    "options": [
+      "Port 22",
+      "Port 23",
+      "Port 443",
+      "Port 80"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "SSH (Secure Shell) utilise par défaut le port TCP 22 avec chiffrement. Le port TCP 23 est réservé à Telnet (non sécurisé, en clair)."
+  },
+  {
+    "id": 5,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Quelle commande Cisco IOS permet d'afficher l'état et les adresses IP de toutes les interfaces réseau ?",
+    "codeSnippet": "Router# ???\nInterface      IP-Address    OK? Method Status Protocol\nGi0/0/0        192.168.1.1   YES manual up     up",
+    "options": [
+      "show ip interface brief",
+      "show interfaces status",
+      "show ip route",
+      "display ip addresses"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "'show ip interface brief' (ou 'sh ip int br') est la commande incontournable pour vérifier rapidement l'adresse IP, le statut de la couche physique (Status) et liaison (Protocol)."
+  },
+  {
+    "id": 6,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Comment affecter l'interface FastEthernet 0/1 au VLAN 10 en mode accès sur un commutateur Cisco ?",
+    "codeSnippet": "Switch(config-if)# ???",
+    "options": [
+      "switchport mode access\nswitchport access vlan 10",
+      "vlan 10 assign interface fa0/1",
+      "encapsulation dot1q 10",
+      "port vlan membership 10"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "On configure le port en mode accès avec 'switchport mode access' puis on lui associe le VLAN avec 'switchport access vlan 10'."
+  },
+  {
+    "id": 7,
+    "category": "Réseau",
+    "difficulty": "Base",
+    "question": "Quel est l'ordre des 4 messages échangés lors de l'attribution d'une adresse IP par un serveur DHCP (processus DORA) ?",
+    "codeSnippet": "Client ---> [ 1 ] ---> Serveur DHCP\nClient <--- [ 2 ] <--- Serveur DHCP\nClient ---> [ 3 ] ---> Serveur DHCP\nClient <--- [ 4 ] <--- Serveur DHCP",
+    "options": [
+      "Discover -> Offer -> Request -> Acknowledge",
+      "Demand -> Option -> Receive -> Accept",
+      "Detect -> Open -> Register -> Assign",
+      "Discover -> Request -> Offer -> Acknowledge"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le cycle DHCP est DORA : DHCPDISCOVER (broadcast client), DHCPOFFER (proposition du serveur), DHCPREQUEST (demande du client) et DHCPACK (confirmation du serveur)."
+  },
+  {
+    "id": 8,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Quelle commande permet de configurer une passerelle par défaut sur un switch Cisco de niveau 2 pour le management ?",
+    "codeSnippet": "Switch(config)# ??? 192.168.1.254",
+    "options": [
+      "ip default-gateway 192.168.1.254",
+      "ip route 0.0.0.0 0.0.0.0 192.168.1.254",
+      "default-router 192.168.1.254",
+      "gateway 192.168.1.254"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Sur un switch Layer 2 (sans routage IP actif), la commande 'ip default-gateway <IP>' est nécessaire pour permettre au switch de communiquer avec des sous-réseaux distants (management SSH/SNMP)."
+  },
+  {
+    "id": 9,
+    "category": "Réseau",
+    "difficulty": "Base",
+    "question": "Sur quelle table un commutateur (Switch) de niveau 2 s'appuie-t-il pour acheminer les trames Ethernet vers le bon port ?",
+    "codeSnippet": "Switch# show mac address-table\nVlan    Mac Address       Type        Ports\n----    -----------       --------    ----- \n  1     0014.a890.1234    DYNAMIC     Fa0/1",
+    "options": [
+      "La table d'adresses MAC (CAM Table)",
+      "La table de routage IP (FIB)",
+      "La table ARP (Address Resolution Protocol)",
+      "La table DNS inverse"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Un commutateur L2 apprend dynamiquement les adresses MAC sources des trames entrantes et les associe à ses ports physiques dans la table MAC (mémoire CAM)."
+  },
+  {
+    "id": 10,
+    "category": "Cisco",
+    "difficulty": "Base",
+    "question": "Quelle commande permet de supprimer complètement une interface ou une configuration sous Cisco IOS ?",
+    "codeSnippet": "Router(config)# ??? ip address 10.0.0.1 255.255.255.0",
+    "options": [
+      "no",
+      "delete",
+      "remove",
+      "undo"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le mot-clé 'no' placé devant n'importe quelle commande Cisco IOS annule la directive ou la désactive (ex: 'no shutdown', 'no ip address')."
+  },
+  {
+    "id": 11,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Sur un lien Trunk 802.1Q reliant deux commutateurs Cisco, comment sont traitées les trames appartenant au VLAN Natif (Native VLAN) ?",
+    "codeSnippet": "Switch(config-if)# switchport trunk native vlan 99",
+    "options": [
+      "Elles sont transmises sans étiquette (Untagged, sans tag 802.1Q de 4 octets)",
+      "Elles sont encapsulées avec le protocole propriétaire ISL",
+      "Elles sont systématiquement chiffrées en AES-128",
+      "Elles sont immédiatement abandonnées (dropped)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le VLAN Natif transporte le trafic sans en-tête 802.1Q (non étiqueté / untagged). Si les deux extrémités d'un lien Trunk ont un VLAN Natif différent (Native VLAN Mismatch), le protocole CDP lève une alerte critique."
+  },
+  {
+    "id": 12,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande crée une route statique par défaut (route vers Internet) via la passerelle 203.0.113.1 sur un routeur Cisco ?",
+    "codeSnippet": "Router(config)# ???",
+    "options": [
+      "ip route 0.0.0.0 0.0.0.0 203.0.113.1",
+      "ip default-route 203.0.113.1",
+      "route add default gw 203.0.113.1",
+      "ip route *.*.*.* 203.0.113.1"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Une route statique par défaut s'écrit avec l'adresse réseau 0.0.0.0 et le masque 0.0.0.0 : 'ip route 0.0.0.0 0.0.0.0 <Next_Hop_IP>'."
+  },
+  {
+    "id": 13,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Quel protocole standardisé IEEE 802.3ad est configuré lorsqu'on active un agrégat de liens EtherChannel avec le mot-clé 'active' ?",
+    "codeSnippet": "Switch(config-if-range)# channel-group 1 mode active",
+    "options": [
+      "LACP (Link Aggregation Control Protocol)",
+      "PAgP (Port Aggregation Protocol)",
+      "STP (Spanning Tree Protocol)",
+      "VRRP (Virtual Router Redundancy Protocol)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le mode 'active' active LACP (norme IEEE 802.3ad / 802.1AX). Le mode 'desirable' active quant à lui PAgP (protocole propriétaire Cisco)."
+  },
+  {
+    "id": 14,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la Distance Administrative (AD) par défaut d'une route apprise via le protocole de routage OSPF sur Cisco IOS ?",
+    "codeSnippet": "Router# show ip route\nO    172.16.1.0/24 [???/2] via 10.0.0.2",
+    "options": [
+      "110",
+      "90",
+      "120",
+      "1"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Les distances administratives clés sont : Connecté (0), Statique (1), EIGRP interne (90), OSPF (110), RIP (120), eBGP (20)."
+  },
+  {
+    "id": 15,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la première étape dans l'élection du Pont Racine (Root Bridge) par le protocole Spanning Tree (STP IEEE 802.1D) ?",
+    "codeSnippet": "Bridge ID = Bridge Priority (2 octets) + MAC Address (6 octets)",
+    "options": [
+      "Le switch avec la plus faible valeur de Bridge ID (BID) devient Root Bridge",
+      "Le switch avec le plus grand nombre de ports actifs devient Root Bridge",
+      "Le switch ayant l'adresse MAC la plus élevée gagne l'élection",
+      "Le switch avec l'adresse IP la plus basse devient Root Bridge"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "En STP, le commutateur qui possède le plus petit Bridge ID (Priorité la plus basse, ou en cas d'égalité l'adresse MAC la plus basse) est élu Pont Racine."
+  },
+  {
+    "id": 16,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Dans une architecture 'Router-on-a-Stick', quelle commande est indispensable sur une sous-interface pour taguer le trafic d'un VLAN ?",
+    "codeSnippet": "Router(config)# interface GigabitEthernet0/0.20\nRouter(config-subif)# ??? 20\nRouter(config-subif)# ip address 192.168.20.1 255.255.255.0",
+    "options": [
+      "encapsulation dot1Q 20",
+      "switchport trunk allowed vlan 20",
+      "vlan encapsulation 20",
+      "ip vlan tag 20"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "La commande 'encapsulation dot1Q <vlan_id>' permet au routeur de reconnaître et d'étiqueter les trames 802.1Q transitant sur la sous-interface correspondante."
+  },
+  {
+    "id": 17,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle plage de numéros identifie une Liste de Contrôle d'Accès Standard (Standard ACL) sous Cisco IOS (plage standard classique) ?",
+    "codeSnippet": "Router(config)# access-list ??? permit 192.168.1.0 0.0.0.255",
+    "options": [
+      "1 à 99 (et 1300 à 1999 étendue)",
+      "100 à 199 (et 2000 à 2699)",
+      "1000 à 1999",
+      "200 à 299"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Les ACLs Standard (qui ne filtrent que sur l'IP source) utilisent les numéros 1 à 99 et 1300 à 1999. Les ACLs Étendues (source, destination, protocoles, ports) utilisent les numéros 100 à 199 et 2000 à 2699."
+  },
+  {
+    "id": 18,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Que réalise le mot-clé 'overload' dans une commande de NAT dynamique sous Cisco IOS ?",
+    "codeSnippet": "Router(config)# ip nat inside source list 1 interface Gi0/0 overload",
+    "options": [
+      "Il active le PAT (Port Address Translation) en partageant une unique IP publique grâce aux ports TCP/UDP",
+      "Il limite la bande passante de l'interface en cas de surcharge réseau",
+      "Il autorise les paquets de plus de 1500 octets sans fragmentation",
+      "Il désactive le pare-feu en cas d'utilisation CPU > 90%"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "'overload' configure le PAT (Port Address Translation / NAT Overload), permettant à des centaines de machines privées de sortir sur Internet en partageant une unique adresse IP publique via des ports source uniques."
+  },
+  {
+    "id": 19,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle action le mode 'shutdown' de Port Security effectue-t-il lorsqu'une adresse MAC non autorisée tente d'envoyer du trafic sur le port ?",
+    "codeSnippet": "Switch(config-if)# switchport port-security violation shutdown",
+    "options": [
+      "Le port est immédiatement désactivé et passe à l'état 'err-disabled' (nécessite une réactivation)",
+      "Les paquets non autorisés sont ignorés en silence sans éteindre le port",
+      "Un mail SNMP est envoyé mais le port reste ouvert",
+      "Le switch redémarre instantanément"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le mode 'shutdown' (mode par défaut de port-security) passe l'interface à l'état 'err-disabled', incrémente le compteur de violation et envoie une trap SNMP. Pour réactiver le port, il faut taper 'shutdown' puis 'no shutdown'."
+  },
+  {
+    "id": 20,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "question": "Quel masque générique (Wildcard Mask) correspond exactement au masque de sous-réseau 255.255.240.0 (/20) ?",
+    "codeSnippet": "Subnet Mask : 255.255.240.0\nWildcard Mask : ???",
+    "options": [
+      "0.0.15.255",
+      "0.0.31.255",
+      "0.0.240.255",
+      "0.0.7.255"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le Wildcard Mask se calcule en soustrayant chaque octet du masque à 255 : (255-255).(255-255).(255-240).(255-0) = 0.0.15.255."
+  },
+  {
+    "id": 21,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "En protocole OSPF multi-aires, quel type de LSA (Link-State Advertisement) est généré par un routeur ABR pour résumer les réseaux inter-aires ?",
+    "codeSnippet": "Area 0 <---> [ ABR Router ] <---> Area 1\nLSA Type : ???",
+    "options": [
+      "LSA Type 3 (Summary LSA)",
+      "LSA Type 1 (Router LSA)",
+      "LSA Type 2 (Network LSA)",
+      "LSA Type 5 (AS-External LSA)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Les LSA Type 1 sont générés par tous les routeurs d'une zone, les LSA Type 2 par le DR. L'ABR (Area Border Router) convertit ces informations en LSA Type 3 (Summary LSA) pour les diffuser dans les autres aires."
+  },
+  {
+    "id": 22,
+    "category": "Réseau",
+    "difficulty": "Difficile",
+    "question": "Dans le processus de sélection de route BGP (BGP Best Path Algorithm) chez Cisco, quel attribut propriétaire est évalué en TOUT PREMIER lieu ?",
+    "codeSnippet": "BGP Path Selection Order on Cisco IOS",
+    "options": [
+      "Le Poids ('Weight' - valeur locale au routeur la plus élevée)",
+      "La Préférence Locale ('Local Preference' - la plus élevée)",
+      "La longueur du chemin 'AS_Path' (le plus court)",
+      "La métrique MED (Multi-Exit Discriminator - la plus basse)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "L'ordre de décision BGP chez Cisco est : 1. Weight (attribut propriétaire Cisco local, valeur max gagne), 2. Local_Pref (valeur max gagne), 3. Routes générées localement, 4. AS_Path le plus court, 5. Origin code (IGP < EGP < Incomplete), 6. MED le plus bas."
+  },
+  {
+    "id": 23,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Quel format d'adresse MAC virtuelle est utilisé par le protocole HSRP Version 1 pour le groupe HSRP numéro 10 ?",
+    "codeSnippet": "HSRP Group: 10 (0x0A en hexadécimal)\nMAC Virtuelle: ???",
+    "options": [
+      "0000.0c07.ac0a",
+      "0000.5e00.010a",
+      "0007.b400.010a",
+      "ffff.0c07.ac10"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "En HSRP v1, l'adresse MAC virtuelle est de la forme 0000.0c07.acXX, où XX est le numéro du groupe HSRP en hexadécimal (10 en décimal = 0A en hexadécimal -> 0000.0c07.ac0a). VRRP utilise 0000.5e00.01XX."
+  },
+  {
+    "id": 24,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Quel risque majeur survient lors de la connexion d'un switch d'occasion configuré en mode VTP Server avec un 'Configuration Revision Number' supérieur à celui du domaine de production ?",
+    "codeSnippet": "Switch# show vtp status\nConfiguration Revision : 15",
+    "options": [
+      "La base de données VLAN du switch écrasera et effacera instantanément les VLANs de tout le domaine VTP",
+      "Le switch passera automatiquement en mode Transparent sans impact",
+      "Tous les liens Trunk seront immédiatement convertis en liens d'accès",
+      "Le protocole Spanning Tree sera désactivé sur l'ensemble des commutateurs"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "VTP synchronise sa base de données selon le numéro de révision le plus élevé. Un switch inséré avec un 'Revision Number' supérieur met à jour tous les autres switches du domaine, pouvant supprimer l'intégralité des VLANs de production !"
+  },
+  {
+    "id": 25,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Quelle fonctionnalité de sécurité réseau s'appuie sur la table de 'DHCP Snooping Binding' pour interdire les attaques d'usurpation d'identité ARP (ARP Spoofing / Poisoning) ?",
+    "codeSnippet": "Switch(config)# ip arp inspection vlan 10,20",
+    "options": [
+      "DAI (Dynamic ARP Inspection)",
+      "IP Source Guard (IPSG)",
+      "Control Plane Policing (CoPP)",
+      "BPDU Guard"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Dynamic ARP Inspection (DAI) inspecte toutes les requêtes et réponses ARP sur les ports non approuvés (untrusted) et vérifie la correspondance IP/MAC dans la table DHCP Snooping pour bloquer le spoofing ARP."
+  },
+  {
+    "id": 26,
+    "category": "Réseau",
+    "difficulty": "Difficile",
+    "question": "Quelle est la super-agrégation (CIDR Summarization) optimale pour regrouper les 4 réseaux : 10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24 et 10.1.3.0/24 ?",
+    "codeSnippet": "10.1.0.0/24\n10.1.1.0/24\n10.1.2.0/24\n10.1.3.0/24\n===> Résumé : ???",
+    "options": [
+      "10.1.0.0/22",
+      "10.1.0.0/21",
+      "10.1.0.0/23",
+      "10.1.0.0/20"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "En binaire, le 3e octet varie de 0 (00000000) à 3 (00000011). Les 6 premiers bits du 3e octet sont identiques (000000xx). 8 + 8 + 6 = 22 bits communs. Le résumé optimal est donc 10.1.0.0/22 (couvrant 10.1.0.0 à 10.1.3.255)."
+  },
+  {
+    "id": 27,
+    "category": "Réseau",
+    "difficulty": "Difficile",
+    "question": "Lors de la génération d'un Interface ID IPv6 avec la méthode EUI-64 à partir de l'adresse MAC 00:1A:2B:3C:4D:5E, quelle est la modification appliquée au premier octet ?",
+    "codeSnippet": "MAC : 00-1A-2B-3C-4D-5E\nEUI-64 -> Inversion du 7e bit (Universal/Local bit) + insertion FF:FE",
+    "options": [
+      "L'octet 00 devient 02 (inversion du 7e bit de poids fort)",
+      "L'octet 00 devient FF",
+      "L'octet 00 est supprimé",
+      "L'octet 00 devient FE"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "En EUI-64, on insère FF:FE au milieu (001A:2BFF:FE3C:4D5E) et on inverse le 7e bit (bit U/L) du premier octet : 00 (00000000 en binaire) devient 02 (00000010 en binaire). Le résultat est 021A:2BFF:FE3C:4D5E."
+  },
+  {
+    "id": 28,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Sous Cisco IOS, quel type de chiffrement de mot de passe est utilisé par la directive 'enable secret' standard utilisant l'algorithme MD5 avec sel (Salt) ?",
+    "codeSnippet": "Router# show running-config\nenable secret 5 $1$mERr$hp5Zn4q...",
+    "options": [
+      "Type 5 (Hash MD5 salé)",
+      "Type 7 (Chiffrement Vigenère réversible très faible)",
+      "Type 0 (Texte en clair)",
+      "Type 9 (Scrypt)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Type 0 = clair, Type 7 = réversible (obsolète), Type 5 = hash MD5, Type 8 = SHA-256 et Type 9 = Scrypt (hautement résistant aux attaques par force brute GPU)."
+  },
+  {
+    "id": 29,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Quelle commande Cisco IOS permet de résoudre les problèmes de fragmentation TCP sur un tunnel VPN IPsec/GRE sans modifier le MTU physique de l'interface ?",
+    "codeSnippet": "Router(config-if)# interface Tunnel0\nRouter(config-if)# ??? 1360",
+    "options": [
+      "ip tcp adjust-mss 1360",
+      "ip mtu override 1360",
+      "tcp window-size 1360",
+      "crypto ipsec mtu 1360"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "'ip tcp adjust-mss <valeur>' intercepte les segments SYN TCP lors du 3-Way Handshake et réécrit la valeur MSS (Maximum Segment Size) pour éviter que les paquets ne dépassent le MTU une fois les en-têtes GRE/IPsec encapsulés."
+  },
+  {
+    "id": 30,
+    "category": "Cisco",
+    "difficulty": "Difficile",
+    "question": "Dans le protocole Spanning Tree rapide (RSTP 802.1w), quel état d'interface a été fusionné avec 'Blocking' et 'Listening' pour simplifier les rôles ?",
+    "codeSnippet": "802.1D (Blocking / Listening) ===> 802.1w : ???",
+    "options": [
+      "Discarding (Élimination)",
+      "Learning",
+      "Forwarding",
+      "Disabled"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "RSTP (IEEE 802.1w) simplifie les 5 états 802.1D en seulement 3 états opérationnels : Discarding (fusion de Disabled, Blocking et Listening), Learning (apprentissage des MACs) et Forwarding (acheminement normal)."
+  }
+]

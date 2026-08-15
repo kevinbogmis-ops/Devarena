@@ -1,0 +1,524 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+
+// Chargement des questions depuis questions.json
+let allQuestions = [];
+try {
+  const questionsPath = path.join(__dirname, 'questions.json');
+  const data = fs.readFileSync(questionsPath, 'utf8');
+  allQuestions = JSON.parse(data);
+  console.log(`[DevArena] ${allQuestions.length} questions chargées avec succès.`);
+} catch (err) {
+  console.error('[DevArena] Erreur lors du chargement de questions.json:', err);
+  allQuestions = [];
+}
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Endpoints HTTP
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    activeRooms: Object.keys(rooms).length,
+    totalQuestions: allQuestions.length,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/questions/stats', (req, res) => {
+  const categories = {};
+  allQuestions.forEach(q => {
+    categories[q.category] = (categories[q.category] || 0) + 1;
+  });
+  res.json({
+    total: allQuestions.length,
+    categories
+  });
+});
+
+// État en mémoire vive (RAM)
+const rooms = {};
+
+// Helper: Générer un code PIN à 6 chiffres unique
+function generateRoomPin() {
+  let pin;
+  let attempts = 0;
+  do {
+    pin = Math.floor(100000 + Math.random() * 900000).toString();
+    attempts++;
+  } while (rooms[pin] && attempts < 100);
+  return pin;
+}
+
+// Helper: Mélanger un tableau (Fisher-Yates)
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Gestion des WebSockets
+io.on('connection', (socket) => {
+  console.log(`[Socket] Connexion établie: ${socket.id}`);
+
+  // --- 1. CRÉATION D'UNE SALLE PAR L'HÔTE ---
+  socket.on('host:create_room', () => {
+    const pin = generateRoomPin();
+    rooms[pin] = {
+      pin,
+      hostSocketId: socket.id,
+      state: 'LOBBY', // LOBBY, QUESTION, ROUND_RESULT, GAME_OVER
+      players: {}, // socketId -> { id, nickname, score, streak, totalCorrect, lastPoints }
+      questions: [],
+      currentQuestionIndex: -1,
+      questionStartTime: null,
+      questionTimeLimit: 20,
+      answers: {}, // socketId -> { answerIndex, timeTakenMs, points, isCorrect }
+      timer: null,
+      tickInterval: null,
+      settings: {
+        questionCount: Math.min(10, allQuestions.length),
+        shuffle: true
+      }
+    };
+
+    socket.join(`room:${pin}`);
+    socket.join(`host:${pin}`);
+
+    console.log(`[Room ${pin}] Salle créée par l'hôte ${socket.id}`);
+    socket.emit('host:room_created', {
+      pin,
+      totalQuestionsAvailable: allQuestions.length
+    });
+  });
+
+  // --- 2. REJOINDRE UNE SALLE (JOUEUR) ---
+  socket.on('player:join_room', ({ pin, nickname }) => {
+    const cleanPin = (pin || '').trim();
+    const cleanNickname = (nickname || '').trim().substring(0, 16);
+
+    const room = rooms[cleanPin];
+    if (!room) {
+      socket.emit('player:join_error', { message: 'Code PIN introuvable. Vérifiez le code affiché par le Host.' });
+      return;
+    }
+
+    if (room.state !== 'LOBBY') {
+      socket.emit('player:join_error', { message: 'La partie est déjà en cours ou terminée.' });
+      return;
+    }
+
+    if (!cleanNickname) {
+      socket.emit('player:join_error', { message: 'Veuillez saisir un pseudo valide.' });
+      return;
+    }
+
+    // Vérification de doublon de pseudo
+    const nicknameExists = Object.values(room.players).some(
+      p => p.nickname.toLowerCase() === cleanNickname.toLowerCase()
+    );
+    if (nicknameExists) {
+      socket.emit('player:join_error', { message: 'Ce pseudo est déjà utilisé dans cette arène. Choisissez-en un autre !' });
+      return;
+    }
+
+    // Enregistrement du joueur
+    room.players[socket.id] = {
+      id: socket.id,
+      nickname: cleanNickname,
+      score: 0,
+      streak: 0,
+      totalCorrect: 0,
+      lastPoints: 0,
+      avatarIndex: Math.floor(Math.random() * 8)
+    };
+
+    socket.join(`room:${cleanPin}`);
+    socket.data.roomPin = cleanPin;
+    socket.data.nickname = cleanNickname;
+
+    console.log(`[Room ${cleanPin}] Joueur "${cleanNickname}" (${socket.id}) a rejoint.`);
+
+    // Confirmer au joueur
+    socket.emit('player:join_success', {
+      pin: cleanPin,
+      player: room.players[socket.id]
+    });
+
+    // Mettre à jour la liste des joueurs pour l'hôte et la salle
+    const playerList = Object.values(room.players).map(p => ({
+      id: p.id,
+      nickname: p.nickname,
+      avatarIndex: p.avatarIndex,
+      score: p.score
+    }));
+
+    io.to(`room:${cleanPin}`).emit('room:player_list_updated', {
+      players: playerList,
+      count: playerList.length
+    });
+  });
+
+  // --- 3. DÉMARRAGE DU JEU PAR L'HÔTE ---
+  socket.on('host:start_game', ({ pin, questionCount = 10, shuffle = true }) => {
+    const cleanPin = (pin || '').toString().trim();
+    const room = rooms[cleanPin];
+    
+    if (!room) {
+      console.log(`[Host Error] Salle "${cleanPin}" non trouvée lors de la tentative de démarrage.`);
+      socket.emit('error_message', { message: 'Salle introuvable ou expirée. Veuillez recharger la page.' });
+      return;
+    }
+
+    // Réassociation automatique du socket de l'hôte si reconnexion
+    if (room.hostSocketId !== socket.id) {
+      console.log(`[Room ${cleanPin}] Réassociation de l'hôte ${socket.id} (ancien: ${room.hostSocketId})`);
+      room.hostSocketId = socket.id;
+      socket.join(`room:${cleanPin}`);
+      socket.join(`host:${cleanPin}`);
+    }
+
+    const playerCount = Object.keys(room.players).length;
+    if (playerCount === 0) {
+      socket.emit('error_message', { 
+        message: '⚠️ Aucun joueur n\'a encore rejoint cette arène ! Rejoignez depuis /player.html avec le code PIN ' + cleanPin + ' pour démarrer.' 
+      });
+      return;
+    }
+
+    // Préparation de la liste des questions
+    let selectedQuestions = shuffle ? shuffleArray(allQuestions) : [...allQuestions];
+    const count = Math.min(parseInt(questionCount, 10) || 10, selectedQuestions.length);
+    room.questions = selectedQuestions.slice(0, count);
+    room.currentQuestionIndex = -1;
+    room.state = 'STARTING';
+
+    console.log(`[Room ${cleanPin}] Démarrage de la partie avec ${room.questions.length} questions et ${playerCount} joueurs.`);
+
+    io.to(`room:${cleanPin}`).emit('game:starting', {
+      totalQuestions: room.questions.length,
+      countdown: 3
+    });
+
+    setTimeout(() => {
+      startNextQuestion(cleanPin);
+    }, 3500);
+  });
+
+  // --- 4. RÉPONSE D'UN JOUEUR ---
+  socket.on('player:submit_answer', ({ pin, answerIndex }) => {
+    const room = rooms[pin];
+    if (!room || room.state !== 'QUESTION') {
+      return;
+    }
+
+    const player = room.players[socket.id];
+    if (!player) return;
+
+    // Si déjà répondu pour cette question, ignorer (anti-triche / anti-spam)
+    if (room.answers[socket.id] !== undefined) {
+      return;
+    }
+
+    const now = Date.now();
+    const timeTakenMs = Math.max(50, now - room.questionStartTime);
+    const maxTimeMs = room.questionTimeLimit * 1000;
+    const currentQ = room.questions[room.currentQuestionIndex];
+
+    const isCorrect = answerIndex === currentQ.correctIndex;
+    let points = 0;
+
+    if (isCorrect) {
+      // Formule Kahoot! optimisée : 1000 * (1 - (temps / temps_max)) avec plancher à 150 pts
+      const timeRatio = Math.min(1, Math.max(0, timeTakenMs / maxTimeMs));
+      const basePoints = Math.round(1000 * (1 - timeRatio));
+      
+      // Bonus de streak (+50 pts par bonne réponse consécutive après la première, max 250)
+      const streakBonus = player.streak > 0 ? Math.min(250, player.streak * 50) : 0;
+      points = Math.max(150, basePoints) + streakBonus;
+
+      player.streak += 1;
+      player.totalCorrect += 1;
+    } else {
+      player.streak = 0;
+      points = 0;
+    }
+
+    player.score += points;
+    player.lastPoints = points;
+
+    room.answers[socket.id] = {
+      answerIndex,
+      timeTakenMs,
+      points,
+      isCorrect
+    };
+
+    // Accusé de réception immédiat au joueur
+    socket.emit('player:answer_acknowledged', {
+      answerIndex,
+      receivedAt: now
+    });
+
+    const answeredCount = Object.keys(room.answers).length;
+    const totalPlayers = Object.keys(room.players).length;
+
+    // Mise à jour du compteur pour l'hôte
+    io.to(`host:${pin}`).emit('host:player_answered_count', {
+      answeredCount,
+      totalPlayers
+    });
+
+    // Si tous les joueurs connectés ont répondu, fin immédiate de la question
+    if (answeredCount >= totalPlayers && totalPlayers > 0) {
+      console.log(`[Room ${pin}] Tous les joueurs (${answeredCount}/${totalPlayers}) ont répondu. Clôture anticipée.`);
+      endQuestionRound(pin);
+    }
+  });
+
+  // --- 5. PASSAGE À LA QUESTION SUIVANTE PAR L'HÔTE ---
+  socket.on('host:next_question', ({ pin }) => {
+    const room = rooms[pin];
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.state === 'ROUND_RESULT') {
+      startNextQuestion(pin);
+    }
+  });
+
+  // --- 6. GESTION DES DÉCONNEXIONS ---
+  socket.on('disconnect', () => {
+    console.log(`[Socket] Déconnexion: ${socket.id}`);
+    
+    // Si c'est un hôte
+    for (const pin in rooms) {
+      const room = rooms[pin];
+      if (room.hostSocketId === socket.id) {
+        console.log(`[Room ${pin}] L'hôte s'est déconnecté. Fermeture de la salle.`);
+        clearInterval(room.tickInterval);
+        clearTimeout(room.timer);
+        io.to(`room:${pin}`).emit('game:host_disconnected', {
+          message: "L'arène a été fermée car le Maître du jeu s'est déconnecté."
+        });
+        delete rooms[pin];
+        return;
+      }
+      
+      // Si c'est un joueur
+      if (room.players[socket.id]) {
+        const pName = room.players[socket.id].nickname;
+        console.log(`[Room ${pin}] Joueur "${pName}" déconnecté.`);
+        delete room.players[socket.id];
+        delete room.answers[socket.id];
+
+        const playerList = Object.values(room.players).map(p => ({
+          id: p.id,
+          nickname: p.nickname,
+          avatarIndex: p.avatarIndex,
+          score: p.score
+        }));
+
+        io.to(`room:${pin}`).emit('room:player_list_updated', {
+          players: playerList,
+          count: playerList.length
+        });
+
+        // Si on était en question et qu'avec ce départ tous les restants ont répondu
+        if (room.state === 'QUESTION') {
+          const answeredCount = Object.keys(room.answers).length;
+          const remainingPlayers = Object.keys(room.players).length;
+          io.to(`host:${pin}`).emit('host:player_answered_count', {
+            answeredCount,
+            totalPlayers: remainingPlayers
+          });
+          if (remainingPlayers > 0 && answeredCount >= remainingPlayers) {
+            endQuestionRound(pin);
+          }
+        }
+      }
+    }
+  });
+});
+
+// Helper: Lancement d'une question
+function startNextQuestion(pin) {
+  const room = rooms[pin];
+  if (!room) return;
+
+  clearInterval(room.tickInterval);
+  clearTimeout(room.timer);
+
+  room.currentQuestionIndex++;
+
+  if (room.currentQuestionIndex >= room.questions.length) {
+    // Fin de la partie
+    finishGame(pin);
+    return;
+  }
+
+  const currentQ = room.questions[room.currentQuestionIndex];
+  room.state = 'QUESTION';
+  room.answers = {};
+  room.questionTimeLimit = currentQ.timeLimit || 20;
+  room.questionStartTime = Date.now();
+
+  // Payload diffusé aux clients (SANS la bonne réponse ni l'explication pour éviter la triche)
+  const clientQuestionPayload = {
+    questionNumber: room.currentQuestionIndex + 1,
+    totalQuestions: room.questions.length,
+    category: currentQ.category,
+    difficulty: currentQ.difficulty,
+    question: currentQ.question,
+    codeSnippet: currentQ.codeSnippet,
+    options: currentQ.options,
+    timeLimit: room.questionTimeLimit
+  };
+
+  io.to(`room:${pin}`).emit('game:question_started', clientQuestionPayload);
+  io.to(`host:${pin}`).emit('host:player_answered_count', {
+    answeredCount: 0,
+    totalPlayers: Object.keys(room.players).length
+  });
+
+  // Ticks de synchronisation du timer
+  let remainingSec = room.questionTimeLimit;
+  room.tickInterval = setInterval(() => {
+    remainingSec--;
+    if (remainingSec >= 0) {
+      io.to(`room:${pin}`).emit('game:timer_tick', { remainingSec });
+    }
+    if (remainingSec <= 0) {
+      clearInterval(room.tickInterval);
+    }
+  }, 1000);
+
+  // Minuteur de fin de question
+  room.timer = setTimeout(() => {
+    endQuestionRound(pin);
+  }, room.questionTimeLimit * 1000 + 300); // 300ms de marge de sécurité réseau
+}
+
+// Helper: Fin de la question en cours et calcul des résultats
+function endQuestionRound(pin) {
+  const room = rooms[pin];
+  if (!room || room.state !== 'QUESTION') return;
+
+  clearInterval(room.tickInterval);
+  clearTimeout(room.timer);
+
+  room.state = 'ROUND_RESULT';
+  const currentQ = room.questions[room.currentQuestionIndex];
+
+  // Calcul des statistiques de réponses (A, B, C, D)
+  const optionStats = [0, 0, 0, 0];
+  Object.values(room.answers).forEach(ans => {
+    if (ans.answerIndex >= 0 && ans.answerIndex < 4) {
+      optionStats[ans.answerIndex]++;
+    }
+  });
+
+  // Classement actuel
+  const leaderboard = Object.values(room.players)
+    .sort((a, b) => b.score - a.score)
+    .map((p, idx) => ({
+      rank: idx + 1,
+      id: p.id,
+      nickname: p.nickname,
+      score: p.score,
+      lastPoints: p.lastPoints,
+      streak: p.streak,
+      avatarIndex: p.avatarIndex
+    }));
+
+  // Notifier chaque joueur individuellement avec son résultat personnalisé
+  Object.values(room.players).forEach(player => {
+    const playerAnswer = room.answers[player.id];
+    const isCorrect = playerAnswer ? playerAnswer.isCorrect : false;
+    const pointsGained = playerAnswer ? playerAnswer.points : 0;
+    const currentRankObj = leaderboard.find(l => l.id === player.id);
+    const rank = currentRankObj ? currentRankObj.rank : 1;
+
+    io.to(player.id).emit('player:round_result', {
+      isCorrect,
+      hasAnswered: !!playerAnswer,
+      pointsGained,
+      currentScore: player.score,
+      rank,
+      streak: player.streak,
+      correctIndex: currentQ.correctIndex,
+      correctOptionLetter: ['A', 'B', 'C', 'D'][currentQ.correctIndex],
+      correctAnswerText: currentQ.options[currentQ.correctIndex],
+      explanation: currentQ.explanation
+    });
+  });
+
+  // Notifier toute la salle avec la révélation et le classement
+  io.to(`room:${pin}`).emit('game:round_ended', {
+    correctIndex: currentQ.correctIndex,
+    explanation: currentQ.explanation,
+    optionStats,
+    leaderboard: leaderboard.slice(0, 5), // Top 5
+    fullLeaderboard: leaderboard,
+    isLastQuestion: room.currentQuestionIndex >= room.questions.length - 1
+  });
+}
+
+// Helper: Fin définitive de la partie et podium
+function finishGame(pin) {
+  const room = rooms[pin];
+  if (!room) return;
+
+  room.state = 'GAME_OVER';
+
+  const finalRanking = Object.values(room.players)
+    .sort((a, b) => b.score - a.score)
+    .map((p, idx) => ({
+      rank: idx + 1,
+      id: p.id,
+      nickname: p.nickname,
+      score: p.score,
+      totalCorrect: p.totalCorrect,
+      totalQuestions: room.questions.length,
+      avatarIndex: p.avatarIndex,
+      accuracy: Math.round((p.totalCorrect / Math.max(1, room.questions.length)) * 100)
+    }));
+
+  console.log(`[Room ${pin}] Partie terminée ! Vainqueur: ${finalRanking[0]?.nickname || 'Aucun'} avec ${finalRanking[0]?.score || 0} pts.`);
+
+  io.to(`room:${pin}`).emit('game:game_over', {
+    podium: finalRanking.slice(0, 3),
+    fullRanking: finalRanking,
+    totalQuestions: room.questions.length
+  });
+}
+
+// Démarrage du serveur HTTP & WebSocket
+server.listen(PORT, () => {
+  console.log('====================================================');
+  console.log(`🚀 [DevArena] Serveur opérationnel sur le port ${PORT}`);
+  console.log(`🌐 Accès Web : http://localhost:${PORT}`);
+  console.log(`🎮 Mode Host  : http://localhost:${PORT}/host.html`);
+  console.log(`📱 Mode Player: http://localhost:${PORT}/player.html`);
+  console.log('====================================================');
+});

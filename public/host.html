@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevArena | Écran Maître du Jeu (Host)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <a href="index.html" class="logo-link">
+      <span style="font-size: 1.6rem;">⚡</span>
+      <span class="logo-text">Dev<span class="highlight">Arena</span></span>
+      <span class="logo-tag">HOST CONSOLE</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="sound-toggle-btn" class="btn-sound-toggle">🔊 Son: ON</button>
+    </div>
+  </header>
+
+  <main class="container" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding: 24px 20px;">
+    
+    <!-- ==================== VUE 1 : LOBBY D'ATTENTE ==================== -->
+    <section id="view-lobby" class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-server --listen-lobby</span>
+        <div class="terminal-status">
+          <span class="pulse"></span>
+          <span id="player-count-badge">0 joueur</span>
+        </div>
+      </div>
+
+      <div style="padding: 30px; text-align: center;">
+        
+        <!-- Bannière d'alerte / erreur -->
+        <div id="host-error-banner" style="display: none; background-color: rgba(248, 81, 73, 0.15); border: 1px solid var(--color-a); color: var(--color-a); padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.95rem; margin-bottom: 20px; font-weight: 600;">
+        </div>
+
+        <!-- Bloc Code PIN & QR Code d'Invitation -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; margin: 0 auto 28px auto; max-width: 720px;">
+          
+          <!-- Carte PIN -->
+          <div style="background-color: #06090e; border: 2px dashed var(--color-b); border-radius: var(--radius-md); padding: 22px; flex: 1; min-width: 280px;">
+            <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+              Rejoindre sur navigateur :
+            </div>
+            <div style="font-size: 1.1rem; color: var(--text-main); font-weight: 600; margin-bottom: 8px;">
+              /player.html
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">CODE PIN DE L'ARÈNE</div>
+            <div id="room-pin-display" style="font-size: 3.6rem; font-weight: 800; letter-spacing: 6px; color: var(--color-d); line-height: 1.1; font-family: var(--font-mono); text-shadow: 0 0 20px rgba(63, 185, 80, 0.4); margin: 6px 0 12px 0;">
+              ------
+            </div>
+            <button id="btn-copy-invite" class="btn btn-secondary" style="font-size: 0.82rem; padding: 8px 14px; width: 100%;">
+              📋 Copier le lien direct avec PIN
+            </button>
+          </div>
+
+          <!-- Carte QR Code -->
+          <div style="background-color: #06090e; border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 240px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+              📷 SCANNER POUR REJOINDRE
+            </div>
+            <div id="lobby-qrcode" style="background: #ffffff; padding: 10px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-height: 160px; min-width: 160px;">
+              <div style="color: #666; font-size: 0.8rem;">Génération du QR...</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-code); margin-top: 8px;">
+              Connexion smartphone
+            </div>
+
+            <!-- Personnalisation d'URL Cloudflare / Tunnel -->
+            <div style="margin-top: 10px; width: 100%; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+              <input 
+                type="url" 
+                id="custom-public-url" 
+                class="input-field" 
+                placeholder="https://xxx.trycloudflare.com" 
+                style="font-size: 0.72rem; padding: 6px 8px; width: 100%; text-align: center;"
+                title="Collez votre lien Cloudflare ici si vous ouvrez l'écran Host en localhost"
+              >
+              <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;">
+                🌐 URL Cloudflare Tunnel (optionnelle)
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Options de partie -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+          <label style="font-size: 0.9rem; color: var(--text-muted);">
+            Nombre de questions :
+            <select id="select-question-count" class="input-field" style="width: auto; padding: 6px 12px; margin-left: 8px; font-size: 0.9rem;">
+              <option value="5">5 questions (Flash)</option>
+              <option value="10">10 questions (Standard)</option>
+              <option value="20">20 questions (Intense)</option>
+              <option value="30" selected>30 questions (Grand Chelem)</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Bouton Démarrer -->
+        <button id="btn-start-game" class="btn btn-primary" style="font-size: 1.2rem; padding: 16px 40px;">
+          🚀 Lancer la Partie
+        </button>
+
+        <!-- Liste des Joueurs connectés -->
+        <div style="margin-top: 36px;">
+          <div style="font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; text-align: left;">
+            $ cat /var/log/connected_players.txt
+          </div>
+          <div id="player-lobby-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+            <!-- Rempli dynamiquement -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VUE 2 : COMPTE À REBOURS AVANT JEU ==================== -->
+    <section id="view-countdown" class="terminal-window" style="display: none; text-align: center; padding: 80px 20px;">
+      <div style="font-size: 1.5rem; color: var(--text-muted); margin-bottom: 16px;">
+        INITIALISATION DU PROTOCOLE D'ÉVALUATION...
+      </div>
+      <div id="starting-countdown-number" style="font-size: 8rem; font-weight: 800; color: var(--color-d); font-family: var(--font-mono); text-shadow: 0 0 40px rgba(63, 185, 80, 0.6); animation: pulse-correct 1s infinite alternate;">
+        3
+      </div>
+      <div style="color: var(--text-code); font-size: 1.1rem; margin-top: 16px;">
+        Préparez vos claviers !
+      </div>
+    </section>
+
+    <!-- ==================== VUE 3 : QUESTION EN COURS ==================== -->
+    <section id="view-question" style="display: none;">
+      
+      <!-- Carte de Question -->
+      <div class="question-card">
+        
+        <div class="question-meta">
+          <div class="meta-badges">
+            <span id="q-category-badge" class="badge badge-docker">Docker</span>
+            <span id="q-difficulty-badge" class="badge badge-devops">Intermédiaire</span>
+            <span id="q-progress-text" style="color: var(--text-muted); font-size: 0.9rem; margin-left: 8px;">Question 1 / 10</span>
+          </div>
+
+          <!-- Chrono Circulaire -->
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="answered-counter-text" style="font-size: 0.95rem; font-weight: 600; color: var(--color-b);">
+              0 / 0 réponses
+            </div>
+            <div class="timer-container">
+              <svg class="timer-circle" viewBox="0 0 60 60">
+                <circle class="timer-bg" cx="30" cy="30" r="28" />
+                <circle id="host-timer-progress" class="timer-progress" cx="30" cy="30" r="28" />
+              </svg>
+              <span id="host-timer-text" class="timer-text">20</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="q-text" class="question-text">
+          Chargement de la question...
+        </h2>
+
+        <!-- Bloc de Code Optionnel -->
+        <pre id="q-code-box" class="code-snippet-box" style="display: none;"></pre>
+
+      </div>
+
+      <!-- Grille des 4 Réponses -->
+      <div class="answer-grid">
+        
+        <div id="host-ans-a" class="key-btn key-a">
+          <span class="key-badge">A</span>
+          <span class="key-text">Option A</span>
+        </div>
+
+        <div id="host-ans-b" class="key-btn key-b">
+          <span class="key-badge">B</span>
+          <span class="key-text">Option B</span>
+        </div>
+
+        <div id="host-ans-c" class="key-btn key-c">
+          <span class="key-badge">C</span>
+          <span class="key-text">Option C</span>
+        </div>
+
+        <div id="host-ans-d" class="key-btn key-d">
+          <span class="key-badge">D</span>
+          <span class="key-text">Option D</span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== VUE 4 : RÉSULTAT DU ROUND & LEADERBOARD ==================== -->
+    <section id="view-result" class="terminal-window" style="display: none; padding: 24px;">
+      
+      <div class="terminal-header" style="margin: -24px -24px 24px -24px;">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena --round-summary</span>
+        <div class="terminal-status">
+          <span class="pulse"></span>
+          <span>CLASSEMENT EN DIRECT</span>
+        </div>
+      </div>
+
+      <!-- Explication technique -->
+      <div id="result-explanation" class="question-card" style="margin-bottom: 24px; border-left: 4px solid var(--color-d);">
+        <!-- Rempli en JS -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">
+          🏆 Top 5 de l'Arène
+        </h3>
+        <button id="btn-next-question" class="btn btn-primary">
+          ▶ Question Suivante
+        </button>
+      </div>
+
+      <!-- Liste du classement -->
+      <div id="result-leaderboard-list" class="leaderboard-list">
+        <!-- Rempli en JS -->
+      </div>
+
+    </section>
+
+    <!-- ==================== VUE 5 : PODIUM FINAL ==================== -->
+    <section id="view-podium" class="terminal-window" style="display: none; padding: 36px 24px; text-align: center;">
+      
+      <div style="display: inline-block; font-size: 3.5rem; margin-bottom: 8px;">🏆</div>
+      <h2 style="font-size: 2.2rem; font-weight: 800; color: #ffd700; margin-bottom: 8px;">
+        Fin de la Session DevArena !
+      </h2>
+      <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 24px;">
+        Félicitations aux champions du terminal et de l'infrastructure !
+      </p>
+
+      <!-- Podium 3D -->
+      <div id="podium-steps-container" class="podium-container">
+        <!-- Rempli en JS (2e, 1er, 3e) -->
+      </div>
+
+      <!-- Tableau complet -->
+      <div style="max-width: 600px; margin: 30px auto 0 auto; text-align: left;">
+        <h4 style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 12px;">
+          Classement Général Complet :
+        </h4>
+        <div id="final-leaderboard-list" class="leaderboard-list">
+          <!-- Rempli en JS -->
+        </div>
+      </div>
+
+      <div style="margin-top: 36px;">
+        <button id="btn-restart-game" class="btn btn-cyber" style="padding: 14px 32px; font-size: 1.1rem;">
+          🔄 Relancer une Nouvelle Arène
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer style="text-align: center; padding: 14px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+    &copy; 2026 <strong>DevArena</strong> &bull; Conçu et développé par <strong>Kevin BOGMIS</strong>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/qrcode.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/client.js"></script>
+  <script src="js/host.js"></script>
+</body>
+</html>
