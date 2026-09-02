@@ -263,10 +263,11 @@ if (btnCopyInvite) {
 // 2. Mise à jour de la liste des joueurs dans le lobby
 let connectedPlayersCount = 0;
 
-socket.on('room:player_list_updated', ({ players, count }) => {
-  connectedPlayersCount = count;
-  if (playerCountBadge) playerCountBadge.textContent = `${count} joueur${count > 1 ? 's' : ''}`;
-  
+socket.on('room:player_list_updated', ({ players, count, connectedCount }) => {
+  const nbConnected = (typeof connectedCount === 'number') ? connectedCount : count;
+  connectedPlayersCount = nbConnected;
+  if (playerCountBadge) playerCountBadge.textContent = `${nbConnected} joueur${nbConnected > 1 ? 's' : ''}`;
+
   if (playerGrid) {
     if (players.length === 0) {
       playerGrid.innerHTML = `
@@ -276,15 +277,18 @@ socket.on('room:player_list_updated', ({ players, count }) => {
         </div>
       `;
     } else {
-      playerGrid.innerHTML = players.map(p => `
-        <div class="leaderboard-item" style="animation: fadeIn 0.3s ease;">
+      playerGrid.innerHTML = players.map(p => {
+        const isOnline = p.connected !== false;
+        return `
+        <div class="leaderboard-item" style="animation: fadeIn 0.3s ease;${isOnline ? '' : ' opacity: 0.45;'}">
           <div class="player-info">
             <span style="font-size: 1.5rem;">${getAvatarEmoji(p.avatarIndex)}</span>
             <span class="player-name">${escapeHtml(p.nickname)}</span>
           </div>
-          <span class="badge badge-cisco">PRÊT</span>
+          <span class="badge ${isOnline ? 'badge-cisco' : 'badge-ansible'}">${isOnline ? 'PRÊT' : '⚠ OFFLINE'}</span>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
   }
 });
