@@ -8,14 +8,28 @@ const db = require('./db');
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS configurable : CORS_ORIGIN='*' par défaut (pratique en LAN/dev où les
+// joueurs arrivent de smartphones), à restreindre en prod via une liste
+// d'origines séparées par des virgules (ex: CORS_ORIGIN="https://devarena.fr").
+const rawCorsOrigin = process.env.CORS_ORIGIN || '*';
+const corsOrigin = rawCorsOrigin === '*'
+  ? '*'
+  : rawCorsOrigin.split(',').map(o => o.trim()).filter(Boolean);
+
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: corsOrigin,
     methods: ['GET', 'POST']
   }
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Paramètres de nettoyage des salles en mémoire (surchargeable pour les tests)
+const ROOM_SWEEP_INTERVAL_MS = parseInt(process.env.ROOM_SWEEP_INTERVAL_MS, 10) || 5 * 60 * 1000;
+const ROOM_GAMEOVER_TTL_MS = parseInt(process.env.ROOM_GAMEOVER_TTL_MS, 10) || 30 * 60 * 1000;
+const ROOM_IDLE_TTL_MS = parseInt(process.env.ROOM_IDLE_TTL_MS, 10) || 2 * 60 * 60 * 1000;
 
 // Chargement des questions depuis questions.json (source de vérité pour le seed,
 // et solution de repli si PostgreSQL est indisponible)
@@ -49,7 +63,7 @@ let dbReady = false;
 })();
 
 // Middlewares
-app.use(cors());
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -94,14 +108,17 @@ app.get('/api/questions/stats', (req, res) => {
 // État en mémoire vive (RAM)
 const rooms = {};
 
-// Helper: Générer un code PIN à 6 chiffres unique
+// Helper: Générer un code PIN à 6 chiffres réellement unique.
+// Retourne null si l'espace des PIN est saturé (cas quasi impossible : 900 000 combinaisons).
 function generateRoomPin() {
+  // Garde-fou : si plus de 90% des PIN sont pris, on refuse plutôt que de boucler à l'infini
+  if (Object.keys(rooms).length >= 810000) {
+    return null;
+  }
   let pin;
-  let attempts = 0;
   do {
     pin = Math.floor(100000 + Math.random() * 900000).toString();
-    attempts++;
-  } while (rooms[pin] && attempts < 100);
+  } while (rooms[pin]);
   return pin;
 }
 
@@ -188,6 +205,12 @@ function pickTarget(room, attackerId) {
   return idx === 0 ? ranking[1] : ranking[idx - 1];
 }
 
+// Helper: Marquer une salle comme active (pour le nettoyage des salles abandonnées)
+function touchRoom(pin) {
+  const room = rooms[pin];
+  if (room) room.lastActivity = Date.now();
+}
+
 // Helper: Joueurs actuellement connectés d'une salle
 function getConnectedPlayers(room) {
   return Object.values(room.players).filter(p => p.connected !== false);
@@ -197,6 +220,7 @@ function getConnectedPlayers(room) {
 function broadcastPlayerList(pin) {
   const room = rooms[pin];
   if (!room) return;
+  room.lastActivity = Date.now();
   const playerList = Object.values(room.players).map(p => ({
     id: p.id,
     nickname: p.nickname,
@@ -277,11 +301,16 @@ io.on('connection', (socket) => {
   // --- 1. CRÉATION D'UNE SALLE PAR L'HÔTE ---
   socket.on('host:create_room', () => {
     const pin = generateRoomPin();
+    if (!pin) {
+      socket.emit('error_message', { message: 'Le serveur est saturé, réessayez dans un instant.' });
+      return;
+    }
     rooms[pin] = {
       pin,
       hostSocketId: socket.id,
       hostConnected: true,
       hostGraceTimer: null,
+      lastActivity: Date.now(),
       state: 'LOBBY', // LOBBY, QUESTION, ROUND_RESULT, GAME_OVER
       players: {}, // socketId -> { id, nickname, score, streak, totalCorrect, lastPoints }
       questions: [],
@@ -816,6 +845,7 @@ io.on('connection', (socket) => {
 function startNextQuestion(pin) {
   const room = rooms[pin];
   if (!room) return;
+  room.lastActivity = Date.now();
 
   clearInterval(room.tickInterval);
   clearTimeout(room.timer);
@@ -881,6 +911,7 @@ function startNextQuestion(pin) {
 function endQuestionRound(pin) {
   const room = rooms[pin];
   if (!room || room.state !== 'QUESTION') return;
+  room.lastActivity = Date.now();
 
   clearInterval(room.tickInterval);
   clearTimeout(room.timer);
@@ -937,6 +968,34 @@ function finishGame(pin) {
 
   io.to(`room:${pin}`).emit('game:game_over', payload);
 }
+
+// Nettoyage périodique des salles abandonnées (évite la fuite mémoire) :
+// - salle terminée (GAME_OVER) inactive depuis ROOM_GAMEOVER_TTL_MS
+// - toute salle inactive depuis ROOM_IDLE_TTL_MS (hôte parti, partie oubliée...)
+function sweepRooms() {
+  const now = Date.now();
+  let removed = 0;
+  for (const pin in rooms) {
+    const room = rooms[pin];
+    const idleFor = now - (room.lastActivity || 0);
+    const ttl = room.state === 'GAME_OVER' ? ROOM_GAMEOVER_TTL_MS : ROOM_IDLE_TTL_MS;
+    if (idleFor > ttl) {
+      clearInterval(room.tickInterval);
+      clearTimeout(room.timer);
+      clearTimeout(room.hostGraceTimer);
+      io.to(`room:${pin}`).emit('game:host_disconnected', {
+        message: "L'arène a été fermée pour inactivité."
+      });
+      delete rooms[pin];
+      removed++;
+    }
+  }
+  if (removed > 0) {
+    console.log(`[Cleanup] ${removed} salle(s) inactive(s) supprimée(s). Restantes : ${Object.keys(rooms).length}.`);
+  }
+}
+const roomSweepInterval = setInterval(sweepRooms, ROOM_SWEEP_INTERVAL_MS);
+roomSweepInterval.unref?.(); // ne pas empêcher l'arrêt du process
 
 // Démarrage du serveur HTTP & WebSocket
 server.listen(PORT, () => {

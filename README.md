@@ -95,6 +95,17 @@ DEVARENA_PORT=8088 docker compose up -d
 - Si PostgreSQL est indisponible (ex. `npm start` sans base), le serveur fonctionne en **mode fichier** avec `questions.json`, sans persistance.
 - Connexion configurable via `DATABASE_URL` (défaut : `postgresql://devarena:devarena@localhost:5432/devarena`).
 
+### ⚙️ Variables d'environnement
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `PORT` | `3000` | Port d'écoute du serveur Node.js |
+| `DATABASE_URL` | `postgresql://devarena:devarena@localhost:5432/devarena` | Connexion PostgreSQL |
+| `CORS_ORIGIN` | `*` | Origines autorisées (`*` en dev ; en prod, liste séparée par des virgules, ex. `https://devarena.fr`) |
+| `ROOM_GAMEOVER_TTL_MS` | `1800000` (30 min) | Délai avant suppression d'une salle terminée |
+| `ROOM_IDLE_TTL_MS` | `7200000` (2 h) | Délai avant suppression d'une salle inactive |
+| `ROOM_SWEEP_INTERVAL_MS` | `300000` (5 min) | Fréquence de nettoyage des salles abandonnées |
+
 Test de persistance de bout en bout (nécessite la stack compose démarrée) :
 ```bash
 npm run test:db
