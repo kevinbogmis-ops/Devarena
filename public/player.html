@@ -100,6 +100,9 @@
         <span style="color: var(--color-d);">$</span> payload: READY_FOR_COMBAT
       </div>
 
+      <!-- Guide de l'arsenal (jokers) pendant l'attente -->
+      <div id="arsenal-guide" style="text-align: left; margin-bottom: 20px;"></div>
+
       <p id="waiting-status-text" style="color: var(--text-muted); font-size: 0.95rem;">
         Regardez l'écran du Maître du jeu... La partie va bientôt démarrer !
       </p>
@@ -119,8 +122,17 @@
     </div>
 
     <!-- Barre de progression du timer -->
-    <div style="width: 100%; height: 4px; background-color: var(--bg-panel-secondary); border-radius: 2px; overflow: hidden; margin-bottom: 10px;">
+    <div style="width: 100%; height: 4px; background-color: var(--bg-panel-secondary); border-radius: 2px; overflow: hidden; margin-bottom: 8px;">
       <div id="player-timer-bar" style="width: 100%; height: 100%; background-color: var(--color-d); transition: width 1s linear, background-color 0.3s ease;"></div>
+    </div>
+
+    <!-- Jauge d'énergie ⚡ -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+      <span style="font-size: 0.85rem;">⚡</span>
+      <div class="energy-gauge">
+        <div id="player-energy-bar" class="energy-gauge-fill" style="width: 0%;"></div>
+      </div>
+      <span id="player-energy-text" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-c); font-weight: 700; min-width: 34px; text-align: right;">0</span>
     </div>
 
     <!-- Carte de la Question Affichée au Joueur -->
@@ -135,6 +147,9 @@
       <!-- Bloc de code (si présent) -->
       <pre id="player-code-box" class="code-snippet-box" style="display: none; font-size: 0.82rem; padding: 8px 12px; margin-bottom: 0;"></pre>
     </div>
+
+    <!-- Barre de jokers -->
+    <div id="player-jokers-bar" class="jokers-bar"></div>
 
     <!-- Grille 4 touches de réponse -->
     <div class="player-grid-mobile">
@@ -244,6 +259,22 @@
         Rejouer une Partie
       </a>
     </div>
+
+  <!-- Popup de confirmation de joker (style terminal) -->
+  <div id="joker-confirm-overlay" class="joker-overlay" style="display: none;">
+    <div class="joker-confirm-box">
+      <div id="joker-confirm-cmd" class="joker-cmd">$ ./joker.sh</div>
+      <div id="joker-confirm-desc" style="color: var(--text-muted); font-size: 0.9rem; margin: 10px 0;"></div>
+      <div id="joker-confirm-cost" style="color: var(--color-c); font-weight: 700; font-family: var(--font-mono); margin-bottom: 16px;"></div>
+      <div style="display: flex; gap: 10px;">
+        <button id="joker-confirm-run" class="btn btn-primary" style="flex: 1;">EXÉCUTER</button>
+        <button id="joker-confirm-cancel" class="btn btn-secondary" style="flex: 1;">ANNULER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bannière d'attaque / notification joker -->
+  <div id="attack-banner" class="attack-banner" style="display: none;"></div>
 
   <footer style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.75rem; border-top: 1px solid var(--border-color); margin-top: auto;">
     &copy; 2026 <strong>DevArena</strong> &bull; Conçu par <strong>Kevin BOGMIS</strong>

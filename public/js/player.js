@@ -62,6 +62,207 @@ let myStreak = 0;
 let myAvatarIndex = 0;
 let playerMaxTime = 20;
 
+// ==========================================================================
+// SYSTÈME DE JOKERS - État, rendu et effets
+// ==========================================================================
+let jokersCatalog = [];       // reçu du serveur au join
+let myEnergy = 0;
+let energyMax = 100;
+let jokersUsedLocal = { defensive: false, offensive: false };
+let hasAnsweredThisQuestion = false;
+let activeJokerBadges = {};   // jokerId -> true (boost/shield actifs affichés)
+let pendingJokerId = null;    // joker en attente de confirmation
+
+const jokersBar = document.getElementById('player-jokers-bar');
+const energyBar = document.getElementById('player-energy-bar');
+const energyText = document.getElementById('player-energy-text');
+const arsenalGuide = document.getElementById('arsenal-guide');
+const jokerOverlay = document.getElementById('joker-confirm-overlay');
+const jokerConfirmCmd = document.getElementById('joker-confirm-cmd');
+const jokerConfirmDesc = document.getElementById('joker-confirm-desc');
+const jokerConfirmCost = document.getElementById('joker-confirm-cost');
+const jokerConfirmRun = document.getElementById('joker-confirm-run');
+const jokerConfirmCancel = document.getElementById('joker-confirm-cancel');
+const attackBanner = document.getElementById('attack-banner');
+
+function updateEnergyDisplay() {
+  if (energyBar) energyBar.style.width = `${Math.min(100, (myEnergy / energyMax) * 100)}%`;
+  if (energyText) energyText.textContent = myEnergy;
+}
+
+// Guide de l'arsenal affiché dans la salle d'attente
+function renderArsenalGuide() {
+  if (!arsenalGuide || jokersCatalog.length === 0) return;
+  arsenalGuide.innerHTML = `
+    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+      ⚔️ Arsenal de l'arène — gagne de l'énergie ⚡ avec tes bonnes réponses !
+    </div>
+    ${jokersCatalog.map(j => `
+      <div class="arsenal-item">
+        <span class="arsenal-icon">${j.icon}</span>
+        <div>
+          <div class="arsenal-name">${j.name}</div>
+          <div class="arsenal-desc">${j.desc}</div>
+        </div>
+        <span class="arsenal-cost">${j.cost} ⚡</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+// Barre de jokers pendant une question
+function renderJokersBar() {
+  if (!jokersBar) return;
+  jokersBar.innerHTML = '';
+  jokersCatalog.forEach(j => {
+    const chip = document.createElement('div');
+    const isUsedActive = !!activeJokerBadges[j.id];
+    const isBlocked = hasAnsweredThisQuestion || jokersUsedLocal[j.type] || myEnergy < j.cost;
+
+    chip.className = 'joker-chip ' + (isUsedActive ? 'used-active' : (isBlocked ? 'disabled' : 'affordable'));
+    chip.innerHTML = `
+      <span class="joker-icon">${j.icon}</span>
+      <span class="joker-cost">${isUsedActive ? 'ACTIF' : j.cost + '⚡'}</span>
+    `;
+    chip.title = `${j.name} — ${j.desc}`;
+
+    chip.addEventListener('click', () => {
+      if (isBlocked || isUsedActive) return;
+      window.soundManager.playClick();
+      openJokerConfirm(j);
+    });
+
+    jokersBar.appendChild(chip);
+  });
+}
+
+function openJokerConfirm(joker) {
+  pendingJokerId = joker.id;
+  if (jokerConfirmCmd) jokerConfirmCmd.textContent = `$ ./${joker.name.replace(/\s+/g, '_')}`;
+  if (jokerConfirmDesc) jokerConfirmDesc.textContent = joker.desc;
+  if (jokerConfirmCost) jokerConfirmCost.textContent = `Coût : ${joker.cost} ⚡ (dispo : ${myEnergy} ⚡)`;
+  if (jokerOverlay) jokerOverlay.style.display = 'flex';
+}
+
+function closeJokerConfirm() {
+  pendingJokerId = null;
+  if (jokerOverlay) jokerOverlay.style.display = 'none';
+}
+
+if (jokerConfirmRun) {
+  jokerConfirmRun.addEventListener('click', () => {
+    if (pendingJokerId) {
+      window.soundManager.playClick();
+      socket.emit('player:use_joker', { pin: myRoomPin, jokerId: pendingJokerId });
+    }
+    closeJokerConfirm();
+  });
+}
+if (jokerConfirmCancel) {
+  jokerConfirmCancel.addEventListener('click', closeJokerConfirm);
+}
+if (jokerOverlay) {
+  jokerOverlay.addEventListener('click', (e) => {
+    if (e.target === jokerOverlay) closeJokerConfirm();
+  });
+}
+
+let bannerTimeout = null;
+function showBanner(message, isNotice = false) {
+  if (!attackBanner) return;
+  attackBanner.textContent = message;
+  attackBanner.className = 'attack-banner' + (isNotice ? ' notice' : '');
+  attackBanner.style.display = 'block';
+  clearTimeout(bannerTimeout);
+  bannerTimeout = setTimeout(() => {
+    attackBanner.style.display = 'none';
+  }, 3500);
+}
+
+// Transformation rot13 des textes de réponse
+function rot13(str) {
+  return str.replace(/[a-zA-Z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+  });
+}
+
+// --- Réception des événements jokers ---
+
+socket.on('joker:use_ack', ({ jokerId, energy, scoreAfter, stolenAmount, target }) => {
+  myEnergy = energy;
+  const joker = jokersCatalog.find(j => j.id === jokerId);
+  if (joker) jokersUsedLocal[joker.type] = true;
+
+  if (jokerId === 'boost' || jokerId === 'shield') {
+    activeJokerBadges[jokerId] = true;
+  }
+  if (jokerId === 'steal' && stolenAmount > 0) {
+    myScore = scoreAfter;
+    if (playerHeaderScore) playerHeaderScore.textContent = `${myScore} pts`;
+    showBanner(`💰 exploit réussi : +${stolenAmount} pts volés à ${target} !`, true);
+  } else if (target) {
+    showBanner(`${joker ? joker.icon : '⚔️'} Attaque lancée sur ${target} !`, true);
+  } else if (joker) {
+    showBanner(`${joker.icon} ${joker.name} activé !`, true);
+  }
+
+  updateEnergyDisplay();
+  renderJokersBar();
+  window.soundManager.playCorrect();
+});
+
+socket.on('joker:error', ({ message }) => {
+  showBanner(`⛔ ${message}`);
+  window.soundManager.playWrong();
+});
+
+socket.on('joker:fifty_result', ({ removedIndexes }) => {
+  removedIndexes.forEach(idx => {
+    const btn = playerButtons[idx];
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.25';
+    }
+  });
+});
+
+socket.on('joker:attacked', ({ type, from, duration, amount }) => {
+  window.soundManager.playWrong();
+
+  if (type === 'ddos') {
+    showBanner(`💥 DDoS reçu de ${from} ! Tiens bon...`);
+    document.body.classList.add('under-ddos');
+    setTimeout(() => document.body.classList.remove('under-ddos'), duration || 4000);
+
+  } else if (type === 'rot13') {
+    showBanner(`🕵️ ${from} a chiffré tes réponses ! Déchiffrement en cours...`);
+    const originals = [];
+    playerButtons.forEach((btn, i) => {
+      const span = btn.querySelector('.key-text');
+      if (span) {
+        originals[i] = span.textContent;
+        span.textContent = rot13(span.textContent);
+        span.classList.add('rot13-scrambled');
+      }
+    });
+    setTimeout(() => {
+      playerButtons.forEach((btn, i) => {
+        const span = btn.querySelector('.key-text');
+        if (span && originals[i] !== undefined) {
+          span.textContent = originals[i];
+          span.classList.remove('rot13-scrambled');
+        }
+      });
+    }, duration || 5000);
+
+  } else if (type === 'steal') {
+    myScore = Math.max(0, myScore - (amount || 0));
+    if (playerHeaderScore) playerHeaderScore.textContent = `${myScore} pts`;
+    showBanner(`💰 ${from} t'a volé ${amount} pts avec un exploit !`);
+  }
+});
+
 // --- Session de reconnexion (survit au rechargement de la page) ---
 const SESSION_KEY = 'devarena_session';
 
@@ -158,12 +359,17 @@ socket.on('player:join_error', ({ message }) => {
   window.soundManager.playWrong();
 });
 
-socket.on('player:join_success', ({ pin, player, resumed, state }) => {
+socket.on('player:join_success', ({ pin, player, resumed, state, jokers, energyMax: srvEnergyMax }) => {
   myRoomPin = pin;
   myNickname = player.nickname;
   myAvatarIndex = player.avatarIndex;
   myScore = player.score || 0;
   myStreak = player.streak || 0;
+  myEnergy = player.energy || 0;
+  if (Array.isArray(jokers)) jokersCatalog = jokers;
+  if (srvEnergyMax) energyMax = srvEnergyMax;
+  renderArsenalGuide();
+  updateEnergyDisplay();
   saveSession();
 
   if (waitingPinBadge) waitingPinBadge.textContent = `#${pin}`;
@@ -211,6 +417,14 @@ socket.on('game:question_started', (q) => {
 
   playerMaxTime = q.timeLimit || 20;
 
+  // Réinitialisation de l'état des jokers pour la nouvelle question
+  hasAnsweredThisQuestion = false;
+  jokersUsedLocal = { defensive: false, offensive: false };
+  activeJokerBadges = {};
+  closeJokerConfirm();
+  renderJokersBar();
+  updateEnergyDisplay();
+
   if (playerProgressText) playerProgressText.textContent = `Q ${q.questionNumber}/${q.totalQuestions}`;
   if (playerHeaderScore) playerHeaderScore.textContent = `${myScore} pts`;
   if (playerHeaderStreak) playerHeaderStreak.textContent = myStreak > 1 ? `🔥 x${myStreak}` : '';
@@ -245,9 +459,11 @@ socket.on('game:question_started', (q) => {
   playerButtons.forEach((btn, idx) => {
     btn.disabled = false;
     btn.classList.remove('pressed');
+    btn.style.opacity = '';
     const textSpan = btn.querySelector('.key-text');
     if (textSpan && q.options[idx]) {
       textSpan.textContent = q.options[idx];
+      textSpan.classList.remove('rot13-scrambled');
     }
   });
 
@@ -274,6 +490,8 @@ playerButtons.forEach((btn, index) => {
     window.soundManager.playClick();
 
     // Verrouillage immédiat pour éviter le double-envoi
+    hasAnsweredThisQuestion = true;
+    closeJokerConfirm();
     playerButtons.forEach(b => b.disabled = true);
     btn.classList.add('pressed');
 
@@ -300,6 +518,10 @@ socket.on('player:round_result', (result) => {
 
   myScore = result.currentScore;
   myStreak = result.streak;
+  if (typeof result.energy === 'number') {
+    myEnergy = result.energy;
+    updateEnergyDisplay();
+  }
 
   if (result.isCorrect) {
     feedbackBox.className = 'feedback-screen feedback-correct';

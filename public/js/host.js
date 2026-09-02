@@ -351,6 +351,12 @@ socket.on('game:question_started', (q) => {
   switchView('question');
   currentMaxTime = q.timeLimit || 20;
 
+  // Réinitialiser le fil d'événements jokers
+  if (jokerEventFeed) {
+    jokerEventFeed.innerHTML = '';
+    jokerEventFeed.style.display = 'none';
+  }
+
   // Réinitialiser les styles des boutons
   hostAnswerButtons.forEach(btn => {
     btn.classList.remove('correct-reveal', 'dimmed');
@@ -414,6 +420,19 @@ socket.on('host:player_answered_count', ({ answeredCount, totalPlayers }) => {
   if (answeredCounter) {
     answeredCounter.textContent = `${answeredCount} / ${totalPlayers} réponses`;
   }
+});
+
+// Fil d'événements jokers pendant la question
+const jokerEventFeed = document.getElementById('joker-event-feed');
+
+socket.on('host:joker_event', ({ from, icon, jokerName, target }) => {
+  if (!jokerEventFeed) return;
+  jokerEventFeed.style.display = 'block';
+  const line = document.createElement('div');
+  line.style.animation = 'fadeIn 0.3s ease';
+  line.textContent = `⚔️ ${from} lance ${icon} ${jokerName}${target ? ` sur ${target} !` : ' !'}`;
+  jokerEventFeed.appendChild(line);
+  window.soundManager.playTick();
 });
 
 // 5. Fin du round & Révélation

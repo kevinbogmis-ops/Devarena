@@ -139,6 +139,55 @@ function filterQuestions(categories, difficulties) {
   return pool;
 }
 
+// ==========================================================================
+// SYSTÈME DE JOKERS - Jauge d'énergie ⚡ et arsenal de l'arène
+// ==========================================================================
+
+const ENERGY_MAX = 100;
+
+const JOKERS = {
+  fifty: {
+    id: 'fifty', name: '--fifty', icon: '🎯', type: 'defensive', cost: 30,
+    desc: 'Élimine 2 mauvaises réponses de ton écran.'
+  },
+  shield: {
+    id: 'shield', name: 'try/catch', icon: '🛡️', type: 'defensive', cost: 40,
+    desc: 'Ta série 🔥 survit même si tu réponds faux à cette question.'
+  },
+  boost: {
+    id: 'boost', name: 'sudo boost', icon: '🚀', type: 'defensive', cost: 45,
+    desc: 'Ta réponse à cette question vaut le double de points.'
+  },
+  ddos: {
+    id: 'ddos', name: 'DDoS.sh', icon: '💥', type: 'offensive', cost: 25,
+    desc: 'Fait glitcher l\'écran du joueur au-dessus de toi pendant 4s.'
+  },
+  rot13: {
+    id: 'rot13', name: 'rot13 --attack', icon: '🕵️', type: 'offensive', cost: 35,
+    desc: 'Chiffre les réponses du joueur au-dessus de toi pendant 5s.'
+  },
+  steal: {
+    id: 'steal', name: 'exploit --steal', icon: '💰', type: 'offensive', cost: 60,
+    desc: 'Vole immédiatement 10% des points du joueur au-dessus de toi.'
+  }
+};
+
+// Gain d'énergie sur bonne réponse : 10 ⚡ × multiplicateur de streak (plafonné à x3)
+function energyGain(streak) {
+  const multiplier = Math.min(3, 1 + 0.5 * (streak - 1));
+  return Math.round(10 * multiplier);
+}
+
+// Cible d'une attaque : le joueur connecté juste au-dessus de l'attaquant au
+// classement (mécanisme de remontée). Le n°1 attaque le n°2.
+function pickTarget(room, attackerId) {
+  const ranking = getConnectedPlayers(room).sort((a, b) => b.score - a.score);
+  if (ranking.length < 2) return null;
+  const idx = ranking.findIndex(p => p.id === attackerId);
+  if (idx === -1) return null;
+  return idx === 0 ? ranking[1] : ranking[idx - 1];
+}
+
 // Helper: Joueurs actuellement connectés d'une salle
 function getConnectedPlayers(room) {
   return Object.values(room.players).filter(p => p.connected !== false);
@@ -254,7 +303,9 @@ io.on('connection', (socket) => {
         pin: cleanPin,
         player: playerData,
         resumed: true,
-        state: room.state
+        state: room.state,
+        jokers: Object.values(JOKERS),
+        energyMax: ENERGY_MAX
       });
 
       // Renvoyer la question en cours pour reprendre la partie immédiatement
@@ -297,7 +348,12 @@ io.on('connection', (socket) => {
       totalCorrect: 0,
       lastPoints: 0,
       avatarIndex: Math.floor(Math.random() * 8),
-      connected: true
+      connected: true,
+      energy: 0,
+      jokersUsed: { defensive: false, offensive: false },
+      shieldActive: false,
+      boostActive: false,
+      attackedUntil: {}
     };
 
     socket.join(`room:${cleanPin}`);
@@ -309,7 +365,9 @@ io.on('connection', (socket) => {
     // Confirmer au joueur
     socket.emit('player:join_success', {
       pin: cleanPin,
-      player: room.players[socket.id]
+      player: room.players[socket.id],
+      jokers: Object.values(JOKERS),
+      energyMax: ENERGY_MAX
     });
 
     // Mettre à jour la liste des joueurs pour l'hôte et la salle
@@ -402,17 +460,32 @@ io.on('connection', (socket) => {
       // Formule Kahoot! optimisée : 1000 * (1 - (temps / temps_max)) avec plancher à 150 pts
       const timeRatio = Math.min(1, Math.max(0, timeTakenMs / maxTimeMs));
       const basePoints = Math.round(1000 * (1 - timeRatio));
-      
+
       // Bonus de streak (+50 pts par bonne réponse consécutive après la première, max 250)
       const streakBonus = player.streak > 0 ? Math.min(250, player.streak * 50) : 0;
       points = Math.max(150, basePoints) + streakBonus;
 
+      // Joker sudo boost : la réponse vaut le double
+      if (player.boostActive) {
+        points *= 2;
+      }
+
       player.streak += 1;
       player.totalCorrect += 1;
+
+      // Gain d'énergie ⚡ : 10 × multiplicateur de streak (plafonné à x3, jauge max 100)
+      player.energy = Math.min(ENERGY_MAX, player.energy + energyGain(player.streak));
     } else {
-      player.streak = 0;
+      // Joker try/catch : la série survit à une mauvaise réponse
+      if (!player.shieldActive) {
+        player.streak = 0;
+      }
       points = 0;
     }
+
+    // Les effets boost et bouclier sont consommés par la réponse
+    player.boostActive = false;
+    player.shieldActive = false;
 
     player.score += points;
     player.lastPoints = points;
@@ -445,6 +518,104 @@ io.on('connection', (socket) => {
       console.log(`[Room ${pin}] Tous les joueurs connectés (${answeredCount}/${totalPlayers}) ont répondu. Clôture anticipée.`);
       endQuestionRound(pin);
     }
+  });
+
+  // --- 4bis. UTILISATION D'UN JOKER PAR UN JOUEUR ---
+  socket.on('player:use_joker', ({ pin, jokerId }) => {
+    const room = rooms[pin];
+    const fail = (message) => socket.emit('joker:error', { message });
+
+    if (!room || room.state !== 'QUESTION') {
+      return fail('Les jokers ne s\'utilisent que pendant une question.');
+    }
+    const player = room.players[socket.id];
+    if (!player) return;
+
+    const joker = JOKERS[jokerId];
+    if (!joker) return fail('Joker inconnu.');
+
+    if (room.answers[socket.id] !== undefined) {
+      return fail('Trop tard : tu as déjà répondu à cette question.');
+    }
+    if (player.jokersUsed[joker.type]) {
+      return fail(`Tu as déjà utilisé un joker ${joker.type === 'defensive' ? 'défensif' : 'offensif'} sur cette question.`);
+    }
+    if (player.energy < joker.cost) {
+      return fail(`Énergie insuffisante : il te faut ${joker.cost} ⚡ (tu en as ${player.energy}).`);
+    }
+
+    let targetNickname = null;
+    let stolenAmount = 0;
+
+    if (joker.type === 'offensive') {
+      const target = pickTarget(room, socket.id);
+      if (!target) {
+        return fail('Aucun adversaire connecté à attaquer.');
+      }
+
+      if (jokerId === 'ddos' || jokerId === 'rot13') {
+        const now = Date.now();
+        const duration = jokerId === 'ddos' ? 4000 : 5000;
+        target.attackedUntil = target.attackedUntil || {};
+        if ((target.attackedUntil[jokerId] || 0) > now) {
+          return fail('Ta cible est déjà sous cette attaque !');
+        }
+        target.attackedUntil[jokerId] = now + duration;
+        io.to(target.id).emit('joker:attacked', {
+          type: jokerId,
+          from: player.nickname,
+          duration
+        });
+      } else if (jokerId === 'steal') {
+        stolenAmount = Math.floor(target.score * 0.10);
+        if (stolenAmount <= 0) {
+          return fail('Ta cible n\'a pas assez de points à voler.');
+        }
+        target.score -= stolenAmount;
+        player.score += stolenAmount;
+        io.to(target.id).emit('joker:attacked', {
+          type: 'steal',
+          from: player.nickname,
+          amount: stolenAmount
+        });
+      }
+      targetNickname = target.nickname;
+    } else {
+      // Jokers défensifs
+      if (jokerId === 'fifty') {
+        const currentQ = room.questions[room.currentQuestionIndex];
+        const wrongIndexes = [0, 1, 2, 3].filter(i => i !== currentQ.correctIndex);
+        const removedIndexes = shuffleArray(wrongIndexes).slice(0, 2);
+        socket.emit('joker:fifty_result', { removedIndexes });
+      } else if (jokerId === 'shield') {
+        player.shieldActive = true;
+      } else if (jokerId === 'boost') {
+        player.boostActive = true;
+      }
+    }
+
+    // Débit de l'énergie et verrou par type pour cette question
+    player.energy -= joker.cost;
+    player.jokersUsed[joker.type] = true;
+
+    console.log(`[Room ${pin}] ⚔️ ${player.nickname} utilise ${joker.name}${targetNickname ? ` sur ${targetNickname}` : ''} (reste ${player.energy} ⚡).`);
+
+    socket.emit('joker:use_ack', {
+      jokerId,
+      energy: player.energy,
+      scoreAfter: player.score,
+      stolenAmount,
+      target: targetNickname
+    });
+
+    // Fil d'événements sur l'écran du Maître du jeu
+    io.to(`host:${pin}`).emit('host:joker_event', {
+      from: player.nickname,
+      jokerId,
+      jokerName: joker.name,
+      icon: joker.icon,
+      target: targetNickname
+    });
   });
 
   // --- 5. PASSAGE À LA QUESTION SUIVANTE PAR L'HÔTE ---
@@ -530,6 +701,13 @@ function startNextQuestion(pin) {
   room.questionTimeLimit = currentQ.timeLimit || 20;
   room.questionStartTime = Date.now();
 
+  // Réinitialisation des jokers pour la nouvelle question (1 défensif + 1 offensif max)
+  Object.values(room.players).forEach(p => {
+    p.jokersUsed = { defensive: false, offensive: false };
+    p.shieldActive = false;
+    p.boostActive = false;
+  });
+
   // Payload diffusé aux clients (SANS la bonne réponse ni l'explication pour éviter la triche)
   const clientQuestionPayload = {
     questionNumber: room.currentQuestionIndex + 1,
@@ -613,6 +791,7 @@ function endQuestionRound(pin) {
       currentScore: player.score,
       rank,
       streak: player.streak,
+      energy: player.energy,
       correctIndex: currentQ.correctIndex,
       correctOptionLetter: ['A', 'B', 'C', 'D'][currentQ.correctIndex],
       correctAnswerText: currentQ.options[currentQ.correctIndex],
