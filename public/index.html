@@ -94,6 +94,27 @@
       </div>
     </div>
 
+    <!-- Hall of Fame : meilleurs scores all-time (persistés en base) -->
+    <div id="hall-of-fame" class="terminal-window" style="max-width: 760px; margin-top: 24px; display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena --hall-of-fame</span>
+        <div class="terminal-status">
+          <span>🏆 TOP 10 ALL-TIME</span>
+        </div>
+      </div>
+      <div style="padding: 20px;">
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          $ SELECT nickname, score FROM game_players ORDER BY score DESC LIMIT 10;
+        </div>
+        <div id="hall-of-fame-list" class="leaderboard-list"></div>
+      </div>
+    </div>
+
   </main>
 
   <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">

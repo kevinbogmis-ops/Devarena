@@ -543,7 +543,39 @@ socket.on('game:game_over', ({ podium, fullRanking }) => {
   }
 
   window.soundManager.playVictory();
+
+  // Charger le Hall of Fame all-time (la partie vient d'être enregistrée en base)
+  loadHostHallOfFame();
 });
+
+async function loadHostHallOfFame() {
+  const container = document.getElementById('host-hall-of-fame');
+  const list = document.getElementById('host-hall-of-fame-list');
+  if (!container || !list) return;
+  try {
+    const res = await fetch('/api/scores/top?limit=10');
+    if (!res.ok) return;
+    const { topScores } = await res.json();
+    if (!Array.isArray(topScores) || topScores.length === 0) return;
+
+    const medals = ['🥇', '🥈', '🥉'];
+    list.innerHTML = topScores.map((s, idx) => `
+      <div class="leaderboard-item">
+        <div class="player-info">
+          <span class="rank-badge top-${idx + 1}">${medals[idx] || '#' + (idx + 1)}</span>
+          <span class="player-name">${escapeHtml(s.nickname)}</span>
+        </div>
+        <div style="text-align: right;">
+          <span class="player-score">${s.score} pts</span>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${s.total_correct}/${s.total_questions} bonnes</div>
+        </div>
+      </div>
+    `).join('');
+    container.style.display = 'block';
+  } catch (e) {
+    /* base indisponible : section masquée */
+  }
+}
 
 if (btnRestart) {
   btnRestart.addEventListener('click', () => {
