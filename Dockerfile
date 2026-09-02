@@ -30,7 +30,7 @@ RUN apk add --no-cache curl
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copie du code applicatif et des assets statiques
-COPY package.json server.js questions.json ./
+COPY package.json server.js db.js questions.json ./
 COPY public ./public
 
 # Changement de propriétaire des fichiers pour l'utilisateur non-root

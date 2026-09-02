@@ -31,8 +31,13 @@ async function runE2ETest() {
       hostSocket.emit('host:create_room');
     });
 
-    hostSocket.on('host:room_created', ({ pin, totalQuestionsAvailable }) => {
+    hostSocket.on('host:room_created', ({ pin, totalQuestionsAvailable, catalog }) => {
       console.log(`   ✓ Salle créée avec le code PIN : ${pin} (${totalQuestionsAvailable} questions dispo)`);
+      const categories = Object.keys(catalog || {});
+      if (categories.length === 0) {
+        throw new Error('Le catalogue de questions (catégories/niveaux) est absent de host:room_created !');
+      }
+      console.log(`   ✓ Catalogue reçu : ${categories.length} catégories (${categories.join(', ')})`);
       roomPin = pin;
       resolve();
     });
@@ -63,14 +68,26 @@ async function runE2ETest() {
     })
   ]);
 
-  console.log('\n4. Lancement de la partie par l\'hôte (5 questions)...');
-  hostSocket.emit('host:start_game', { pin: roomPin, questionCount: 5, shuffle: true });
+  console.log('\n4. Lancement de la partie par l\'hôte (5 questions, filtre Docker/Débutant)...');
+  const FILTER_CATEGORIES = ['Docker'];
+  const FILTER_DIFFICULTIES = ['Débutant'];
+  hostSocket.emit('host:start_game', {
+    pin: roomPin,
+    questionCount: 5,
+    shuffle: true,
+    categories: FILTER_CATEGORIES,
+    difficulties: FILTER_DIFFICULTIES
+  });
 
   await new Promise(resolve => {
     let currentQ = null;
 
     player1.on('game:question_started', (q) => {
-      console.log(`   ✓ Question #${q.questionNumber} reçue : "${q.question}" [${q.category}]`);
+      console.log(`   ✓ Question #${q.questionNumber} reçue : "${q.question}" [${q.category} / ${q.difficulty}]`);
+      if (!FILTER_CATEGORIES.includes(q.category) || !FILTER_DIFFICULTIES.includes(q.difficulty)) {
+        throw new Error(`Filtre non respecté ! Reçu ${q.category}/${q.difficulty}, attendu ${FILTER_CATEGORIES}/${FILTER_DIFFICULTIES}`);
+      }
+      console.log('   ✓ La question respecte le filtre catégorie + niveau');
       currentQ = q;
 
       // Alice répond immédiatement (option A = index 0)

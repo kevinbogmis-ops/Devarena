@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const db = require('./db');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,17 +17,36 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Chargement des questions depuis questions.json
+// Chargement des questions depuis questions.json (source de vérité pour le seed,
+// et solution de repli si PostgreSQL est indisponible)
 let allQuestions = [];
 try {
   const questionsPath = path.join(__dirname, 'questions.json');
   const data = fs.readFileSync(questionsPath, 'utf8');
   allQuestions = JSON.parse(data);
-  console.log(`[DevArena] ${allQuestions.length} questions chargées avec succès.`);
+  console.log(`[DevArena] ${allQuestions.length} questions chargées depuis questions.json.`);
 } catch (err) {
   console.error('[DevArena] Erreur lors du chargement de questions.json:', err);
   allQuestions = [];
 }
+
+// Initialisation de PostgreSQL : schéma + seed des questions + rechargement depuis la base.
+// En cas d'échec, l'application continue en mode fichier (questions.json).
+let dbReady = false;
+(async () => {
+  try {
+    await db.init();
+    await db.seedQuestions(allQuestions);
+    const dbQuestions = await db.loadQuestions();
+    if (dbQuestions.length > 0) {
+      allQuestions = dbQuestions;
+    }
+    dbReady = true;
+    console.log(`[DevArena] PostgreSQL prêt : ${allQuestions.length} questions chargées depuis la base.`);
+  } catch (err) {
+    console.warn(`[DevArena] PostgreSQL indisponible (${err.message}). Mode fichier actif, aucune persistance.`);
+  }
+})();
 
 // Middlewares
 app.use(cors());
@@ -40,8 +60,24 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     activeRooms: Object.keys(rooms).length,
     totalQuestions: allQuestions.length,
+    database: dbReady ? 'connected' : 'unavailable',
     timestamp: new Date().toISOString()
   });
+});
+
+app.get('/api/scores/top', async (req, res) => {
+  if (!dbReady) {
+    res.status(503).json({ error: 'Base de données indisponible, pas de persistance des scores.' });
+    return;
+  }
+  try {
+    const limit = Math.min(50, parseInt(req.query.limit, 10) || 10);
+    const topScores = await db.getTopScores(limit);
+    res.json({ topScores });
+  } catch (err) {
+    console.error('[DB] Erreur lors de la lecture du top scores:', err.message);
+    res.status(500).json({ error: 'Erreur lors de la lecture des scores.' });
+  }
 });
 
 app.get('/api/questions/stats', (req, res) => {
@@ -79,6 +115,30 @@ function shuffleArray(array) {
   return arr;
 }
 
+// Helper: Catalogue des questions disponibles { catégorie: { difficulté: nombre } }
+function getQuestionCatalog() {
+  const matrix = {};
+  allQuestions.forEach(q => {
+    const cat = q.category || 'Autre';
+    const diff = q.difficulty || 'Normal';
+    if (!matrix[cat]) matrix[cat] = {};
+    matrix[cat][diff] = (matrix[cat][diff] || 0) + 1;
+  });
+  return matrix;
+}
+
+// Helper: Filtrer la banque selon les catégories et niveaux choisis (tableaux vides = tout)
+function filterQuestions(categories, difficulties) {
+  let pool = allQuestions;
+  if (Array.isArray(categories) && categories.length > 0) {
+    pool = pool.filter(q => categories.includes(q.category));
+  }
+  if (Array.isArray(difficulties) && difficulties.length > 0) {
+    pool = pool.filter(q => difficulties.includes(q.difficulty));
+  }
+  return pool;
+}
+
 // Gestion des WebSockets
 io.on('connection', (socket) => {
   console.log(`[Socket] Connexion établie: ${socket.id}`);
@@ -110,7 +170,8 @@ io.on('connection', (socket) => {
     console.log(`[Room ${pin}] Salle créée par l'hôte ${socket.id}`);
     socket.emit('host:room_created', {
       pin,
-      totalQuestionsAvailable: allQuestions.length
+      totalQuestionsAvailable: allQuestions.length,
+      catalog: getQuestionCatalog()
     });
   });
 
@@ -182,7 +243,7 @@ io.on('connection', (socket) => {
   });
 
   // --- 3. DÉMARRAGE DU JEU PAR L'HÔTE ---
-  socket.on('host:start_game', ({ pin, questionCount = 10, shuffle = true }) => {
+  socket.on('host:start_game', ({ pin, questionCount = 10, shuffle = true, categories = [], difficulties = [] }) => {
     const cleanPin = (pin || '').toString().trim();
     const room = rooms[cleanPin];
     
@@ -208,14 +269,27 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Filtrage par catégories et niveaux choisis par l'hôte (vide = tout)
+    const filteredPool = filterQuestions(categories, difficulties);
+    if (filteredPool.length === 0) {
+      socket.emit('error_message', {
+        message: '⚠️ Aucune question ne correspond aux filtres choisis. Élargissez la sélection de catégories ou de niveaux.'
+      });
+      return;
+    }
+
     // Préparation de la liste des questions
-    let selectedQuestions = shuffle ? shuffleArray(allQuestions) : [...allQuestions];
+    let selectedQuestions = shuffle ? shuffleArray(filteredPool) : [...filteredPool];
     const count = Math.min(parseInt(questionCount, 10) || 10, selectedQuestions.length);
     room.questions = selectedQuestions.slice(0, count);
     room.currentQuestionIndex = -1;
     room.state = 'STARTING';
 
-    console.log(`[Room ${cleanPin}] Démarrage de la partie avec ${room.questions.length} questions et ${playerCount} joueurs.`);
+    const filterInfo = [
+      categories.length > 0 ? `catégories: ${categories.join(', ')}` : 'toutes catégories',
+      difficulties.length > 0 ? `niveaux: ${difficulties.join(', ')}` : 'tous niveaux'
+    ].join(' | ');
+    console.log(`[Room ${cleanPin}] Démarrage: ${room.questions.length} questions (${filterInfo}) et ${playerCount} joueurs.`);
 
     io.to(`room:${cleanPin}`).emit('game:starting', {
       totalQuestions: room.questions.length,
@@ -505,6 +579,13 @@ function finishGame(pin) {
     }));
 
   console.log(`[Room ${pin}] Partie terminée ! Vainqueur: ${finalRanking[0]?.nickname || 'Aucun'} avec ${finalRanking[0]?.score || 0} pts.`);
+
+  // Persistance du résultat en base (sans bloquer la fin de partie côté joueurs)
+  if (dbReady && finalRanking.length > 0) {
+    db.saveGameResults(pin, finalRanking, room.questions.length)
+      .then(gameId => console.log(`[DB] Partie ${pin} enregistrée (id=${gameId}).`))
+      .catch(err => console.error(`[DB] Échec de l'enregistrement de la partie ${pin}:`, err.message));
+  }
 
   io.to(`room:${pin}`).emit('game:game_over', {
     podium: finalRanking.slice(0, 3),

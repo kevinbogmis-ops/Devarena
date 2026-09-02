@@ -1,0 +1,38 @@
+# ==========================================================================
+# DEVARENA - DOCKER COMPOSE
+# Application Node.js + Base de données PostgreSQL avec volume persistant
+# ==========================================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: devarena-db
+    environment:
+      POSTGRES_USER: devarena
+      POSTGRES_PASSWORD: devarena
+      POSTGRES_DB: devarena
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devarena -d devarena"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: devarena-app
+    ports:
+      # Port hôte configurable via DEVARENA_PORT (3300 par défaut car 3000 est
+      # souvent occupé par open-webui sur cette machine)
+      - "${DEVARENA_PORT:-3300}:3000"
+    environment:
+      DATABASE_URL: postgresql://devarena:devarena@db:5432/devarena
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

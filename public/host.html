@@ -93,6 +93,25 @@
 
         </div>
 
+        <!-- Filtres de sélection des questions -->
+        <div style="max-width: 720px; margin: 0 auto 20px auto; text-align: left; background-color: #06090e; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px 20px;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+            📚 Catégories
+          </div>
+          <div id="category-filter-chips" class="filter-chips">
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Chargement du catalogue...</span>
+          </div>
+
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 10px 0;">
+            🎯 Niveau de difficulté
+          </div>
+          <div id="difficulty-filter-chips" class="filter-chips"></div>
+
+          <div id="filter-question-count" style="margin-top: 14px; font-size: 0.9rem; color: var(--color-d); font-weight: 600; font-family: var(--font-mono);">
+            $ questions disponibles : ...
+          </div>
+        </div>
+
         <!-- Options de partie -->
         <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
           <label style="font-size: 0.9rem; color: var(--text-muted);">
@@ -102,6 +121,7 @@
               <option value="10">10 questions (Standard)</option>
               <option value="20">20 questions (Intense)</option>
               <option value="30" selected>30 questions (Grand Chelem)</option>
+              <option value="50">50 questions (Marathon)</option>
             </select>
           </label>
         </div>

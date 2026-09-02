@@ -490,6 +490,48 @@ body {
 .badge-cisco { background: rgba(57, 197, 207, 0.15); color: #39c5cf; border: 1px solid #39c5cf; }
 .badge-supabase { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid #3fb950; }
 .badge-devops { background: rgba(139, 148, 158, 0.15); color: #8b949e; border: 1px solid #8b949e; }
+.badge-linux { background: rgba(255, 166, 87, 0.15); color: #ffa657; border: 1px solid #ffa657; }
+.badge-réseau { background: rgba(121, 192, 255, 0.15); color: #79c0ff; border: 1px solid #79c0ff; }
+.badge-git { background: rgba(240, 80, 51, 0.15); color: #f05033; border: 1px solid #f05033; }
+.badge-kubernetes { background: rgba(50, 108, 229, 0.15); color: #5b8def; border: 1px solid #5b8def; }
+
+/* Puces de filtre (sélection catégories & niveaux côté Host) */
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  border-color: var(--color-b);
+  color: var(--text-main);
+}
+
+.filter-chip.active {
+  background: rgba(63, 185, 80, 0.15);
+  border-color: var(--color-d);
+  color: var(--color-d);
+  font-weight: 700;
+}
+
+.filter-chip .chip-count {
+  opacity: 0.65;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
 
 .question-text {
   font-size: 1.4rem;

@@ -49,6 +49,115 @@ const btnRestart = document.getElementById('btn-restart-game');
 let currentRoomPin = null;
 let currentMaxTime = 20;
 
+// --- Filtres catégories & niveaux ---
+const DIFFICULTY_ORDER = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
+const categoryChipsContainer = document.getElementById('category-filter-chips');
+const difficultyChipsContainer = document.getElementById('difficulty-filter-chips');
+const filterCountDisplay = document.getElementById('filter-question-count');
+
+let questionCatalog = {};            // { catégorie: { difficulté: nombre } }
+const selectedCategories = new Set();   // vide = toutes
+const selectedDifficulties = new Set(); // vide = tous
+
+// Nombre de questions correspondant aux filtres actuels
+function countMatchingQuestions() {
+  let total = 0;
+  Object.keys(questionCatalog).forEach(cat => {
+    if (selectedCategories.size > 0 && !selectedCategories.has(cat)) return;
+    Object.keys(questionCatalog[cat]).forEach(diff => {
+      if (selectedDifficulties.size > 0 && !selectedDifficulties.has(diff)) return;
+      total += questionCatalog[cat][diff];
+    });
+  });
+  return total;
+}
+
+function updateFilterCount() {
+  const total = countMatchingQuestions();
+  if (filterCountDisplay) {
+    filterCountDisplay.textContent = `$ questions disponibles avec ce filtre : ${total}`;
+    filterCountDisplay.style.color = total === 0 ? 'var(--color-a)' : 'var(--color-d)';
+  }
+  if (startBtn) {
+    startBtn.disabled = total === 0;
+  }
+}
+
+// Crée une puce cliquable. selectionSet vide = « Tout » actif.
+function makeChip(label, count, selectionSet, allChipRef) {
+  const chip = document.createElement('span');
+  chip.className = 'filter-chip';
+  chip.innerHTML = count !== null
+    ? `${escapeHtml(label)}<span class="chip-count">(${count})</span>`
+    : escapeHtml(label);
+
+  chip.addEventListener('click', () => {
+    window.soundManager.playClick();
+    if (selectionSet.has(label)) {
+      selectionSet.delete(label);
+    } else {
+      selectionSet.add(label);
+    }
+    // Si tout est décoché, on revient au mode « Tout »
+    chip.classList.toggle('active', selectionSet.has(label));
+    if (allChipRef) allChipRef.classList.toggle('active', selectionSet.size === 0);
+    updateFilterCount();
+  });
+
+  return chip;
+}
+
+function renderFilterChips() {
+  if (!categoryChipsContainer || !difficultyChipsContainer) return;
+
+  // --- Catégories ---
+  categoryChipsContainer.innerHTML = '';
+  const allCatChip = document.createElement('span');
+  allCatChip.className = 'filter-chip active';
+  allCatChip.textContent = '🌐 Toutes';
+  allCatChip.addEventListener('click', () => {
+    window.soundManager.playClick();
+    selectedCategories.clear();
+    allCatChip.classList.add('active');
+    categoryChipsContainer.querySelectorAll('.filter-chip').forEach(c => {
+      if (c !== allCatChip) c.classList.remove('active');
+    });
+    updateFilterCount();
+  });
+  categoryChipsContainer.appendChild(allCatChip);
+
+  Object.keys(questionCatalog).sort((a, b) => a.localeCompare(b)).forEach(cat => {
+    const count = Object.values(questionCatalog[cat]).reduce((s, n) => s + n, 0);
+    categoryChipsContainer.appendChild(makeChip(cat, count, selectedCategories, allCatChip));
+  });
+
+  // --- Niveaux ---
+  difficultyChipsContainer.innerHTML = '';
+  const allDiffChip = document.createElement('span');
+  allDiffChip.className = 'filter-chip active';
+  allDiffChip.textContent = '🎲 Tous';
+  allDiffChip.addEventListener('click', () => {
+    window.soundManager.playClick();
+    selectedDifficulties.clear();
+    allDiffChip.classList.add('active');
+    difficultyChipsContainer.querySelectorAll('.filter-chip').forEach(c => {
+      if (c !== allDiffChip) c.classList.remove('active');
+    });
+    updateFilterCount();
+  });
+  difficultyChipsContainer.appendChild(allDiffChip);
+
+  const allDiffs = new Set();
+  Object.values(questionCatalog).forEach(byDiff => Object.keys(byDiff).forEach(d => allDiffs.add(d)));
+  DIFFICULTY_ORDER.filter(d => allDiffs.has(d)).forEach(diff => {
+    let count = 0;
+    Object.values(questionCatalog).forEach(byDiff => { count += byDiff[diff] || 0; });
+    difficultyChipsContainer.appendChild(makeChip(diff, count, selectedDifficulties, allDiffChip));
+  });
+
+  updateFilterCount();
+}
+
 function switchView(viewName) {
   Object.keys(views).forEach(k => {
     if (views[k]) {
@@ -121,10 +230,13 @@ if (customUrlInput) {
 // 1. Initialisation de la salle
 socket.emit('host:create_room');
 
-socket.on('host:room_created', ({ pin, totalQuestionsAvailable }) => {
+socket.on('host:room_created', ({ pin, totalQuestionsAvailable, catalog }) => {
   currentRoomPin = pin;
   if (pinDisplay) pinDisplay.textContent = pin;
   console.log(`[Host] Salle prête avec le PIN ${pin} (${totalQuestionsAvailable} questions dispo)`);
+
+  questionCatalog = catalog || {};
+  renderFilterChips();
 
   renderLobbyQrCode(pin);
   switchView('lobby');
@@ -205,7 +317,9 @@ if (startBtn) {
     socket.emit('host:start_game', {
       pin: currentRoomPin,
       questionCount: count,
-      shuffle: true
+      shuffle: true,
+      categories: [...selectedCategories],
+      difficulties: [...selectedDifficulties]
     });
   });
 }

@@ -16,9 +16,28 @@ try {
     errors.push('questions.json ne contient pas un tableau JSON valide.');
   } else {
     console.log(`   ✓ Nombre total de questions : ${questions.length}`);
-    if (questions.length !== 30) {
-      warnings.push(`Attendu 30 questions, trouvé ${questions.length}`);
+    if (questions.length < 30) {
+      warnings.push(`Banque de questions réduite : ${questions.length} questions (minimum conseillé : 30)`);
     }
+
+    // Vérification de l'équilibre des positions de bonne réponse (anti "toujours A")
+    const answerDist = [0, 0, 0, 0];
+    questions.forEach(q => {
+      if (typeof q.correctIndex === 'number') answerDist[q.correctIndex]++;
+    });
+    const maxShare = Math.max(...answerDist) / questions.length;
+    console.log(`   ✓ Répartition des bonnes réponses A/B/C/D : ${answerDist.join(' / ')}`);
+    if (maxShare > 0.5) {
+      warnings.push(`Déséquilibre des bonnes réponses : une position concentre ${Math.round(maxShare * 100)}% des réponses.`);
+    }
+
+    // Vérification des niveaux de difficulté autorisés
+    const validLevels = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
+    questions.forEach((q, idx) => {
+      if (q.difficulty && !validLevels.includes(q.difficulty)) {
+        warnings.push(`Question #${idx + 1} : difficulté "${q.difficulty}" hors échelle (${validLevels.join(', ')}).`);
+      }
+    });
 
     const categories = {};
     questions.forEach((q, idx) => {

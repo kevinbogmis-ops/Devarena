@@ -2,30 +2,30 @@
   {
     "id": 1,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quelle commande permet de passer du mode Utilisateur ('Switch>') au mode Privilégié ('Switch#') sur un équipement Cisco ?",
     "codeSnippet": "Switch> ???\nSwitch#",
     "options": [
-      "enable",
-      "configure terminal",
       "sudo su",
-      "login root"
+      "login root",
+      "enable",
+      "configure terminal"
     ],
-    "correctIndex": 0,
+    "correctIndex": 2,
     "timeLimit": 35,
     "explanation": "La commande 'enable' (ou son raccourci 'en') permet d'accéder au mode d'exécution privilégié (Privileged EXEC Mode), reconnaissable au prompt '#'."
   },
   {
     "id": 2,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quelle commande sauvegarde la configuration active (RAM) vers la mémoire non-volatile (NVRAM) pour persister après un reboot ?",
     "codeSnippet": "Switch# ???",
     "options": [
       "copy running-config startup-config",
-      "save running-config",
+      "commit changes",
       "write flash:config.text",
-      "commit changes"
+      "save running-config"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -34,45 +34,45 @@
   {
     "id": 3,
     "category": "Réseau",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Combien d'adresses d'hôtes utilisables contient un sous-réseau avec un masque /26 (255.255.255.192) ?",
     "codeSnippet": "Réseau : 192.168.10.0/26",
     "options": [
-      "62 hôtes",
-      "64 hôtes",
+      "126 hôtes",
       "30 hôtes",
-      "126 hôtes"
+      "62 hôtes",
+      "64 hôtes"
     ],
-    "correctIndex": 0,
+    "correctIndex": 2,
     "timeLimit": 35,
     "explanation": "32 - 26 = 6 bits pour la partie hôte. 2^6 = 64 adresses au total. On soustrait l'adresse réseau (.0) et de broadcast (.63), ce qui donne 64 - 2 = 62 hôtes utilisables."
   },
   {
     "id": 4,
     "category": "Réseau",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quel port de transport TCP standard est utilisé par le protocole SSH pour l'administration distante sécurisée ?",
     "codeSnippet": "$ ssh admin@10.0.0.1 -p ???",
     "options": [
-      "Port 22",
       "Port 23",
-      "Port 443",
-      "Port 80"
+      "Port 22",
+      "Port 80",
+      "Port 443"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "SSH (Secure Shell) utilise par défaut le port TCP 22 avec chiffrement. Le port TCP 23 est réservé à Telnet (non sécurisé, en clair)."
   },
   {
     "id": 5,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quelle commande Cisco IOS permet d'afficher l'état et les adresses IP de toutes les interfaces réseau ?",
     "codeSnippet": "Router# ???\nInterface      IP-Address    OK? Method Status Protocol\nGi0/0/0        192.168.1.1   YES manual up     up",
     "options": [
       "show ip interface brief",
-      "show interfaces status",
       "show ip route",
+      "show interfaces status",
       "display ip addresses"
     ],
     "correctIndex": 0,
@@ -82,62 +82,62 @@
   {
     "id": 6,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Comment affecter l'interface FastEthernet 0/1 au VLAN 10 en mode accès sur un commutateur Cisco ?",
     "codeSnippet": "Switch(config-if)# ???",
     "options": [
-      "switchport mode access\nswitchport access vlan 10",
-      "vlan 10 assign interface fa0/1",
+      "port vlan membership 10",
       "encapsulation dot1q 10",
-      "port vlan membership 10"
+      "vlan 10 assign interface fa0/1",
+      "switchport mode access\nswitchport access vlan 10"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "On configure le port en mode accès avec 'switchport mode access' puis on lui associe le VLAN avec 'switchport access vlan 10'."
   },
   {
     "id": 7,
     "category": "Réseau",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quel est l'ordre des 4 messages échangés lors de l'attribution d'une adresse IP par un serveur DHCP (processus DORA) ?",
     "codeSnippet": "Client ---> [ 1 ] ---> Serveur DHCP\nClient <--- [ 2 ] <--- Serveur DHCP\nClient ---> [ 3 ] ---> Serveur DHCP\nClient <--- [ 4 ] <--- Serveur DHCP",
     "options": [
-      "Discover -> Offer -> Request -> Acknowledge",
-      "Demand -> Option -> Receive -> Accept",
       "Detect -> Open -> Register -> Assign",
-      "Discover -> Request -> Offer -> Acknowledge"
+      "Demand -> Option -> Receive -> Accept",
+      "Discover -> Request -> Offer -> Acknowledge",
+      "Discover -> Offer -> Request -> Acknowledge"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Le cycle DHCP est DORA : DHCPDISCOVER (broadcast client), DHCPOFFER (proposition du serveur), DHCPREQUEST (demande du client) et DHCPACK (confirmation du serveur)."
   },
   {
     "id": 8,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quelle commande permet de configurer une passerelle par défaut sur un switch Cisco de niveau 2 pour le management ?",
     "codeSnippet": "Switch(config)# ??? 192.168.1.254",
     "options": [
+      "gateway 192.168.1.254",
       "ip default-gateway 192.168.1.254",
       "ip route 0.0.0.0 0.0.0.0 192.168.1.254",
-      "default-router 192.168.1.254",
-      "gateway 192.168.1.254"
+      "default-router 192.168.1.254"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "Sur un switch Layer 2 (sans routage IP actif), la commande 'ip default-gateway <IP>' est nécessaire pour permettre au switch de communiquer avec des sous-réseaux distants (management SSH/SNMP)."
   },
   {
     "id": 9,
     "category": "Réseau",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Sur quelle table un commutateur (Switch) de niveau 2 s'appuie-t-il pour acheminer les trames Ethernet vers le bon port ?",
     "codeSnippet": "Switch# show mac address-table\nVlan    Mac Address       Type        Ports\n----    -----------       --------    ----- \n  1     0014.a890.1234    DYNAMIC     Fa0/1",
     "options": [
       "La table d'adresses MAC (CAM Table)",
+      "La table DNS inverse",
       "La table de routage IP (FIB)",
-      "La table ARP (Address Resolution Protocol)",
-      "La table DNS inverse"
+      "La table ARP (Address Resolution Protocol)"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -146,16 +146,16 @@
   {
     "id": 10,
     "category": "Cisco",
-    "difficulty": "Base",
+    "difficulty": "Débutant",
     "question": "Quelle commande permet de supprimer complètement une interface ou une configuration sous Cisco IOS ?",
     "codeSnippet": "Router(config)# ??? ip address 10.0.0.1 255.255.255.0",
     "options": [
+      "undo",
       "no",
       "delete",
-      "remove",
-      "undo"
+      "remove"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "Le mot-clé 'no' placé devant n'importe quelle commande Cisco IOS annule la directive ou la désactive (ex: 'no shutdown', 'no ip address')."
   },
@@ -166,12 +166,12 @@
     "question": "Sur un lien Trunk 802.1Q reliant deux commutateurs Cisco, comment sont traitées les trames appartenant au VLAN Natif (Native VLAN) ?",
     "codeSnippet": "Switch(config-if)# switchport trunk native vlan 99",
     "options": [
-      "Elles sont transmises sans étiquette (Untagged, sans tag 802.1Q de 4 octets)",
       "Elles sont encapsulées avec le protocole propriétaire ISL",
       "Elles sont systématiquement chiffrées en AES-128",
-      "Elles sont immédiatement abandonnées (dropped)"
+      "Elles sont immédiatement abandonnées (dropped)",
+      "Elles sont transmises sans étiquette (Untagged, sans tag 802.1Q de 4 octets)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Le VLAN Natif transporte le trafic sans en-tête 802.1Q (non étiqueté / untagged). Si les deux extrémités d'un lien Trunk ont un VLAN Natif différent (Native VLAN Mismatch), le protocole CDP lève une alerte critique."
   },
@@ -182,12 +182,12 @@
     "question": "Quelle commande crée une route statique par défaut (route vers Internet) via la passerelle 203.0.113.1 sur un routeur Cisco ?",
     "codeSnippet": "Router(config)# ???",
     "options": [
-      "ip route 0.0.0.0 0.0.0.0 203.0.113.1",
+      "ip route *.*.*.* 203.0.113.1",
       "ip default-route 203.0.113.1",
       "route add default gw 203.0.113.1",
-      "ip route *.*.*.* 203.0.113.1"
+      "ip route 0.0.0.0 0.0.0.0 203.0.113.1"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Une route statique par défaut s'écrit avec l'adresse réseau 0.0.0.0 et le masque 0.0.0.0 : 'ip route 0.0.0.0 0.0.0.0 <Next_Hop_IP>'."
   },
@@ -198,12 +198,12 @@
     "question": "Quel protocole standardisé IEEE 802.3ad est configuré lorsqu'on active un agrégat de liens EtherChannel avec le mot-clé 'active' ?",
     "codeSnippet": "Switch(config-if-range)# channel-group 1 mode active",
     "options": [
-      "LACP (Link Aggregation Control Protocol)",
-      "PAgP (Port Aggregation Protocol)",
       "STP (Spanning Tree Protocol)",
-      "VRRP (Virtual Router Redundancy Protocol)"
+      "PAgP (Port Aggregation Protocol)",
+      "VRRP (Virtual Router Redundancy Protocol)",
+      "LACP (Link Aggregation Control Protocol)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Le mode 'active' active LACP (norme IEEE 802.3ad / 802.1AX). Le mode 'desirable' active quant à lui PAgP (protocole propriétaire Cisco)."
   },
@@ -214,12 +214,12 @@
     "question": "Quelle est la Distance Administrative (AD) par défaut d'une route apprise via le protocole de routage OSPF sur Cisco IOS ?",
     "codeSnippet": "Router# show ip route\nO    172.16.1.0/24 [???/2] via 10.0.0.2",
     "options": [
+      "120",
       "110",
       "90",
-      "120",
       "1"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "Les distances administratives clés sont : Connecté (0), Statique (1), EIGRP interne (90), OSPF (110), RIP (120), eBGP (20)."
   },
@@ -262,12 +262,12 @@
     "question": "Quelle plage de numéros identifie une Liste de Contrôle d'Accès Standard (Standard ACL) sous Cisco IOS (plage standard classique) ?",
     "codeSnippet": "Router(config)# access-list ??? permit 192.168.1.0 0.0.0.255",
     "options": [
-      "1 à 99 (et 1300 à 1999 étendue)",
-      "100 à 199 (et 2000 à 2699)",
       "1000 à 1999",
-      "200 à 299"
+      "200 à 299",
+      "100 à 199 (et 2000 à 2699)",
+      "1 à 99 (et 1300 à 1999 étendue)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Les ACLs Standard (qui ne filtrent que sur l'IP source) utilisent les numéros 1 à 99 et 1300 à 1999. Les ACLs Étendues (source, destination, protocoles, ports) utilisent les numéros 100 à 199 et 2000 à 2699."
   },
@@ -279,8 +279,8 @@
     "codeSnippet": "Router(config)# ip nat inside source list 1 interface Gi0/0 overload",
     "options": [
       "Il active le PAT (Port Address Translation) en partageant une unique IP publique grâce aux ports TCP/UDP",
-      "Il limite la bande passante de l'interface en cas de surcharge réseau",
       "Il autorise les paquets de plus de 1500 octets sans fragmentation",
+      "Il limite la bande passante de l'interface en cas de surcharge réseau",
       "Il désactive le pare-feu en cas d'utilisation CPU > 90%"
     ],
     "correctIndex": 0,
@@ -294,12 +294,12 @@
     "question": "Quelle action le mode 'shutdown' de Port Security effectue-t-il lorsqu'une adresse MAC non autorisée tente d'envoyer du trafic sur le port ?",
     "codeSnippet": "Switch(config-if)# switchport port-security violation shutdown",
     "options": [
-      "Le port est immédiatement désactivé et passe à l'état 'err-disabled' (nécessite une réactivation)",
+      "Le switch redémarre instantanément",
       "Les paquets non autorisés sont ignorés en silence sans éteindre le port",
       "Un mail SNMP est envoyé mais le port reste ouvert",
-      "Le switch redémarre instantanément"
+      "Le port est immédiatement désactivé et passe à l'état 'err-disabled' (nécessite une réactivation)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 3,
     "timeLimit": 35,
     "explanation": "Le mode 'shutdown' (mode par défaut de port-security) passe l'interface à l'état 'err-disabled', incrémente le compteur de violation et envoie une trap SNMP. Pour réactiver le port, il faut taper 'shutdown' puis 'no shutdown'."
   },
@@ -311,9 +311,9 @@
     "codeSnippet": "Subnet Mask : 255.255.240.0\nWildcard Mask : ???",
     "options": [
       "0.0.15.255",
+      "0.0.7.255",
       "0.0.31.255",
-      "0.0.240.255",
-      "0.0.7.255"
+      "0.0.240.255"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -322,30 +322,30 @@
   {
     "id": 21,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "En protocole OSPF multi-aires, quel type de LSA (Link-State Advertisement) est généré par un routeur ABR pour résumer les réseaux inter-aires ?",
     "codeSnippet": "Area 0 <---> [ ABR Router ] <---> Area 1\nLSA Type : ???",
     "options": [
-      "LSA Type 3 (Summary LSA)",
-      "LSA Type 1 (Router LSA)",
       "LSA Type 2 (Network LSA)",
-      "LSA Type 5 (AS-External LSA)"
+      "LSA Type 3 (Summary LSA)",
+      "LSA Type 5 (AS-External LSA)",
+      "LSA Type 1 (Router LSA)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "Les LSA Type 1 sont générés par tous les routeurs d'une zone, les LSA Type 2 par le DR. L'ABR (Area Border Router) convertit ces informations en LSA Type 3 (Summary LSA) pour les diffuser dans les autres aires."
   },
   {
     "id": 22,
     "category": "Réseau",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Dans le processus de sélection de route BGP (BGP Best Path Algorithm) chez Cisco, quel attribut propriétaire est évalué en TOUT PREMIER lieu ?",
     "codeSnippet": "BGP Path Selection Order on Cisco IOS",
     "options": [
       "Le Poids ('Weight' - valeur locale au routeur la plus élevée)",
-      "La Préférence Locale ('Local Preference' - la plus élevée)",
+      "La métrique MED (Multi-Exit Discriminator - la plus basse)",
       "La longueur du chemin 'AS_Path' (le plus court)",
-      "La métrique MED (Multi-Exit Discriminator - la plus basse)"
+      "La Préférence Locale ('Local Preference' - la plus élevée)"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -354,78 +354,78 @@
   {
     "id": 23,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Quel format d'adresse MAC virtuelle est utilisé par le protocole HSRP Version 1 pour le groupe HSRP numéro 10 ?",
     "codeSnippet": "HSRP Group: 10 (0x0A en hexadécimal)\nMAC Virtuelle: ???",
     "options": [
+      "ffff.0c07.ac10",
       "0000.0c07.ac0a",
-      "0000.5e00.010a",
       "0007.b400.010a",
-      "ffff.0c07.ac10"
+      "0000.5e00.010a"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "En HSRP v1, l'adresse MAC virtuelle est de la forme 0000.0c07.acXX, où XX est le numéro du groupe HSRP en hexadécimal (10 en décimal = 0A en hexadécimal -> 0000.0c07.ac0a). VRRP utilise 0000.5e00.01XX."
   },
   {
     "id": 24,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Quel risque majeur survient lors de la connexion d'un switch d'occasion configuré en mode VTP Server avec un 'Configuration Revision Number' supérieur à celui du domaine de production ?",
     "codeSnippet": "Switch# show vtp status\nConfiguration Revision : 15",
     "options": [
-      "La base de données VLAN du switch écrasera et effacera instantanément les VLANs de tout le domaine VTP",
-      "Le switch passera automatiquement en mode Transparent sans impact",
+      "Le protocole Spanning Tree sera désactivé sur l'ensemble des commutateurs",
       "Tous les liens Trunk seront immédiatement convertis en liens d'accès",
-      "Le protocole Spanning Tree sera désactivé sur l'ensemble des commutateurs"
+      "La base de données VLAN du switch écrasera et effacera instantanément les VLANs de tout le domaine VTP",
+      "Le switch passera automatiquement en mode Transparent sans impact"
     ],
-    "correctIndex": 0,
+    "correctIndex": 2,
     "timeLimit": 35,
     "explanation": "VTP synchronise sa base de données selon le numéro de révision le plus élevé. Un switch inséré avec un 'Revision Number' supérieur met à jour tous les autres switches du domaine, pouvant supprimer l'intégralité des VLANs de production !"
   },
   {
     "id": 25,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Quelle fonctionnalité de sécurité réseau s'appuie sur la table de 'DHCP Snooping Binding' pour interdire les attaques d'usurpation d'identité ARP (ARP Spoofing / Poisoning) ?",
     "codeSnippet": "Switch(config)# ip arp inspection vlan 10,20",
     "options": [
+      "Control Plane Policing (CoPP)",
       "DAI (Dynamic ARP Inspection)",
       "IP Source Guard (IPSG)",
-      "Control Plane Policing (CoPP)",
       "BPDU Guard"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "Dynamic ARP Inspection (DAI) inspecte toutes les requêtes et réponses ARP sur les ports non approuvés (untrusted) et vérifie la correspondance IP/MAC dans la table DHCP Snooping pour bloquer le spoofing ARP."
   },
   {
     "id": 26,
     "category": "Réseau",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Quelle est la super-agrégation (CIDR Summarization) optimale pour regrouper les 4 réseaux : 10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24 et 10.1.3.0/24 ?",
     "codeSnippet": "10.1.0.0/24\n10.1.1.0/24\n10.1.2.0/24\n10.1.3.0/24\n===> Résumé : ???",
     "options": [
+      "10.1.0.0/23",
       "10.1.0.0/22",
       "10.1.0.0/21",
-      "10.1.0.0/23",
       "10.1.0.0/20"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "timeLimit": 35,
     "explanation": "En binaire, le 3e octet varie de 0 (00000000) à 3 (00000011). Les 6 premiers bits du 3e octet sont identiques (000000xx). 8 + 8 + 6 = 22 bits communs. Le résumé optimal est donc 10.1.0.0/22 (couvrant 10.1.0.0 à 10.1.3.255)."
   },
   {
     "id": 27,
     "category": "Réseau",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Lors de la génération d'un Interface ID IPv6 avec la méthode EUI-64 à partir de l'adresse MAC 00:1A:2B:3C:4D:5E, quelle est la modification appliquée au premier octet ?",
     "codeSnippet": "MAC : 00-1A-2B-3C-4D-5E\nEUI-64 -> Inversion du 7e bit (Universal/Local bit) + insertion FF:FE",
     "options": [
       "L'octet 00 devient 02 (inversion du 7e bit de poids fort)",
-      "L'octet 00 devient FF",
       "L'octet 00 est supprimé",
-      "L'octet 00 devient FE"
+      "L'octet 00 devient FE",
+      "L'octet 00 devient FF"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -434,30 +434,30 @@
   {
     "id": 28,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Sous Cisco IOS, quel type de chiffrement de mot de passe est utilisé par la directive 'enable secret' standard utilisant l'algorithme MD5 avec sel (Salt) ?",
     "codeSnippet": "Router# show running-config\nenable secret 5 $1$mERr$hp5Zn4q...",
     "options": [
-      "Type 5 (Hash MD5 salé)",
       "Type 7 (Chiffrement Vigenère réversible très faible)",
-      "Type 0 (Texte en clair)",
-      "Type 9 (Scrypt)"
+      "Type 9 (Scrypt)",
+      "Type 5 (Hash MD5 salé)",
+      "Type 0 (Texte en clair)"
     ],
-    "correctIndex": 0,
+    "correctIndex": 2,
     "timeLimit": 35,
     "explanation": "Type 0 = clair, Type 7 = réversible (obsolète), Type 5 = hash MD5, Type 8 = SHA-256 et Type 9 = Scrypt (hautement résistant aux attaques par force brute GPU)."
   },
   {
     "id": 29,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Quelle commande Cisco IOS permet de résoudre les problèmes de fragmentation TCP sur un tunnel VPN IPsec/GRE sans modifier le MTU physique de l'interface ?",
     "codeSnippet": "Router(config-if)# interface Tunnel0\nRouter(config-if)# ??? 1360",
     "options": [
       "ip tcp adjust-mss 1360",
+      "crypto ipsec mtu 1360",
       "ip mtu override 1360",
-      "tcp window-size 1360",
-      "crypto ipsec mtu 1360"
+      "tcp window-size 1360"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
@@ -466,17 +466,2737 @@
   {
     "id": 30,
     "category": "Cisco",
-    "difficulty": "Difficile",
+    "difficulty": "Avancé",
     "question": "Dans le protocole Spanning Tree rapide (RSTP 802.1w), quel état d'interface a été fusionné avec 'Blocking' et 'Listening' pour simplifier les rôles ?",
     "codeSnippet": "802.1D (Blocking / Listening) ===> 802.1w : ???",
     "options": [
       "Discarding (Élimination)",
-      "Learning",
       "Forwarding",
-      "Disabled"
+      "Disabled",
+      "Learning"
     ],
     "correctIndex": 0,
     "timeLimit": 35,
     "explanation": "RSTP (IEEE 802.1w) simplifie les 5 états 802.1D en seulement 3 états opérationnels : Discarding (fusion de Disabled, Blocking et Listening), Learning (apprentissage des MACs) et Forwarding (acheminement normal)."
+  },
+  {
+    "id": 31,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle commande liste les conteneurs actuellement en cours d'exécution ?",
+    "codeSnippet": "$ docker ???",
+    "options": [
+      "docker list",
+      "docker containers",
+      "docker show",
+      "docker ps"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "'docker ps' affiche les conteneurs en cours d'exécution. Ajoutez '-a' pour voir aussi les conteneurs arrêtés."
+  },
+  {
+    "id": 32,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quel fichier contient les instructions pour construire une image Docker ?",
+    "codeSnippet": null,
+    "options": [
+      "Dockerfile",
+      "image.conf",
+      "build.json",
+      "docker.yml"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Le Dockerfile décrit étape par étape (FROM, COPY, RUN, CMD...) comment construire une image."
+  },
+  {
+    "id": 33,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle commande télécharge une image depuis Docker Hub sans la lancer ?",
+    "codeSnippet": null,
+    "options": [
+      "docker pull nginx",
+      "docker get nginx",
+      "docker fetch nginx",
+      "docker download nginx"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'docker pull' télécharge une image depuis un registre (Docker Hub par défaut). 'docker run' la télécharge aussi, mais la lance ensuite."
+  },
+  {
+    "id": 34,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle instruction Dockerfile définit l'image de base de départ ?",
+    "codeSnippet": "??? node:20-alpine\nWORKDIR /app",
+    "options": [
+      "BASE",
+      "IMPORT",
+      "SOURCE",
+      "FROM"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "Tout Dockerfile commence par 'FROM' qui définit l'image de base (ex: FROM node:20-alpine)."
+  },
+  {
+    "id": 35,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre EXPOSE dans un Dockerfile et l'option -p de docker run ?",
+    "codeSnippet": null,
+    "options": [
+      "EXPOSE ouvre le port, -p le documente",
+      "Les deux sont équivalents",
+      "EXPOSE est documentaire, -p publie réellement le port sur l'hôte",
+      "EXPOSE fonctionne uniquement avec docker compose"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "EXPOSE ne fait que documenter le port utilisé par le conteneur. Seul '-p hôte:conteneur' (ou 'ports:' dans compose) crée la redirection réseau réelle."
+  },
+  {
+    "id": 36,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait la commande suivante ?",
+    "codeSnippet": "$ docker run -v mydata:/app/data monapp",
+    "options": [
+      "Monte un volume nommé persistant dans le conteneur",
+      "Limite l'espace disque du conteneur",
+      "Copie le dossier mydata dans l'image",
+      "Crée un réseau nommé mydata"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "'-v mydata:/app/data' monte le volume nommé 'mydata' sur /app/data : les données survivent à la suppression du conteneur."
+  },
+  {
+    "id": 37,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Après avoir modifié le Dockerfile, quelle commande Docker Compose reconstruit et redémarre les services ?",
+    "codeSnippet": null,
+    "options": [
+      "docker compose update",
+      "docker compose restart",
+      "docker compose up -d --build",
+      "docker compose reload"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "'docker compose restart' redémarre les conteneurs SANS reconstruire l'image. Il faut '--build' pour prendre en compte les modifications du Dockerfile."
+  },
+  {
+    "id": 38,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Quel est l'intérêt principal d'un build multi-stage ?",
+    "codeSnippet": null,
+    "options": [
+      "Lancer plusieurs conteneurs en parallèle",
+      "Réduire la taille de l'image finale en excluant les outils de build",
+      "Compiler pour plusieurs architectures CPU",
+      "Accélérer le téléchargement des images de base"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "Le multi-stage permet de compiler dans une première étape puis de ne copier que les artefacts nécessaires dans l'image finale, qui reste légère."
+  },
+  {
+    "id": 39,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "question": "Dans un Dockerfile, quelle est la différence entre CMD et ENTRYPOINT ?",
+    "codeSnippet": null,
+    "options": [
+      "ENTRYPOINT fixe l'exécutable, CMD fournit ses arguments par défaut",
+      "ENTRYPOINT est obligatoire, CMD optionnel",
+      "Aucune, ce sont des alias",
+      "CMD s'exécute au build, ENTRYPOINT au démarrage"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Avec les deux combinés, ENTRYPOINT définit le programme lancé et CMD ses arguments par défaut, remplaçables via 'docker run image autres_args'."
+  },
+  {
+    "id": 40,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "question": "Si le HEALTHCHECK d'un conteneur échoue de façon répétée, que se passe-t-il par défaut ?",
+    "codeSnippet": null,
+    "options": [
+      "Le conteneur est arrêté immédiatement",
+      "Docker redémarre automatiquement le conteneur",
+      "Docker envoie un e-mail à l'administrateur",
+      "Le conteneur passe en statut unhealthy mais continue de tourner"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Sans orchestrateur, Docker se contente de marquer le conteneur 'unhealthy'. C'est un orchestrateur (Swarm, Kubernetes) ou une politique externe qui décide de le remplacer."
+  },
+  {
+    "id": 41,
+    "category": "Docker",
+    "difficulty": "Expert",
+    "question": "Pourquoi copier package.json et lancer npm install AVANT de copier le reste du code dans un Dockerfile Node.js ?",
+    "codeSnippet": "COPY package*.json ./\nRUN npm ci\nCOPY . .",
+    "options": [
+      "Pour réduire la taille de l'image finale",
+      "Pour profiter du cache de layers : npm install n'est rejoué que si les dépendances changent",
+      "Parce que npm exige que package.json soit seul dans le dossier",
+      "Pour éviter les conflits de permissions"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Chaque instruction crée un layer mis en cache. En copiant d'abord les manifestes, une modification du code source n'invalide pas le layer coûteux du npm install."
+  },
+  {
+    "id": 42,
+    "category": "Docker",
+    "difficulty": "Expert",
+    "question": "Que partagent tous les conteneurs tournant sur un même hôte Linux ?",
+    "codeSnippet": null,
+    "options": [
+      "Le noyau (kernel) de l'hôte",
+      "Leur espace mémoire utilisateur",
+      "Leurs variables d'environnement",
+      "Leur système de fichiers racine"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Contrairement aux VM, les conteneurs partagent le kernel de l'hôte : l'isolation repose sur les namespaces et cgroups, pas sur une virtualisation matérielle."
+  },
+  {
+    "id": 43,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Quelle commande initialise un répertoire Terraform (téléchargement des providers, configuration du backend) ?",
+    "codeSnippet": "$ terraform ???",
+    "options": [
+      "terraform init",
+      "terraform start",
+      "terraform install",
+      "terraform setup"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'terraform init' est toujours la première commande : elle télécharge les providers et prépare le backend d'état."
+  },
+  {
+    "id": 44,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche les changements prévus SANS les appliquer ?",
+    "codeSnippet": null,
+    "options": [
+      "terraform diff",
+      "terraform check",
+      "terraform plan",
+      "terraform preview"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'terraform plan' compare la configuration avec l'état réel et affiche les créations/modifications/suppressions prévues."
+  },
+  {
+    "id": 45,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Dans quel langage sont écrits les fichiers .tf ?",
+    "codeSnippet": null,
+    "options": [
+      "HCL (HashiCorp Configuration Language)",
+      "YAML",
+      "Python",
+      "JSON uniquement"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Terraform utilise le HCL, un langage déclaratif lisible. Une syntaxe JSON alternative existe mais HCL est le standard."
+  },
+  {
+    "id": 46,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Quelle commande crée ou modifie réellement l'infrastructure ?",
+    "codeSnippet": null,
+    "options": [
+      "terraform apply",
+      "terraform deploy",
+      "terraform execute",
+      "terraform run"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'terraform apply' exécute le plan et applique les changements sur l'infrastructure réelle, après confirmation."
+  },
+  {
+    "id": 47,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "Dans quel fichier Terraform stocke-t-il l'état de l'infrastructure qu'il gère ?",
+    "codeSnippet": null,
+    "options": [
+      "terraform.tfstate",
+      "infra.json",
+      "terraform.lock.hcl",
+      "state.tf"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Le fichier terraform.tfstate fait le lien entre la configuration et les ressources réelles. Il est critique et peut contenir des secrets."
+  },
+  {
+    "id": 48,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait la commande terraform destroy ?",
+    "codeSnippet": null,
+    "options": [
+      "Désinstalle Terraform",
+      "Supprime toutes les ressources gérées par la configuration",
+      "Supprime uniquement le fichier d'état",
+      "Annule le dernier apply"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "'terraform destroy' détruit l'ensemble des ressources présentes dans le state. À manier avec une extrême prudence en production."
+  },
+  {
+    "id": 49,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "Pourquoi utiliser un backend distant (ex: S3) pour le state en équipe ?",
+    "codeSnippet": null,
+    "options": [
+      "Partager un état unique et permettre son verrouillage",
+      "Chiffrer le code source",
+      "Éviter d'écrire des fichiers .tf",
+      "Accélérer les commandes terraform"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Un backend distant centralise le state pour toute l'équipe et permet le locking, évitant que deux apply simultanés ne corrompent l'état."
+  },
+  {
+    "id": 50,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "Quel bloc permet de déclarer une valeur d'entrée paramétrable ?",
+    "codeSnippet": "variable \"region\" {\n  type    = string\n  default = \"eu-west-3\"\n}",
+    "options": [
+      "param",
+      "variable",
+      "argument",
+      "input"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "Le bloc 'variable' déclare une entrée (type, défaut, description), fournie ensuite via -var, un fichier .tfvars ou l'environnement."
+  },
+  {
+    "id": 51,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "question": "À quoi sert la commande terraform import ?",
+    "codeSnippet": null,
+    "options": [
+      "Importer des variables d'environnement",
+      "Copier le state d'un autre projet",
+      "Télécharger un module depuis le registre",
+      "Rattacher une ressource existante (créée à la main) au state"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "'terraform import' associe une ressource déjà existante dans le cloud à une ressource déclarée dans la configuration, sans la recréer."
+  },
+  {
+    "id": 52,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "question": "Pourquoi préférer for_each à count pour créer plusieurs ressources similaires ?",
+    "codeSnippet": null,
+    "options": [
+      "for_each indexe par clé : supprimer un élément ne décale pas et ne recrée pas les autres",
+      "for_each permet plus de 100 ressources",
+      "for_each est plus rapide à l'exécution",
+      "count ne fonctionne pas avec les modules"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Avec count, supprimer un élément au milieu de la liste décale les index et force la recréation des ressources suivantes. for_each utilise des clés stables."
+  },
+  {
+    "id": 53,
+    "category": "Terraform",
+    "difficulty": "Expert",
+    "question": "Une ressource gérée par Terraform a été modifiée à la main dans la console cloud. Comment appelle-t-on cette situation et comment est-elle détectée ?",
+    "codeSnippet": null,
+    "options": [
+      "Une dérive, corrigée automatiquement en continu",
+      "Un drift, détecté lors du refresh au moment du plan",
+      "Un conflit, détecté par le lock du backend",
+      "Un fork, détecté par terraform validate"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "C'est le drift de configuration. Au 'terraform plan', le refresh compare l'état réel aux attentes et propose de réaligner l'infrastructure."
+  },
+  {
+    "id": 54,
+    "category": "Terraform",
+    "difficulty": "Expert",
+    "question": "Avec un backend S3, à quoi sert traditionnellement la table DynamoDB associée ?",
+    "codeSnippet": null,
+    "options": [
+      "À accélérer la lecture du state",
+      "À stocker une copie de sauvegarde du state",
+      "Au verrouillage du state pour empêcher les modifications concurrentes",
+      "À historiser les commandes exécutées"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "La table DynamoDB sert de mécanisme de state locking : un apply en cours pose un verrou, empêchant un collègue de corrompre le state en parallèle."
+  },
+  {
+    "id": 55,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Dans quel format sont écrits les playbooks Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "INI",
+      "YAML",
+      "XML",
+      "JSON"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Les playbooks sont écrits en YAML : lisibles, indentés, déclaratifs. (Les inventaires simples peuvent être en INI.)"
+  },
+  {
+    "id": 56,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Comment s'appelle le fichier qui liste les serveurs cibles d'Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "Le manifeste (manifest)",
+      "Le registre (registry)",
+      "L'inventaire (inventory)",
+      "Le catalogue (catalog)"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "L'inventaire (ex: hosts.ini ou inventory.yml) liste les hôtes et leurs groupes (ex: [webservers], [dbservers])."
+  },
+  {
+    "id": 57,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Quel protocole Ansible utilise-t-il par défaut pour se connecter aux serveurs Linux ?",
+    "codeSnippet": null,
+    "options": [
+      "SSH",
+      "FTP",
+      "Telnet",
+      "HTTP"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Ansible se connecte en SSH standard, sans agent à installer sur les machines cibles."
+  },
+  {
+    "id": 58,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Faut-il installer un agent sur les machines gérées par Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "Oui, un agent Python dédié",
+      "Oui, mais uniquement sous Windows",
+      "Oui, le démon ansibled",
+      "Non, Ansible est agentless"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "Ansible est agentless : il ne nécessite que SSH et Python sur la cible, contrairement à Puppet ou Chef historiquement."
+  },
+  {
+    "id": 59,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande exécute un playbook ?",
+    "codeSnippet": "$ ??? site.yml -i inventory",
+    "options": [
+      "ansible-run site.yml",
+      "ansible exec site.yml",
+      "ansible-playbook site.yml",
+      "ansible run site.yml"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "'ansible-playbook <fichier.yml>' exécute le playbook sur les hôtes de l'inventaire (option -i pour préciser l'inventaire)."
+  },
+  {
+    "id": 60,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Que signifie l'idempotence d'une tâche Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "Elle ne nécessite pas de droits root",
+      "Elle s'exécute une seule fois puis se désactive",
+      "Elle s'exécute en parallèle sur tous les hôtes",
+      "Rejouée plusieurs fois, elle ne modifie le système que si nécessaire"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Une tâche idempotente vérifie l'état avant d'agir : si le paquet est déjà installé, elle ne fait rien et remonte 'ok' au lieu de 'changed'."
+  },
+  {
+    "id": 61,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Pourquoi préférer le module apt/yum au module command pour installer un paquet ?",
+    "codeSnippet": null,
+    "options": [
+      "command est déprécié",
+      "command ne fonctionne pas avec sudo",
+      "apt/yum sont plus rapides",
+      "Les modules de paquets sont idempotents et gèrent l'état"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Les modules dédiés (apt, yum, dnf) vérifient l'état du paquet et ne changent rien s'il est déjà conforme. 'command' relance bêtement la commande à chaque exécution."
+  },
+  {
+    "id": 62,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Qu'est-ce qu'un handler dans un playbook ?",
+    "codeSnippet": "tasks:\n  - name: Config nginx\n    template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf\n    notify: Restart nginx",
+    "options": [
+      "Un module de gestion des fichiers",
+      "Un utilisateur dédié à Ansible",
+      "Un gestionnaire d'erreurs de connexion",
+      "Une tâche déclenchée par notify, exécutée seulement si un changement a eu lieu"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Un handler (ex: redémarrer nginx) n'est exécuté qu'une fois en fin de play, et seulement si une tâche l'a notifié suite à un changement réel."
+  },
+  {
+    "id": 63,
+    "category": "Ansible",
+    "difficulty": "Avancé",
+    "question": "À quoi sert ansible-vault ?",
+    "codeSnippet": null,
+    "options": [
+      "Verrouiller l'exécution simultanée de playbooks",
+      "Stocker l'historique des exécutions",
+      "Chiffrer des fichiers de variables sensibles (mots de passe, clés)",
+      "Sauvegarder les playbooks dans le cloud"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "ansible-vault chiffre les secrets (AES256) pour pouvoir les versionner dans Git sans les exposer. Déchiffrement à l'exécution via mot de passe ou fichier de clé."
+  },
+  {
+    "id": 64,
+    "category": "Ansible",
+    "difficulty": "Avancé",
+    "question": "Qu'est-ce qu'un rôle (role) Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "Une structure standardisée réutilisable (tasks, templates, defaults...)",
+      "Un groupe d'inventaire",
+      "Un niveau de permission sur les hôtes",
+      "Un utilisateur de connexion SSH"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Un rôle organise le code en dossiers conventionnels (tasks/, handlers/, templates/, defaults/...) pour le réutiliser entre projets, notamment via Ansible Galaxy."
+  },
+  {
+    "id": 65,
+    "category": "Ansible",
+    "difficulty": "Expert",
+    "question": "Quelle source de variable a la précédence la PLUS élevée ?",
+    "codeSnippet": null,
+    "options": [
+      "Les variables d'inventaire",
+      "Les extra vars passées avec -e en ligne de commande",
+      "Les variables de rôle (defaults)",
+      "Les facts découverts"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Les extra vars (-e) écrasent toutes les autres sources. À l'inverse, les role defaults ont la précédence la plus faible."
+  },
+  {
+    "id": 66,
+    "category": "Ansible",
+    "difficulty": "Expert",
+    "question": "Que provoque la directive serial: 1 dans un play ?",
+    "codeSnippet": null,
+    "options": [
+      "Une exécution mono-thread des tâches",
+      "La désactivation du parallélisme des forks",
+      "Un déploiement hôte par hôte (rolling update)",
+      "La limitation à une seule connexion SSH"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "'serial: 1' fait passer le play sur un hôte à la fois : idéal pour un rolling update sans interruption de service derrière un load balancer."
+  },
+  {
+    "id": 67,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quel service AWS fournit des machines virtuelles ?",
+    "codeSnippet": null,
+    "options": [
+      "CloudFront",
+      "S3",
+      "EC2",
+      "Route 53"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "EC2 (Elastic Compute Cloud) est le service de serveurs virtuels à la demande d'AWS."
+  },
+  {
+    "id": 68,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quel service AWS est un stockage d'objets ?",
+    "codeSnippet": null,
+    "options": [
+      "RDS",
+      "S3",
+      "EBS",
+      "EFS"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "S3 (Simple Storage Service) stocke des objets dans des buckets. EBS est du stockage bloc, EFS du stockage fichier, RDS une base de données."
+  },
+  {
+    "id": 69,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Que signifie IAM ?",
+    "codeSnippet": null,
+    "options": [
+      "Internal Application Monitor",
+      "Infrastructure Automation Module",
+      "Instance Allocation Manager",
+      "Identity and Access Management"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "IAM gère les identités (utilisateurs, rôles) et leurs permissions via des politiques JSON."
+  },
+  {
+    "id": 70,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quel est le service DNS managé d'AWS ?",
+    "codeSnippet": null,
+    "options": [
+      "DNSCloud",
+      "Route 53",
+      "HostedZone",
+      "CloudDNS"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Route 53 gère les zones DNS, l'enregistrement de domaines et le routage intelligent (latence, failover, géolocalisation)."
+  },
+  {
+    "id": 71,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre un Security Group et un NACL ?",
+    "codeSnippet": null,
+    "options": [
+      "Aucune, ce sont deux noms du même objet",
+      "SG : stateful au niveau instance ; NACL : stateless au niveau sous-réseau",
+      "SG : stateless ; NACL : stateful",
+      "SG protège les buckets S3, NACL les instances"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "Un Security Group est stateful (la réponse à un trafic autorisé est automatiquement admise) et s'applique à l'instance. Un NACL est stateless et filtre au niveau du subnet, règles aller ET retour requises."
+  },
+  {
+    "id": 72,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Qu'est-ce qu'un VPC ?",
+    "codeSnippet": null,
+    "options": [
+      "Un canal VPN vers AWS",
+      "Un réseau virtuel privé et isolé dans le cloud AWS",
+      "Un volume de stockage chiffré",
+      "Un serveur privé virtuel"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "Le VPC (Virtual Private Cloud) est votre réseau isolé : vous y définissez plages IP, sous-réseaux publics/privés, tables de routage et gateways."
+  },
+  {
+    "id": 73,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Comment est facturé AWS Lambda ?",
+    "codeSnippet": null,
+    "options": [
+      "Au forfait mensuel par fonction",
+      "À l'heure de serveur réservé",
+      "Au nombre d'invocations et à la durée d'exécution",
+      "Au nombre de lignes de code"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "Lambda est du serverless : facturation à la requête et à la durée (par ms, selon la mémoire allouée). Aucune infrastructure à gérer, mise à l'échelle automatique."
+  },
+  {
+    "id": 74,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence principale entre RDS et DynamoDB ?",
+    "codeSnippet": null,
+    "options": [
+      "RDS est gratuit, DynamoDB payant",
+      "RDS : bases relationnelles SQL managées ; DynamoDB : NoSQL clé-valeur serverless",
+      "RDS : NoSQL ; DynamoDB : SQL",
+      "DynamoDB est réservé à l'archivage"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "RDS héberge des moteurs relationnels (PostgreSQL, MySQL...). DynamoDB est une base NoSQL clé-valeur entièrement managée à latence constante."
+  },
+  {
+    "id": 75,
+    "category": "AWS",
+    "difficulty": "Avancé",
+    "question": "Pourquoi préférer un rôle IAM à des clés d'accès stockées sur une instance EC2 ?",
+    "codeSnippet": null,
+    "options": [
+      "Les clés d'accès ne fonctionnent pas depuis EC2",
+      "Le rôle fournit des credentials temporaires renouvelés automatiquement",
+      "Un rôle donne automatiquement tous les droits",
+      "Les rôles sont gratuits, pas les clés"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "Un rôle IAM attaché à l'instance délivre des credentials temporaires via le metadata service : rien à stocker en dur, rotation automatique, révocation simple."
+  },
+  {
+    "id": 76,
+    "category": "AWS",
+    "difficulty": "Avancé",
+    "question": "Quelle classe de stockage S3 est la moins chère pour de l'archivage long terme rarement consulté ?",
+    "codeSnippet": null,
+    "options": [
+      "S3 Intelligent-Tiering",
+      "S3 One Zone-IA",
+      "S3 Glacier Deep Archive",
+      "S3 Standard"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "Glacier Deep Archive est la classe la moins coûteuse, avec un délai de restauration de plusieurs heures : parfaite pour l'archivage réglementaire."
+  },
+  {
+    "id": 77,
+    "category": "AWS",
+    "difficulty": "Expert",
+    "question": "Dans l'évaluation des politiques IAM, que se passe-t-il si aucune politique n'autorise explicitement une action ?",
+    "codeSnippet": null,
+    "options": [
+      "Elle est autorisée si la ressource est publique",
+      "Elle est autorisée pour le compte root uniquement",
+      "AWS demande une confirmation MFA",
+      "Elle est refusée : le deny implicite s'applique par défaut"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "Tout est refusé par défaut (implicit deny). Un Allow explicite est nécessaire, et un Deny explicite l'emporte toujours sur tout Allow."
+  },
+  {
+    "id": 78,
+    "category": "AWS",
+    "difficulty": "Expert",
+    "question": "Qu'est-ce qu'une Availability Zone (AZ) ?",
+    "codeSnippet": null,
+    "options": [
+      "Un ou plusieurs datacenters isolés au sein d'une région",
+      "Une zone géographique couvrant plusieurs pays",
+      "Un rack de serveurs dédié à un client",
+      "Un synonyme de région AWS"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Une région contient plusieurs AZ, chacune étant un groupe de datacenters à l'alimentation et au réseau indépendants. Déployer multi-AZ protège des pannes locales."
+  },
+  {
+    "id": 79,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Sur quel moteur de base de données repose Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "SQLite",
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Supabase est construit autour de PostgreSQL : chaque projet est une vraie base Postgres avec ses extensions."
+  },
+  {
+    "id": 80,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Supabase se présente comme l'alternative open-source de quel service ?",
+    "codeSnippet": null,
+    "options": [
+      "Firebase (Google)",
+      "Heroku (Salesforce)",
+      "Amplify (AWS)",
+      "Azure Functions (Microsoft)"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Supabase reprend l'offre de Firebase (base temps réel, auth, storage, functions) mais en open-source et basé sur SQL."
+  },
+  {
+    "id": 81,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Quel langage permet d'interroger directement les données dans Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "SQL",
+      "MQL",
+      "GraphQL uniquement",
+      "NoSQL Query Language"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Supabase étant du PostgreSQL, tout le SQL standard est disponible (l'éditeur SQL est intégré au dashboard)."
+  },
+  {
+    "id": 82,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Quelles informations faut-il pour initialiser le client JavaScript Supabase ?",
+    "codeSnippet": "const supabase = createClient(\n  'https://xyz.supabase.co',\n  '???'\n)",
+    "options": [
+      "Le nom de la base et le port",
+      "Un identifiant et un mot de passe",
+      "L'URL du projet et la clé anon",
+      "Un token JWT administrateur"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "createClient(url, anonKey) : l'URL du projet et la clé publique 'anon', conçue pour être exposée côté client (les accès restant contrôlés par RLS)."
+  },
+  {
+    "id": 83,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "Qu'est-ce que la RLS (Row Level Security) ?",
+    "codeSnippet": null,
+    "options": [
+      "Un chiffrement des lignes sur disque",
+      "Une réplication ligne par ligne",
+      "Un filtrage des lignes accessibles selon des politiques par utilisateur",
+      "Un verrou d'écriture par ligne"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "La RLS est une fonctionnalité PostgreSQL : des policies déterminent quelles lignes chaque utilisateur peut lire ou modifier. C'est le cœur de la sécurité Supabase."
+  },
+  {
+    "id": 84,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "Que permet la fonctionnalité Realtime de Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "Exécuter des requêtes SQL plus vite",
+      "Synchroniser deux projets Supabase",
+      "S'abonner aux changements de la base via WebSocket",
+      "Mettre en cache les requêtes fréquentes"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "Realtime diffuse les INSERT/UPDATE/DELETE aux clients abonnés via WebSocket — idéal pour du chat, des tableaux de bord ou du multijoueur."
+  },
+  {
+    "id": 85,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "Que gère le module supabase.auth ?",
+    "codeSnippet": null,
+    "options": [
+      "Les permissions des tables SQL",
+      "Les quotas d'API",
+      "Les utilisateurs : inscription, connexion, OAuth, magic links...",
+      "Les certificats TLS du projet"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "supabase.auth gère tout le cycle des utilisateurs (email/mot de passe, magic link, OAuth Google/GitHub...) et délivre les JWT utilisés par la RLS."
+  },
+  {
+    "id": 86,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi sert Supabase Storage ?",
+    "codeSnippet": null,
+    "options": [
+      "Augmenter l'espace disque de la base SQL",
+      "Stocker des fichiers (images, vidéos...) avec des politiques d'accès",
+      "Héberger le code des applications",
+      "Sauvegarder automatiquement la base"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "Storage stocke des fichiers dans des buckets, avec des policies d'accès du même esprit que la RLS (public, privé, par utilisateur)."
+  },
+  {
+    "id": 87,
+    "category": "Supabase",
+    "difficulty": "Avancé",
+    "question": "Quelle est la différence critique entre la clé anon et la clé service_role ?",
+    "codeSnippet": null,
+    "options": [
+      "anon est plus rapide que service_role",
+      "anon donne accès en écriture, service_role en lecture",
+      "service_role contourne la RLS : elle ne doit JAMAIS être exposée côté client",
+      "service_role expire chaque semaine"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "La clé service_role bypasse toutes les politiques RLS. Elle est réservée au backend. L'exposer dans le navigateur revient à ouvrir toute la base."
+  },
+  {
+    "id": 88,
+    "category": "Supabase",
+    "difficulty": "Avancé",
+    "question": "Que sont les Edge Functions de Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "Des CDN pour les fichiers statiques",
+      "Des index optimisés pour les requêtes",
+      "Des fonctions serverless TypeScript/Deno exécutées au plus près des utilisateurs",
+      "Des triggers SQL sur les tables"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "Les Edge Functions (runtime Deno) exécutent du code backend serverless distribué géographiquement : webhooks, logique métier sensible, intégrations."
+  },
+  {
+    "id": 89,
+    "category": "Supabase",
+    "difficulty": "Expert",
+    "question": "Une table a la RLS activée mais AUCUNE policy définie. Que peut lire un utilisateur avec la clé anon ?",
+    "codeSnippet": null,
+    "options": [
+      "Tout : la RLS sans policy est inactive",
+      "Uniquement les 100 premières lignes",
+      "Rien : sans policy, tout accès est refusé par défaut",
+      "Uniquement ses propres lignes"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "RLS activée = deny par défaut. Ce sont les policies qui OUVRENT des accès. Sans policy, la table est inaccessible via l'API (sauf service_role)."
+  },
+  {
+    "id": 90,
+    "category": "Supabase",
+    "difficulty": "Expert",
+    "question": "Quel composant génère automatiquement l'API REST de Supabase à partir du schéma SQL ?",
+    "codeSnippet": null,
+    "options": [
+      "GraphQL Engine",
+      "Express.js",
+      "PostgREST",
+      "Hasura"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "PostgREST introspecte le schéma PostgreSQL et expose automatiquement tables et vues en API REST, sécurisée par les JWT et la RLS."
+  },
+  {
+    "id": 91,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande liste les fichiers d'un dossier, y compris les fichiers cachés ?",
+    "codeSnippet": "$ ls ???\n.  ..  .bashrc  documents",
+    "options": [
+      "ls -h",
+      "dir -h",
+      "ls -a",
+      "list --all"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'ls -a' (all) affiche aussi les fichiers cachés, dont le nom commence par un point (ex: .bashrc)."
+  },
+  {
+    "id": 92,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche le chemin du répertoire courant ?",
+    "codeSnippet": null,
+    "options": [
+      "where",
+      "pwd",
+      "cwd",
+      "path"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "'pwd' (print working directory) affiche le chemin absolu du dossier où vous vous trouvez."
+  },
+  {
+    "id": 93,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche le contenu complet d'un fichier texte dans le terminal ?",
+    "codeSnippet": null,
+    "options": [
+      "print fichier.txt",
+      "open fichier.txt",
+      "cat fichier.txt",
+      "read fichier.txt"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'cat' concatène et affiche le contenu. Pour les gros fichiers, 'less' permet de naviguer page par page."
+  },
+  {
+    "id": 94,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande modifie les permissions d'un fichier ?",
+    "codeSnippet": null,
+    "options": [
+      "perm",
+      "chown",
+      "chmod",
+      "setacl"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'chmod' (change mode) modifie les droits de lecture/écriture/exécution. 'chown' change le propriétaire, pas les permissions."
+  },
+  {
+    "id": 95,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Que signifie chmod 755 sur un fichier ?",
+    "codeSnippet": "$ chmod 755 script.sh\n$ ls -l script.sh\n???",
+    "options": [
+      "rwx pour tout le monde",
+      "rw- pour tous",
+      "rwx pour le propriétaire, r-x pour le groupe et les autres",
+      "r-x pour le propriétaire, rwx pour les autres"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "7 = rwx (4+2+1), 5 = r-x (4+1). Donc 755 : le propriétaire a tous les droits, groupe et autres peuvent lire et exécuter."
+  },
+  {
+    "id": 96,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande affiche l'espace disque utilisé par les systèmes de fichiers, en format lisible ?",
+    "codeSnippet": null,
+    "options": [
+      "disk --free",
+      "free -m",
+      "du -a",
+      "df -h"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "'df -h' (disk free, human-readable) montre l'occupation des partitions. 'du' mesure la taille de dossiers, 'free' la mémoire RAM."
+  },
+  {
+    "id": 97,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre kill 1234 et kill -9 1234 ?",
+    "codeSnippet": null,
+    "options": [
+      "-9 tue aussi les processus enfants",
+      "Aucune différence",
+      "kill arrête, -9 redémarre le processus",
+      "kill envoie SIGTERM (arrêt propre), -9 envoie SIGKILL (arrêt forcé)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Par défaut kill envoie SIGTERM, que le processus peut intercepter pour s'arrêter proprement. SIGKILL (-9) est immédiat et non interceptable — dernier recours."
+  },
+  {
+    "id": 98,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Sur une distribution moderne, quelle commande vérifie l'état du service nginx ?",
+    "codeSnippet": "$ ??? \n● nginx.service - A high performance web server\n   Active: active (running)",
+    "options": [
+      "initctl check nginx",
+      "systemctl status nginx",
+      "nginx --status",
+      "service nginx info"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "systemd est l'init système standard : 'systemctl status/start/stop/restart/enable nginx' gère le cycle de vie des services."
+  },
+  {
+    "id": 99,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "question": "Que fait la commande chown -R www-data:www-data /var/www ?",
+    "codeSnippet": null,
+    "options": [
+      "Donne les droits d'écriture à tous",
+      "Crée l'utilisateur www-data",
+      "Change uniquement le groupe",
+      "Change récursivement le propriétaire ET le groupe de /var/www"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "'chown user:group' définit propriétaire et groupe ; '-R' applique récursivement à tous les fichiers et sous-dossiers."
+  },
+  {
+    "id": 100,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "question": "Sur un système avec systemd, quelle commande consulte les logs du système et des services ?",
+    "codeSnippet": null,
+    "options": [
+      "dmesg --services",
+      "syslog --read",
+      "journalctl",
+      "cat /var/log/all"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "'journalctl' interroge le journal de systemd : par service (-u nginx), en continu (-f), depuis le dernier boot (-b)..."
+  },
+  {
+    "id": 101,
+    "category": "Linux",
+    "difficulty": "Expert",
+    "question": "Pourquoi le fichier /etc/shadow est-il lisible uniquement par root ?",
+    "codeSnippet": null,
+    "options": [
+      "Il liste les processus cachés",
+      "Il contient les hashes des mots de passe des utilisateurs",
+      "Il contient la clé privée SSH du serveur",
+      "Il stocke l'historique des connexions"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "/etc/shadow stocke les empreintes (hash) des mots de passe. /etc/passwd, lui, est lisible par tous mais ne contient plus les mots de passe depuis longtemps."
+  },
+  {
+    "id": 102,
+    "category": "Linux",
+    "difficulty": "Expert",
+    "question": "Quel est l'effet du sticky bit positionné sur /tmp (drwxrwxrwt) ?",
+    "codeSnippet": "$ ls -ld /tmp\ndrwxrwxrwt 15 root root 4096 /tmp",
+    "options": [
+      "Le dossier est vidé à chaque redémarrage",
+      "Les exécutables y sont lancés avec les droits root",
+      "Les fichiers y sont chiffrés automatiquement",
+      "Chacun ne peut supprimer que ses propres fichiers, même si le dossier est ouvert à tous"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "Le sticky bit (t final) sur un dossier accessible en écriture à tous empêche un utilisateur de supprimer les fichiers des autres — indispensable sur /tmp."
+  },
+  {
+    "id": 103,
+    "category": "Cisco",
+    "difficulty": "Expert",
+    "question": "Que fait la commande \"spanning-tree portfast\" sur un port d'accès ?",
+    "codeSnippet": "Switch(config-if)# spanning-tree portfast",
+    "options": [
+      "Le port passe directement en forwarding sans transiter par listening/learning",
+      "Le port négocie automatiquement un trunk",
+      "Le port devient prioritaire pour l'élection du root bridge",
+      "Le port est exclu du spanning-tree"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "PortFast fait gagner ~30 secondes à la connexion d'un poste de travail. À ne JAMAIS activer vers un autre switch : risque de boucle (d'où l'intérêt de BPDU Guard en complément)."
+  },
+  {
+    "id": 104,
+    "category": "Cisco",
+    "difficulty": "Expert",
+    "question": "En OSPF, quel est le rôle du DR (Designated Router) sur un segment multi-accès ?",
+    "codeSnippet": null,
+    "options": [
+      "Centraliser les échanges de LSA pour réduire le nombre d'adjacences complètes",
+      "Élire le routeur ayant la meilleure bande passante",
+      "Attribuer les adresses IP aux routeurs voisins",
+      "Router tout le trafic de données du segment"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Sans DR, n routeurs formeraient n(n-1)/2 adjacences. Le DR (et le BDR en secours) réduit cela : chaque routeur ne synchronise sa base LSA qu'avec eux (multicast 224.0.0.6)."
+  },
+  {
+    "id": 105,
+    "category": "Cisco",
+    "difficulty": "Expert",
+    "question": "Que signifie cette entrée dans la table de routage ?",
+    "codeSnippet": "R1# show ip route\nS*   0.0.0.0/0 [1/0] via 203.0.113.1",
+    "options": [
+      "Une route OSPF apprise dynamiquement",
+      "Une route connectée sur une interface locale",
+      "Une route statique par défaut (distance administrative 1)",
+      "Une route rejetée par une ACL"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "'S' = statique, '*' = candidate par défaut (gateway of last resort). [1/0] = distance administrative 1 (statique), métrique 0. Elle attrape tout trafic sans route plus spécifique."
+  },
+  {
+    "id": 106,
+    "category": "Réseau",
+    "difficulty": "Débutant",
+    "question": "Quel port TCP utilise HTTPS par défaut ?",
+    "codeSnippet": null,
+    "options": [
+      "8080",
+      "80",
+      "22",
+      "443"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "HTTPS (HTTP chiffré par TLS) utilise le port 443. HTTP utilise le 80, SSH le 22."
+  },
+  {
+    "id": 107,
+    "category": "Réseau",
+    "difficulty": "Débutant",
+    "question": "Quelle commande permet de tester la connectivité vers une autre machine ?",
+    "codeSnippet": "$ ??? 192.168.1.1\n64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.5 ms",
+    "options": [
+      "reach",
+      "connect",
+      "ping",
+      "test-ip"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'ping' envoie des paquets ICMP Echo Request et mesure le temps d'aller-retour. C'est le premier réflexe de diagnostic réseau."
+  },
+  {
+    "id": 108,
+    "category": "Réseau",
+    "difficulty": "Débutant",
+    "question": "Que signifie LAN ?",
+    "codeSnippet": null,
+    "options": [
+      "Local Area Network : un réseau local (maison, bureau...)",
+      "Link Aggregation Network",
+      "Large Access Node",
+      "Long Area Network"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "Le LAN est le réseau local d'un site. Par opposition, le WAN (Wide Area Network) interconnecte des sites distants."
+  },
+  {
+    "id": 109,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "question": "Quel est le rôle du protocole DHCP ?",
+    "codeSnippet": null,
+    "options": [
+      "Attribuer automatiquement adresse IP, masque, passerelle et DNS aux clients",
+      "Router les paquets entre réseaux",
+      "Chiffrer les communications du réseau local",
+      "Résoudre les noms de domaine"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "DHCP (Dynamic Host Configuration Protocol) distribue automatiquement la configuration réseau via le processus DORA : Discover, Offer, Request, Acknowledge."
+  },
+  {
+    "id": 110,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "question": "Quel est le rôle du DNS ?",
+    "codeSnippet": null,
+    "options": [
+      "Traduire les noms de domaine en adresses IP",
+      "Attribuer les adresses IP aux machines",
+      "Compresser le trafic réseau",
+      "Sécuriser les échanges web"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Le DNS (Domain Name System) est l'annuaire d'Internet : il résout par exemple devarena.fr en 203.0.113.42. Sans lui, il faudrait mémoriser les adresses IP."
+  },
+  {
+    "id": 111,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "question": "Entre TCP et UDP, lequel garantit une livraison fiable et ordonnée des données ?",
+    "codeSnippet": null,
+    "options": [
+      "TCP, grâce au handshake, aux acquittements et aux retransmissions",
+      "UDP, grâce à ses en-têtes plus complets",
+      "Les deux garantissent la livraison",
+      "Aucun des deux, c'est le rôle d'IP"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "TCP établit une connexion (SYN, SYN-ACK, ACK), numérote les segments, acquitte et retransmet. UDP envoie sans garantie — d'où sa rapidité pour le streaming, le DNS ou les jeux."
+  },
+  {
+    "id": 112,
+    "category": "Réseau",
+    "difficulty": "Avancé",
+    "question": "Quel est le rôle du protocole ARP ?",
+    "codeSnippet": null,
+    "options": [
+      "Résoudre une adresse IP en adresse MAC sur le réseau local",
+      "Résoudre un nom de domaine en adresse IP",
+      "Attribuer dynamiquement les adresses IP",
+      "Annoncer les routes entre routeurs"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Pour envoyer une trame sur le LAN, il faut la MAC du destinataire. ARP diffuse « qui a l'IP 192.168.1.10 ? » et la machine concernée répond avec sa MAC."
+  },
+  {
+    "id": 113,
+    "category": "Réseau",
+    "difficulty": "Avancé",
+    "question": "Que fait le NAT sur un routeur de box Internet ?",
+    "codeSnippet": null,
+    "options": [
+      "Traduit les adresses IP privées du LAN en l'adresse IP publique",
+      "Chiffre le trafic sortant",
+      "Bloque les connexions entrantes malveillantes",
+      "Accélère la navigation en mettant en cache"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Le NAT (Network Address Translation) permet à tout un réseau privé (192.168.x.x) de partager une seule IP publique, en suivant les connexions dans une table de traduction."
+  },
+  {
+    "id": 114,
+    "category": "Réseau",
+    "difficulty": "Expert",
+    "question": "Un paquet plus grand que la MTU du lien arrive avec le bit DF (Don't Fragment) activé. Que fait le routeur ?",
+    "codeSnippet": null,
+    "options": [
+      "Il met le paquet en file d'attente jusqu'à libération du lien",
+      "Il fragmente le paquet malgré le bit DF",
+      "Il rejette le paquet et renvoie un ICMP \"Fragmentation Needed\" à l'émetteur",
+      "Il compresse le paquet pour le faire passer"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "C'est la base du Path MTU Discovery : l'émetteur reçoit l'ICMP type 3 code 4 (avec la MTU du lien) et réduit la taille de ses paquets. Si un pare-feu bloque ces ICMP, les connexions « gèlent » mystérieusement."
+  },
+  {
+    "id": 115,
+    "category": "Réseau",
+    "difficulty": "Expert",
+    "question": "Quelle route unique résume les réseaux 192.168.0.0/24 à 192.168.3.0/24 ?",
+    "codeSnippet": "Réseaux : 192.168.0.0/24, 192.168.1.0/24,\n          192.168.2.0/24, 192.168.3.0/24\nRésumé : ???",
+    "options": [
+      "192.168.0.0/16",
+      "192.168.2.0/23",
+      "192.168.0.0/24",
+      "192.168.0.0/22"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "4 réseaux /24 contigus = 2² blocs, donc on retire 2 bits au masque : /24 → /22. 192.168.0.0/22 couvre exactement 192.168.0.0 à 192.168.3.255. C'est l'agrégation de routes (supernetting)."
+  },
+  {
+    "id": 116,
+    "category": "Réseau",
+    "difficulty": "Expert",
+    "question": "Quelle est la différence entre une requête DNS récursive et itérative ?",
+    "codeSnippet": null,
+    "options": [
+      "Récursive : le serveur résout entièrement pour le client ; itérative : il renvoie la meilleure référence connue",
+      "Récursive : interroge plusieurs domaines ; itérative : un seul",
+      "Itérative : plus sécurisée car signée DNSSEC",
+      "Aucune, ce sont deux noms du même mécanisme"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Votre résolveur (box, 8.8.8.8) travaille en récursif pour vous : il interroge lui-même racine → TLD → serveur autoritaire (échanges itératifs) et vous rend la réponse finale."
+  },
+  {
+    "id": 117,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle commande arrête proprement un conteneur en cours d'exécution ?",
+    "codeSnippet": null,
+    "options": [
+      "docker pause monconteneur",
+      "docker stop monconteneur",
+      "docker kill -f monconteneur",
+      "docker end monconteneur"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "'docker stop' envoie SIGTERM puis SIGKILL après un délai de grâce (10 s par défaut). 'docker kill' tue immédiatement, 'docker pause' gèle sans arrêter."
+  },
+  {
+    "id": 118,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche les logs d'un conteneur ?",
+    "codeSnippet": null,
+    "options": [
+      "docker output monconteneur",
+      "docker cat monconteneur",
+      "docker logs monconteneur",
+      "docker tail monconteneur"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'docker logs' affiche la sortie standard du conteneur. Avec '-f' pour suivre en continu, '--tail 50' pour les 50 dernières lignes."
+  },
+  {
+    "id": 119,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "question": "Quelle commande liste les images présentes sur la machine ?",
+    "codeSnippet": null,
+    "options": [
+      "docker list --all",
+      "docker ls",
+      "docker show images",
+      "docker images"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "'docker images' (ou 'docker image ls') liste les images locales avec leur tag, leur ID et leur taille."
+  },
+  {
+    "id": 120,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait cette commande ?",
+    "codeSnippet": "$ docker exec -it webapp sh\n/app #",
+    "options": [
+      "Copie le binaire sh dans le conteneur",
+      "Exécute le conteneur en arrière-plan",
+      "Crée un nouveau conteneur à partir de l'image sh",
+      "Ouvre un shell interactif à l'intérieur du conteneur en cours d'exécution"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "'docker exec' lance une commande dans un conteneur déjà démarré. '-it' (interactif + pseudo-TTY) permet d'obtenir un shell pour déboguer de l'intérieur."
+  },
+  {
+    "id": 121,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre une image et un conteneur ?",
+    "codeSnippet": null,
+    "options": [
+      "L'image est plus légère que le conteneur",
+      "Aucune, les deux termes sont interchangeables",
+      "Le conteneur est stocké sur Docker Hub, pas l'image",
+      "Le conteneur est une instance en exécution d'une image (modèle figé et réutilisable)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "L'image est un modèle immuable en couches ; le conteneur y ajoute une couche d'écriture et un processus vivant. Une même image peut lancer des dizaines de conteneurs."
+  },
+  {
+    "id": 122,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi sert le fichier .dockerignore ?",
+    "codeSnippet": null,
+    "options": [
+      "Cacher des conteneurs de docker ps",
+      "Ignorer certaines instructions du Dockerfile",
+      "Empêcher la publication de l'image sur Docker Hub",
+      "Exclure des fichiers du contexte envoyé au build (node_modules, .git...)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Comme .gitignore pour Git : il évite d'envoyer au démon Docker des fichiers inutiles ou sensibles, ce qui accélère le build et allège l'image."
+  },
+  {
+    "id": 123,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "question": "Que supprime docker system prune ?",
+    "codeSnippet": null,
+    "options": [
+      "Les fichiers logs du démon Docker",
+      "Conteneurs arrêtés, réseaux inutilisés, images dangling et cache de build",
+      "Uniquement les volumes de données",
+      "Toutes les images, y compris utilisées"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "'docker system prune' fait le ménage des ressources orphelines. Attention : '-a' supprime aussi toutes les images non utilisées par un conteneur, et '--volumes' inclut les volumes."
+  },
+  {
+    "id": 124,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "question": "Dans un même docker-compose, comment le service \"app\" joint-il le service \"db\" ?",
+    "codeSnippet": "environment:\n  DATABASE_URL: postgresql://devarena:devarena@???:5432/devarena",
+    "options": [
+      "Par l'adresse IP fixe 172.17.0.1",
+      "Via un fichier hosts à maintenir manuellement",
+      "Par localhost, car ils partagent le réseau",
+      "Par son nom de service, résolu par le DNS interne de Docker"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Compose crée un réseau où chaque service est joignable par son nom : postgresql://db:5432 fonctionne directement. C'est exactement ainsi que DevArena joint son PostgreSQL."
+  },
+  {
+    "id": 125,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "question": "Pourquoi éviter le tag \"latest\" en production ?",
+    "codeSnippet": null,
+    "options": [
+      "Il est réservé aux images officielles",
+      "Il est plus lent à télécharger",
+      "Il ne garantit pas la reproductibilité : son contenu change au fil des publications",
+      "Il désactive le cache de layers"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "'latest' est un tag mouvant : deux déploiements à des dates différentes peuvent tirer des images différentes. Un tag versionné (node:20.11-alpine) rend les déploiements prévisibles."
+  },
+  {
+    "id": 126,
+    "category": "Docker",
+    "difficulty": "Expert",
+    "question": "Quelle est la différence entre un volume nommé et un bind mount ?",
+    "codeSnippet": null,
+    "options": [
+      "Le volume est géré par Docker dans son espace ; le bind mount expose un chemin précis de l'hôte",
+      "Le bind mount est persistant, pas le volume",
+      "Le volume est en lecture seule par défaut",
+      "Le bind mount ne fonctionne que sous Linux"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Volume nommé (-v data:/app/data) : géré par Docker, portable, idéal en production. Bind mount (-v ./src:/app/src) : miroir d'un dossier hôte, idéal en développement pour le hot reload."
+  },
+  {
+    "id": 127,
+    "category": "Docker",
+    "difficulty": "Expert",
+    "question": "Pourquoi le processus PID 1 d'un conteneur pose-t-il des problèmes de signaux ?",
+    "codeSnippet": null,
+    "options": [
+      "PID 1 ignore les signaux sans handler explicite et doit adopter les processus zombies",
+      "Les signaux sont interdits dans les namespaces",
+      "PID 1 ne peut pas être un processus utilisateur",
+      "PID 1 reçoit deux fois chaque signal"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le noyau traite PID 1 spécialement : SIGTERM sans handler est ignoré (d'où des conteneurs qui ne s'arrêtent qu'au SIGKILL) et les zombies s'accumulent. Solutions : 'docker run --init', tini, ou un vrai gestionnaire de signaux."
+  },
+  {
+    "id": 128,
+    "category": "Docker",
+    "difficulty": "Expert",
+    "question": "Qu'est-ce qu'une image \"dangling\" (affichée <none>) ?",
+    "codeSnippet": null,
+    "options": [
+      "Une image interdite d'exécution",
+      "Une image en cours de construction",
+      "Une image sans tag, souvent l'ancienne version écrasée par un rebuild",
+      "Une image corrompue lors du téléchargement"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "Rebuilder un tag existant détache l'ancienne image, qui devient <none>:<none>. Elles s'accumulent et occupent du disque : 'docker image prune' les supprime."
+  },
+  {
+    "id": 129,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Que vérifie la commande terraform validate ?",
+    "codeSnippet": null,
+    "options": [
+      "La syntaxe et la cohérence interne de la configuration",
+      "La version des providers installés",
+      "Les droits d'accès au cloud provider",
+      "Que l'infrastructure réelle correspond au code"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'terraform validate' contrôle la syntaxe HCL et les références internes, sans contacter le cloud. Utile en pré-commit ou CI avant même un plan."
+  },
+  {
+    "id": 130,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "question": "Quelle est l'extension des fichiers de configuration Terraform ?",
+    "codeSnippet": null,
+    "options": [
+      ".terra",
+      ".hcl",
+      ".tf",
+      ".tfm"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "Les fichiers portent l'extension .tf (main.tf, variables.tf, outputs.tf...). Terraform charge tous les .tf du dossier comme une seule configuration."
+  },
+  {
+    "id": 131,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi servent les blocs output ?",
+    "codeSnippet": "output \"server_ip\" {\n  value = aws_instance.web.public_ip\n}",
+    "options": [
+      "Exposer des valeurs après apply (IP créée, URL...) réutilisables ailleurs",
+      "Définir les valeurs par défaut des variables",
+      "Exporter le state vers un backend",
+      "Écrire les logs de Terraform dans un fichier"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Les outputs affichent des informations utiles en fin d'apply et permettent à un module parent (ou à terraform_remote_state) de consommer les valeurs d'un module enfant."
+  },
+  {
+    "id": 132,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "question": "Qu'est-ce qu'un provider Terraform ?",
+    "codeSnippet": null,
+    "options": [
+      "Le serveur qui héberge le state",
+      "Un modèle de ressource prédéfini",
+      "L'entreprise qui édite Terraform",
+      "Un plugin qui sait piloter une plateforme (AWS, Azure, Docker...)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Le provider traduit les ressources HCL en appels d'API : aws_instance via le provider AWS, docker_container via le provider Docker... Ils sont téléchargés par terraform init."
+  },
+  {
+    "id": 133,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "question": "Qu'est-ce qu'un module Terraform ?",
+    "codeSnippet": null,
+    "options": [
+      "Une extension binaire du CLI",
+      "Un provider écrit par la communauté",
+      "Un fichier de state secondaire",
+      "Un ensemble réutilisable de ressources, appelé avec ses propres variables"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Un module regroupe des ressources en un composant réutilisable (ex : module \"vpc\"). Le Terraform Registry en propose des centaines de prêts à l'emploi."
+  },
+  {
+    "id": 134,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "question": "Que fait la commande terraform state list ?",
+    "codeSnippet": null,
+    "options": [
+      "Compare le state local et distant",
+      "Liste toutes les ressources actuellement suivies dans le state",
+      "Liste les versions précédentes du state",
+      "Affiche les états possibles d'une ressource"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "'terraform state list' énumère les adresses des ressources du state (aws_instance.web, module.vpc.aws_subnet.main...). Point de départ des opérations chirurgicales (state mv, rm, show)."
+  },
+  {
+    "id": 135,
+    "category": "Terraform",
+    "difficulty": "Expert",
+    "question": "Comment forcer la recréation d'une ressource saine au prochain apply ?",
+    "codeSnippet": null,
+    "options": [
+      "Supprimer la ressource du fichier .tf puis la réécrire",
+      "terraform destroy --only aws_instance.web",
+      "terraform refresh --force",
+      "terraform apply -replace=\"aws_instance.web\""
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "L'option -replace (qui remplace l'ancien 'terraform taint') marque la ressource pour destruction/recréation : utile pour une VM corrompue que le code déclare pourtant correctement."
+  },
+  {
+    "id": 136,
+    "category": "Terraform",
+    "difficulty": "Expert",
+    "question": "Que fait ce bloc lifecycle ?",
+    "codeSnippet": "resource \"aws_db_instance\" \"prod\" {\n  # ...\n  lifecycle {\n    prevent_destroy = true\n  }\n}",
+    "options": [
+      "Il fait échouer tout plan qui impliquerait la destruction de cette ressource",
+      "Il verrouille le state pendant l'apply",
+      "Il empêche la modification manuelle dans la console",
+      "Il interdit le terraform destroy global uniquement"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "prevent_destroy = true protège les ressources critiques (base de données de prod !) : tout plan qui les détruirait échoue, y compris un destroy global. Garde-fou indispensable."
+  },
+  {
+    "id": 137,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Quelle commande ad-hoc teste la connexion à tous les hôtes de l'inventaire ?",
+    "codeSnippet": "$ ??? \nweb01 | SUCCESS => { \"ping\": \"pong\" }",
+    "options": [
+      "ansible ping --hosts=all",
+      "ansible all -m ping",
+      "ansible test connection",
+      "ansible-playbook ping.yml"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Le module 'ping' d'Ansible (rien à voir avec ICMP) vérifie la connexion SSH et la présence de Python : chaque hôte doit répondre 'pong'."
+  },
+  {
+    "id": 138,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "question": "Dans quelle section d'un playbook définit-on les actions à exécuter ?",
+    "codeSnippet": "- hosts: webservers\n  ???:\n    - name: Installer nginx\n      apt: name=nginx state=present",
+    "options": [
+      "actions",
+      "tasks",
+      "commands",
+      "steps"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "La section 'tasks' liste les tâches, chacune appelant un module (apt, copy, service...) avec ses paramètres."
+  },
+  {
+    "id": 139,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait la directive become: yes ?",
+    "codeSnippet": null,
+    "options": [
+      "Élève les privilèges (sudo) pour exécuter la tâche en root",
+      "Rend la tâche asynchrone",
+      "Force la reconnexion SSH",
+      "Active le mode verbeux"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "'become: yes' (avec become_method sudo par défaut) exécute la tâche avec élévation de privilèges — indispensable pour installer des paquets ou modifier /etc."
+  },
+  {
+    "id": 140,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "question": "Que sont les facts Ansible ?",
+    "codeSnippet": null,
+    "options": [
+      "Des variables collectées automatiquement sur chaque hôte (OS, IP, CPU...)",
+      "Les résultats des tâches précédentes",
+      "Les logs d'exécution des playbooks",
+      "Des constantes définies dans ansible.cfg"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Au début d'un play, le module 'setup' collecte les facts : ansible_distribution, ansible_default_ipv4... Utilisables dans les conditions et templates (ex : when: ansible_os_family == 'Debian')."
+  },
+  {
+    "id": 141,
+    "category": "Ansible",
+    "difficulty": "Avancé",
+    "question": "Quel module génère un fichier de configuration à partir d'un modèle avec variables ?",
+    "codeSnippet": "- name: Config nginx\n  ???: \n    src: vhost.conf.j2\n    dest: /etc/nginx/sites-available/app",
+    "options": [
+      "lineinfile en mode batch",
+      "copy avec l'option vars",
+      "template (fichiers Jinja2 .j2)",
+      "file avec l'option content"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "Le module 'template' rend un fichier Jinja2 ({{ variable }}, boucles, conditions) avant de le déposer sur l'hôte. C'est LA méthode pour les fichiers de conf dynamiques."
+  },
+  {
+    "id": 142,
+    "category": "Ansible",
+    "difficulty": "Avancé",
+    "question": "À quoi sert la directive when sur une tâche ?",
+    "codeSnippet": null,
+    "options": [
+      "Définir un délai d'attente maximal",
+      "Répéter la tâche jusqu'à succès",
+      "Planifier la tâche à une heure donnée",
+      "Exécuter la tâche seulement si une condition est vraie"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "'when:' conditionne l'exécution : when: ansible_os_family == 'RedHat' permet d'utiliser yum sur CentOS et apt sur Debian dans le même playbook."
+  },
+  {
+    "id": 143,
+    "category": "Ansible",
+    "difficulty": "Expert",
+    "question": "Quelle est la différence entre les stratégies linear et free ?",
+    "codeSnippet": null,
+    "options": [
+      "linear : ordre alphabétique des hôtes ; free : ordre aléatoire",
+      "free : ignore les erreurs ; linear : s'arrête à la première",
+      "linear : tous les hôtes finissent chaque tâche avant la suivante ; free : chaque hôte avance à son rythme",
+      "linear : un seul fork ; free : forks illimités"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "Par défaut (linear), la tâche N+1 attend que tous les hôtes aient fini la tâche N. Avec 'strategy: free', les hôtes rapides terminent le play sans attendre les lents."
+  },
+  {
+    "id": 144,
+    "category": "Ansible",
+    "difficulty": "Expert",
+    "question": "Que permet delegate_to sur une tâche ?",
+    "codeSnippet": null,
+    "options": [
+      "Confier la tâche à un autre utilisateur SSH",
+      "Reporter la tâche à la fin du play",
+      "Exécuter cette tâche sur un autre hôte que celui du play (ex: localhost)",
+      "Exécuter la tâche sur tous les hôtes en même temps"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "'delegate_to: localhost' exécute la tâche depuis le contrôleur (ex : appeler l'API du load balancer pour retirer l'hôte du pool avant sa mise à jour), tout en gardant le contexte de l'hôte courant."
+  },
+  {
+    "id": 145,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quel service AWS collecte les métriques, les logs et déclenche des alarmes ?",
+    "codeSnippet": null,
+    "options": [
+      "Inspector",
+      "X-Ray",
+      "CloudWatch",
+      "CloudTrail"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "CloudWatch centralise métriques (CPU, latence...), logs applicatifs et alarmes. CloudTrail, lui, audite les appels d'API du compte."
+  },
+  {
+    "id": 146,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quelle commande installe-t-on pour piloter AWS depuis le terminal ?",
+    "codeSnippet": "$ ??? s3 ls\n2026-01-15 10:32:11 mon-bucket",
+    "options": [
+      "awsctl",
+      "ec2-cli",
+      "amazon-shell",
+      "aws (AWS CLI)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "L'AWS CLI s'utilise avec la commande 'aws' : aws s3 ls, aws ec2 describe-instances... configurée via 'aws configure'."
+  },
+  {
+    "id": 147,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "question": "Quelle région AWS est située à Paris ?",
+    "codeSnippet": null,
+    "options": [
+      "eu-paris-1",
+      "eu-west-1",
+      "eu-west-3",
+      "fr-central-1"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "eu-west-3 est la région de Paris (3 AZ). eu-west-1 est l'Irlande, eu-west-2 Londres. Le choix de la région impacte latence, prix et conformité RGPD."
+  },
+  {
+    "id": 148,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Quel est le rôle d'un Auto Scaling Group ?",
+    "codeSnippet": null,
+    "options": [
+      "Sauvegarder les instances à intervalle régulier",
+      "Augmenter la taille disque des instances à chaud",
+      "Ajuster automatiquement le nombre d'instances EC2 selon la charge",
+      "Répartir le trafic entre les instances"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "L'ASG maintient un nombre d'instances entre min et max, en ajoutant/retirant selon des politiques (CPU, requêtes...). Il remplace aussi automatiquement les instances défaillantes."
+  },
+  {
+    "id": 149,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Quel service répartit le trafic entrant entre plusieurs instances ?",
+    "codeSnippet": null,
+    "options": [
+      "API Gateway",
+      "Route 53 uniquement",
+      "Elastic Load Balancing (ALB/NLB)",
+      "CloudFront"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "L'ELB distribue les requêtes sur les cibles saines de plusieurs AZ. L'ALB travaille en couche 7 (HTTP, routage par chemin/hôte), le NLB en couche 4 (TCP, très haut débit)."
+  },
+  {
+    "id": 150,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "question": "Qu'est-ce qu'un volume EBS ?",
+    "codeSnippet": null,
+    "options": [
+      "Un système de fichiers partagé multi-instances",
+      "Un disque bloc persistant attachable à une instance EC2",
+      "Un cache mémoire partagé entre instances",
+      "Une sauvegarde automatique de S3"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "EBS (Elastic Block Store) est le « disque dur » réseau d'une instance EC2 : persistant indépendamment de l'instance, snapshotable, redimensionnable. EFS est le stockage fichier partagé."
+  },
+  {
+    "id": 151,
+    "category": "AWS",
+    "difficulty": "Avancé",
+    "question": "Que permet le versioning sur un bucket S3 ?",
+    "codeSnippet": null,
+    "options": [
+      "Publier plusieurs versions d'un site statique",
+      "Synchroniser le bucket entre régions",
+      "Conserver toutes les versions des objets et récupérer après écrasement ou suppression",
+      "Numéroter automatiquement les buckets"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "Avec le versioning, un DELETE ne fait que poser un « delete marker » et un PUT crée une nouvelle version : protection efficace contre les erreurs et certains ransomwares."
+  },
+  {
+    "id": 152,
+    "category": "AWS",
+    "difficulty": "Avancé",
+    "question": "Qu'est-ce que CloudFormation ?",
+    "codeSnippet": null,
+    "options": [
+      "Le service de formation certifiante d'AWS",
+      "Un outil de migration vers le cloud",
+      "Le concurrent AWS de Kubernetes",
+      "Le service d'infrastructure as code natif d'AWS (templates YAML/JSON)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "CloudFormation décrit l'infrastructure en templates et gère les déploiements en « stacks » avec rollback automatique. C'est l'équivalent AWS-natif de Terraform."
+  },
+  {
+    "id": 153,
+    "category": "AWS",
+    "difficulty": "Avancé",
+    "question": "Quelle est la différence entre ECS et EKS ?",
+    "codeSnippet": null,
+    "options": [
+      "ECS : pour Windows ; EKS : pour Linux",
+      "EKS : version gratuite d'ECS",
+      "ECS : machines virtuelles ; EKS : conteneurs",
+      "ECS : orchestrateur de conteneurs propriétaire AWS ; EKS : Kubernetes managé"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Les deux orchestrent des conteneurs. ECS est plus simple et intégré à AWS ; EKS fournit un plan de contrôle Kubernetes standard, portable et compatible avec tout l'écosystème K8s."
+  },
+  {
+    "id": 154,
+    "category": "AWS",
+    "difficulty": "Expert",
+    "question": "Quel est le compromis des instances EC2 Spot ?",
+    "codeSnippet": null,
+    "options": [
+      "Gratuites la nuit, facturées le jour",
+      "Prix fixe garanti mais performances réduites",
+      "Réservées aux comptes entreprise",
+      "Jusqu'à ~90 % de réduction, mais AWS peut les récupérer avec 2 minutes de préavis"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "Les Spot utilisent la capacité inutilisée d'AWS. Parfaites pour les charges interruptibles (batch, CI, rendu). L'interruption est signalée 2 minutes avant via les métadonnées d'instance."
+  },
+  {
+    "id": 155,
+    "category": "AWS",
+    "difficulty": "Expert",
+    "question": "Qu'est-ce qu'une bucket policy S3 par rapport à une politique IAM ?",
+    "codeSnippet": null,
+    "options": [
+      "Une politique attachée à la ressource (bucket), qui peut autoriser d'autres comptes AWS",
+      "Une liste de blocage d'adresses IP uniquement",
+      "Un synonyme de politique IAM",
+      "Une politique qui ne gère que le chiffrement"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "La bucket policy est « resource-based » : attachée au bucket, elle peut accorder l'accès cross-account ou public. Les politiques IAM sont « identity-based ». L'accès résulte de l'évaluation des deux."
+  },
+  {
+    "id": 156,
+    "category": "AWS",
+    "difficulty": "Expert",
+    "question": "Qu'est-ce que le « cold start » d'une fonction Lambda ?",
+    "codeSnippet": null,
+    "options": [
+      "Le délai avant suppression d'une fonction inutilisée",
+      "La latence de première invocation, le temps d'initialiser l'environnement d'exécution",
+      "Le redémarrage de Lambda après une panne de région",
+      "Le temps de compilation du code à chaque appel"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Quand aucune instance « chaude » n'existe, AWS doit provisionner l'environnement et charger le code : quelques centaines de ms à plusieurs secondes. Atténuation : provisioned concurrency, runtimes légers."
+  },
+  {
+    "id": 157,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Comment s'appelle l'interface web d'administration d'un projet Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "Le Panel",
+      "L'Admin Center",
+      "La Console Cloud",
+      "Le Dashboard (Studio)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "Le Dashboard (aussi appelé Supabase Studio) permet de gérer tables, auth, storage, SQL editor et logs. Studio est open-source et peut tourner en auto-hébergé."
+  },
+  {
+    "id": 158,
+    "category": "Supabase",
+    "difficulty": "Débutant",
+    "question": "Que fait ce code côté client ?",
+    "codeSnippet": "const { data, error } = await supabase\n  .from('users')\n  .select()",
+    "options": [
+      "Il crée la table users",
+      "Il supprime la table users",
+      "Il s'abonne aux changements de la table users",
+      "Il lit toutes les lignes accessibles de la table users"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "supabase.from('users').select() interroge la table via l'API REST (PostgREST). « Accessibles » car la RLS filtre ce que l'utilisateur a le droit de voir."
+  },
+  {
+    "id": 159,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "Quel type de jeton l'authentification Supabase délivre-t-elle aux utilisateurs connectés ?",
+    "codeSnippet": null,
+    "options": [
+      "Une clé API permanente",
+      "Un cookie de session opaque",
+      "Un JWT (JSON Web Token)",
+      "Un certificat X.509"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "Après connexion, supabase.auth délivre un JWT signé contenant l'identité (sub = id utilisateur). Ce jeton accompagne chaque requête et alimente les politiques RLS."
+  },
+  {
+    "id": 160,
+    "category": "Supabase",
+    "difficulty": "Intermédiaire",
+    "question": "Comment s'appelle la bibliothèque officielle JavaScript de Supabase ?",
+    "codeSnippet": "$ npm install ???",
+    "options": [
+      "@supabase/supabase-js",
+      "supabase-client",
+      "@supabase/core",
+      "supa-sdk"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "npm install @supabase/supabase-js : c'est le client officiel (createClient, from, auth, storage, realtime). Des clients existent aussi pour Python, Dart/Flutter, Swift..."
+  },
+  {
+    "id": 161,
+    "category": "Supabase",
+    "difficulty": "Avancé",
+    "question": "Peut-on utiliser des triggers et fonctions PostgreSQL dans Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "Oui, mais seulement en lecture",
+      "Non, seules les Edge Functions sont autorisées",
+      "Oui : plpgsql, triggers et même webhooks de base de données sont supportés",
+      "Uniquement sur l'offre Enterprise"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "Supabase est du vrai Postgres : CREATE FUNCTION / TRIGGER fonctionnent (ex : profil créé automatiquement à l'inscription). Les Database Webhooks appellent une URL sur INSERT/UPDATE/DELETE."
+  },
+  {
+    "id": 162,
+    "category": "Supabase",
+    "difficulty": "Avancé",
+    "question": "Comment versionner le schéma de la base avec la CLI Supabase ?",
+    "codeSnippet": null,
+    "options": [
+      "Avec les migrations : supabase migration new, puis supabase db push",
+      "Avec git directement sur les fichiers de la base",
+      "Le schéma est versionné automatiquement, rien à faire",
+      "En exportant un dump SQL manuel à chaque changement"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "La CLI génère des fichiers de migration SQL horodatés, versionnables dans Git et rejouables sur chaque environnement (local, staging, prod) : le workflow propre pour travailler en équipe."
+  },
+  {
+    "id": 163,
+    "category": "Supabase",
+    "difficulty": "Expert",
+    "question": "Dans une policy RLS, que renvoie la fonction auth.uid() ?",
+    "codeSnippet": "CREATE POLICY \"own rows\" ON documents\n  FOR SELECT USING ( ??? = user_id );",
+    "options": [
+      "Le rôle PostgreSQL courant",
+      "L'identifiant unique de la requête",
+      "L'UUID du projet Supabase",
+      "L'identifiant de l'utilisateur connecté, extrait de son JWT"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "auth.uid() lit le claim 'sub' du JWT de la requête. La policy classique : USING (auth.uid() = user_id) — chacun ne voit que ses propres lignes."
+  },
+  {
+    "id": 164,
+    "category": "Supabase",
+    "difficulty": "Expert",
+    "question": "Pourquoi Supabase place-t-il un connection pooler (Supavisor/pgBouncer) devant PostgreSQL ?",
+    "codeSnippet": null,
+    "options": [
+      "Pour mettre en cache les résultats des requêtes",
+      "Postgres limite les connexions simultanées ; le pooler les mutualise, indispensable en serverless",
+      "Pour répliquer la base entre régions",
+      "Pour chiffrer les connexions TLS"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Chaque connexion Postgres coûte cher (processus dédié). Des centaines de fonctions serverless épuiseraient vite max_connections : le pooler partage un petit pool de connexions réelles."
+  },
+  {
+    "id": 165,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande crée un dossier ?",
+    "codeSnippet": null,
+    "options": [
+      "md.sh mondossier",
+      "newfolder mondossier",
+      "mkdir mondossier",
+      "createdir mondossier"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'mkdir' (make directory) crée un dossier. Avec '-p', elle crée toute l'arborescence : mkdir -p projets/app/src."
+  },
+  {
+    "id": 166,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande copie un fichier ?",
+    "codeSnippet": null,
+    "options": [
+      "copy source.txt destination.txt",
+      "clone source.txt destination.txt",
+      "duplicate source.txt",
+      "cp source.txt destination.txt"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "'cp' copie fichiers et dossiers ('-r' pour récursif). 'copy' est la commande Windows, pas Linux."
+  },
+  {
+    "id": 167,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "question": "Quelle commande déplace ou renomme un fichier ?",
+    "codeSnippet": null,
+    "options": [
+      "rename",
+      "move",
+      "shift",
+      "mv"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "'mv' fait les deux : mv fichier.txt /tmp/ le déplace, mv ancien.txt nouveau.txt le renomme."
+  },
+  {
+    "id": 168,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait la commande grep ?",
+    "codeSnippet": "$ ??? \"ERROR\" app.log\n2026-09-02 14:01:07 ERROR Connection refused",
+    "options": [
+      "Compte les mots d'un fichier",
+      "Compresse des fichiers texte",
+      "Remplace du texte dans un fichier",
+      "Recherche des lignes correspondant à un motif dans des fichiers ou un flux"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "'grep' filtre les lignes qui matchent un motif (regex) : grep -r \"error\" /var/log/ cherche récursivement. Options utiles : -i (insensible à la casse), -n (numéros de ligne), -v (inverse)."
+  },
+  {
+    "id": 169,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait le symbole | (pipe) entre deux commandes ?",
+    "codeSnippet": "$ ps aux ??? grep nginx",
+    "options": [
+      "Envoie la sortie de la première commande en entrée de la seconde",
+      "Redirige les erreurs vers un fichier",
+      "Exécute la seconde seulement si la première réussit",
+      "Exécute les deux commandes en parallèle"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Le pipe enchaîne les commandes : ps aux | grep nginx | wc -l compte les processus nginx. C'est la philosophie Unix : de petits outils composables."
+  },
+  {
+    "id": 170,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre > et >> ?",
+    "codeSnippet": null,
+    "options": [
+      "> écrase le fichier, >> ajoute à la fin",
+      "> ajoute à la fin, >> écrase",
+      "Aucune différence",
+      "> redirige les erreurs, >> la sortie standard"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "echo \"ligne\" > fichier.txt remplace tout le contenu ; >> ajoute à la suite. Confondre les deux sur un fichier de conf peut coûter cher !"
+  },
+  {
+    "id": 171,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "question": "Que fait la commande crontab -e ?",
+    "codeSnippet": "$ crontab -e\n0 3 * * * /usr/local/bin/backup.sh",
+    "options": [
+      "Affiche les logs des tâches planifiées",
+      "Supprime toutes les tâches planifiées",
+      "Édite les tâches planifiées de l'utilisateur courant",
+      "Exécute immédiatement toutes les tâches cron"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "'crontab -e' ouvre l'éditeur des tâches cron. Syntaxe : minute heure jour mois jour_semaine commande. Ex : 0 3 * * * /backup.sh lance une sauvegarde à 3h chaque nuit."
+  },
+  {
+    "id": 172,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "question": "Quel est le rôle de la variable d'environnement PATH ?",
+    "codeSnippet": "$ echo $PATH\n/usr/local/bin:/usr/bin:/bin",
+    "options": [
+      "Définir le dossier de démarrage du terminal",
+      "Historiser les derniers dossiers visités",
+      "Stocker le chemin du répertoire personnel",
+      "Lister les dossiers où le shell cherche les exécutables des commandes"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Quand vous tapez 'node', le shell parcourt les dossiers de $PATH dans l'ordre jusqu'à trouver l'exécutable. D'où le classique « command not found » quand un outil n'y est pas."
+  },
+  {
+    "id": 173,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "question": "Quelle commande trouve tous les fichiers .log sous /var ?",
+    "codeSnippet": null,
+    "options": [
+      "search /var *.log",
+      "find /var -name \"*.log\"",
+      "locate --dir /var .log",
+      "grep /var \"*.log\""
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "'find' parcourt l'arborescence en temps réel avec de nombreux filtres (-name, -type, -size, -mtime) et peut agir sur les résultats (-exec, -delete)."
+  },
+  {
+    "id": 174,
+    "category": "Linux",
+    "difficulty": "Expert",
+    "question": "Pourquoi la commande passwd peut-elle modifier /etc/shadow, réservé à root ?",
+    "codeSnippet": "$ ls -l /usr/bin/passwd\n-rwsr-xr-x 1 root root 68208 /usr/bin/passwd",
+    "options": [
+      "/etc/shadow devient temporairement accessible à tous",
+      "Le noyau fait une exception codée en dur pour passwd",
+      "Son binaire porte le bit SUID : il s'exécute avec les droits de son propriétaire (root)",
+      "passwd est un alias de sudo"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "Le bit SUID (rwsr-xr-x) fait tourner le programme avec l'identité de son propriétaire, pas celle de l'appelant. Puissant et dangereux : les binaires SUID sont une cible d'audit sécurité classique."
+  },
+  {
+    "id": 175,
+    "category": "Linux",
+    "difficulty": "Expert",
+    "question": "Que contrôle ulimit -n ?",
+    "codeSnippet": null,
+    "options": [
+      "Le nombre maximal de descripteurs de fichiers ouverts par processus",
+      "Le nombre de processus par utilisateur",
+      "Le nombre maximal d'utilisateurs connectés",
+      "La taille maximale de la mémoire allouable"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Chaque fichier, socket ou pipe ouvert consomme un descripteur. La limite (souvent 1024 par défaut) provoque l'erreur « Too many open files » sur les serveurs chargés — un classique des serveurs WebSocket !"
+  },
+  {
+    "id": 176,
+    "category": "Linux",
+    "difficulty": "Expert",
+    "question": "Qu'est-ce que le répertoire /proc ?",
+    "codeSnippet": null,
+    "options": [
+      "Le dossier des procédures d'installation",
+      "La file d'attente des processus en attente",
+      "Le cache des programmes récemment exécutés",
+      "Un système de fichiers virtuel exposant l'état du noyau et des processus"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "/proc n'existe pas sur disque : le noyau le génère à la volée. /proc/cpuinfo, /proc/meminfo, /proc/<pid>/... — les outils comme ps et top ne font que le lire."
+  },
+  {
+    "id": 177,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Quelle commande récupère une copie locale d'un dépôt distant ?",
+    "codeSnippet": null,
+    "options": [
+      "git copy https://github.com/user/repo.git",
+      "git clone https://github.com/user/repo.git",
+      "git download https://github.com/user/repo.git",
+      "git init https://github.com/user/repo.git"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "'git clone' télécharge tout l'historique du dépôt et configure automatiquement le remote 'origin'."
+  },
+  {
+    "id": 178,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Que fait git add fichier.txt ?",
+    "codeSnippet": null,
+    "options": [
+      "Place les modifications du fichier dans la zone de staging pour le prochain commit",
+      "Ajoute le fichier au .gitignore",
+      "Valide définitivement le fichier dans l'historique",
+      "Crée le fichier dans le dépôt distant"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'git add' prépare (stage) les changements. Le commit n'enregistrera que ce qui a été ajouté à cette zone d'index — ce qui permet de committer une partie seulement de son travail."
+  },
+  {
+    "id": 179,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Quelle commande enregistre les modifications stagées dans l'historique ?",
+    "codeSnippet": null,
+    "options": [
+      "git commit -m \"message\"",
+      "git record \"message\"",
+      "git save -m \"message\"",
+      "git push -m \"message\""
+    ],
+    "correctIndex": 0,
+    "timeLimit": 20,
+    "explanation": "'git commit' crée un instantané local avec un message. Il reste local tant qu'un 'git push' ne l'a pas envoyé au dépôt distant."
+  },
+  {
+    "id": 180,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Que fait git push ?",
+    "codeSnippet": null,
+    "options": [
+      "Récupère les commits du dépôt distant",
+      "Sauvegarde le travail non commité",
+      "Envoie les commits locaux vers le dépôt distant",
+      "Fusionne deux branches"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'git push' publie vos commits locaux sur le remote (origin). L'inverse est 'git pull' qui rapatrie les commits des autres."
+  },
+  {
+    "id": 181,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande crée une branche feature-login et bascule dessus ?",
+    "codeSnippet": "$ ??? \nSwitched to a new branch 'feature-login'",
+    "options": [
+      "git branch --switch feature-login",
+      "git checkout feature-login --create",
+      "git new feature-login",
+      "git checkout -b feature-login"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "'git checkout -b' (ou le plus récent 'git switch -c') crée la branche et s'y positionne en une seule commande."
+  },
+  {
+    "id": 182,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "Que fait exactement git pull ?",
+    "codeSnippet": null,
+    "options": [
+      "Une synchronisation bidirectionnelle",
+      "Un écrasement de la branche locale par la distante",
+      "Un git fetch suivi d'un git merge de la branche distante",
+      "Un simple téléchargement sans modification locale"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "'git pull' = fetch (télécharger les nouveautés) + merge (les fusionner dans la branche courante). Avec --rebase, la fusion est remplacée par un rebase."
+  },
+  {
+    "id": 183,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi sert le fichier .gitignore ?",
+    "codeSnippet": null,
+    "options": [
+      "Empêcher le suivi de certains fichiers (node_modules, .env, builds...)",
+      "Désactiver des branches obsolètes",
+      "Bloquer certains utilisateurs du dépôt",
+      "Ignorer certains commits de l'historique"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "'.gitignore' liste les motifs de fichiers à ne pas versionner : dépendances réinstallables, secrets, artefacts de build. Un fichier déjà suivi doit d'abord être retiré avec git rm --cached."
+  },
+  {
+    "id": 184,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "Que montre git status ?",
+    "codeSnippet": null,
+    "options": [
+      "La santé du serveur distant",
+      "L'historique complet des commits",
+      "Les différences ligne par ligne",
+      "L'état des fichiers : modifiés, stagés, non suivis, et la branche courante"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "'git status' est le tableau de bord : branche courante, avance/retard sur origin, fichiers modifiés, stagés ou non suivis. À consulter avant chaque commit."
+  },
+  {
+    "id": 185,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "question": "Quelle est la différence entre git merge et git rebase ?",
+    "codeSnippet": null,
+    "options": [
+      "merge crée un commit de fusion ; rebase rejoue les commits sur la nouvelle base, historique linéaire",
+      "rebase fusionne plusieurs dépôts, merge plusieurs branches",
+      "rebase est plus sûr sur les branches partagées",
+      "merge supprime la branche source, rebase la conserve"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "Le merge préserve l'historique réel (avec un commit de fusion) ; le rebase réécrit les commits un par un sur la pointe de l'autre branche. Règle d'or : ne jamais rebaser des commits déjà poussés et partagés."
+  },
+  {
+    "id": 186,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "question": "Que fait git stash ?",
+    "codeSnippet": null,
+    "options": [
+      "Supprime définitivement les modifications en cours",
+      "Crée une archive .zip du projet",
+      "Met de côté les modifications non commitées pour retrouver un répertoire propre",
+      "Cache la branche courante aux autres développeurs"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "'git stash' empile vos changements en cours (récupérables avec stash pop) : parfait pour changer de branche en urgence sans committer du travail inachevé."
+  },
+  {
+    "id": 187,
+    "category": "Git",
+    "difficulty": "Expert",
+    "question": "Que fait git cherry-pick abc123 ?",
+    "codeSnippet": null,
+    "options": [
+      "Marque abc123 comme version stable",
+      "Supprime le commit abc123 de l'historique",
+      "Applique le commit abc123 d'une autre branche sur la branche courante",
+      "Fusionne toute la branche contenant abc123"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "'cherry-pick' rejoue un commit précis (nouveau SHA, même contenu) : typiquement pour reporter un correctif de main vers une branche de release sans tout fusionner."
+  },
+  {
+    "id": 188,
+    "category": "Git",
+    "difficulty": "Expert",
+    "question": "Un git reset --hard a fait « disparaître » des commits. Quelle commande permet de les retrouver ?",
+    "codeSnippet": "$ git reflog\nabc123 HEAD@{1}: commit: fix critique\ndef456 HEAD@{2}: reset: moving to HEAD~3",
+    "options": [
+      "git restore --commits",
+      "Impossible, ils sont définitivement perdus",
+      "git log --all --deleted",
+      "git reflog, qui journalise tous les déplacements de HEAD"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 35,
+    "explanation": "Le reflog garde la trace de chaque position de HEAD pendant ~90 jours. On y retrouve le SHA « perdu » puis git reset --hard <sha> ou git branch rescue <sha>. Le filet de sécurité ultime de Git."
+  },
+  {
+    "id": 189,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Quelle est la plus petite unité déployable dans Kubernetes ?",
+    "codeSnippet": null,
+    "options": [
+      "Le Node",
+      "Le Pod",
+      "Le Deployment",
+      "Le conteneur"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Le Pod encapsule un ou plusieurs conteneurs qui partagent réseau et stockage. Kubernetes ne manipule jamais un conteneur directement, toujours des Pods."
+  },
+  {
+    "id": 190,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Quel outil en ligne de commande pilote un cluster Kubernetes ?",
+    "codeSnippet": "$ ??? get nodes\nNAME     STATUS   ROLES           AGE\nnode-1   Ready    control-plane   12d",
+    "options": [
+      "kubeadm",
+      "helm",
+      "kubectl",
+      "k8s-cli"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "'kubectl' est le CLI principal : kubectl get, apply, describe, logs, exec... kubeadm sert à installer un cluster, Helm à packager des applications."
+  },
+  {
+    "id": 191,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Quel est le rôle d'un Deployment ?",
+    "codeSnippet": null,
+    "options": [
+      "Exposer les pods sur Internet",
+      "Créer les nœuds du cluster",
+      "Stocker la configuration de l'application",
+      "Maintenir un nombre de réplicas de pods et gérer les mises à jour progressives"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "Le Deployment déclare l'état désiré (image, replicas...) : Kubernetes maintient ce nombre de pods, les remplace s'ils tombent, et orchestre les rolling updates."
+  },
+  {
+    "id": 192,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "Que fournit un Service de type ClusterIP ?",
+    "codeSnippet": null,
+    "options": [
+      "Une IP virtuelle interne stable qui équilibre le trafic vers les pods",
+      "Un certificat TLS pour les pods",
+      "Un port ouvert sur chaque nœud du cluster",
+      "Une IP publique accessible depuis Internet"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Les pods sont éphémères et changent d'IP : le Service ClusterIP offre un point d'accès stable (IP + nom DNS interne) qui répartit le trafic vers les pods sélectionnés par labels."
+  },
+  {
+    "id": 193,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi servent les namespaces ?",
+    "codeSnippet": null,
+    "options": [
+      "Séparer physiquement les nœuds",
+      "Isoler les pods au niveau réseau du noyau",
+      "Nommer les conteneurs de façon unique",
+      "Cloisonner logiquement les ressources d'un cluster (équipes, environnements...)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 25,
+    "explanation": "Les namespaces partitionnent le cluster : dev/staging/prod ou par équipe, avec quotas et droits RBAC distincts. Les ressources par défaut vont dans le namespace 'default'."
+  },
+  {
+    "id": 194,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande liste les pods du namespace courant ?",
+    "codeSnippet": null,
+    "options": [
+      "kubectl get pods",
+      "kubectl pods --all",
+      "kubectl show pods",
+      "kubectl list pods"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "'kubectl get pods' affiche les pods (statut, redémarrages, âge). Avec '-n monns' pour un autre namespace, '-A' pour tous, '-o wide' pour plus de détails."
+  },
+  {
+    "id": 195,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle est la différence entre ConfigMap et Secret ?",
+    "codeSnippet": null,
+    "options": [
+      "Secret : chiffré de bout en bout par défaut ; ConfigMap : en clair",
+      "ConfigMap : par pod ; Secret : par cluster",
+      "ConfigMap : configuration non sensible ; Secret : données sensibles, encodées et mieux protégées",
+      "Aucune, Secret est l'ancien nom de ConfigMap"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 25,
+    "explanation": "Les deux injectent de la configuration (variables d'env, fichiers). Les Secrets sont encodés base64, soumis à un RBAC plus strict et chiffrables au repos dans etcd — mais pas chiffrés par défaut !"
+  },
+  {
+    "id": 196,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "question": "Quelle est la différence entre liveness probe et readiness probe ?",
+    "codeSnippet": null,
+    "options": [
+      "Ce sont deux noms de la même sonde",
+      "Liveness échouée : le conteneur est redémarré ; readiness échouée : le pod est retiré du Service",
+      "Liveness au démarrage, readiness en continu",
+      "Readiness échouée : le pod est supprimé définitivement"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "La liveness détecte un conteneur bloqué (→ restart). La readiness indique s'il peut recevoir du trafic (→ retrait temporaire du load balancing, sans redémarrage). Les confondre cause des boucles de restart."
+  },
+  {
+    "id": 197,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "question": "Quel objet gère le routage HTTP externe vers les Services (chemins, noms d'hôte, TLS) ?",
+    "codeSnippet": null,
+    "options": [
+      "Ingress",
+      "Gateway pod",
+      "NetworkPolicy",
+      "NodePort"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 30,
+    "explanation": "L'Ingress définit des règles L7 (app.exemple.com/api → service-api) appliquées par un Ingress Controller (nginx, traefik...). Il centralise aussi la terminaison TLS."
+  },
+  {
+    "id": 198,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "question": "Que fait un HorizontalPodAutoscaler (HPA) ?",
+    "codeSnippet": null,
+    "options": [
+      "Répartit les pods équitablement entre les nœuds",
+      "Ajoute des nœuds au cluster en cas de charge",
+      "Ajuste automatiquement le nombre de réplicas selon les métriques (CPU, mémoire...)",
+      "Augmente les ressources CPU/RAM de chaque pod"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "L'HPA scale le NOMBRE de pods (horizontal). Le VPA ajuste leurs ressources (vertical) et le Cluster Autoscaler ajoute des nœuds : trois niveaux complémentaires."
+  },
+  {
+    "id": 199,
+    "category": "Kubernetes",
+    "difficulty": "Expert",
+    "question": "Un nœud passe NotReady. Qu'arrive-t-il à ses pods gérés par un Deployment ?",
+    "codeSnippet": null,
+    "options": [
+      "Après un délai d'éviction (~5 min par défaut), ils sont recréés sur d'autres nœuds",
+      "Ils sont définitivement perdus avec leurs données",
+      "Ils restent indisponibles jusqu'au retour du nœud",
+      "Ils sont instantanément déplacés à chaud vers un autre nœud"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Kubernetes ne migre pas les pods « à chaud » : après le toleration timeout, les pods sont évincés et le Deployment en recrée de nouveaux ailleurs. D'où l'importance des réplicas multiples."
+  },
+  {
+    "id": 200,
+    "category": "Kubernetes",
+    "difficulty": "Expert",
+    "question": "Quelle est la différence entre resources.requests et resources.limits ?",
+    "codeSnippet": "resources:\n  requests:\n    memory: \"128Mi\"\n    cpu: \"250m\"\n  limits:\n    memory: \"256Mi\"\n    cpu: \"500m\"",
+    "options": [
+      "requests : ressources garanties utilisées pour le scheduling ; limits : plafond à l'exécution",
+      "requests concerne le CPU, limits la mémoire",
+      "requests : maximum ; limits : minimum",
+      "Les deux sont équivalents depuis Kubernetes 1.20"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 35,
+    "explanation": "Le scheduler place le pod selon ses requests. Les limits plafonnent : CPU au-delà → throttling ; mémoire au-delà → OOMKill. Leur bon réglage définit aussi la classe QoS du pod."
   }
 ]
