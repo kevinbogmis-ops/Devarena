@@ -569,7 +569,17 @@ socket.on('game:game_over', ({ fullRanking }) => {
   window.soundManager.playVictory();
 });
 
-// Déconnexion de l'hôte
+// L'hôte s'est déconnecté temporairement (période de grâce) : on prévient sans bloquer
+socket.on('game:host_paused', ({ message }) => {
+  showBanner(`⏸️ ${message || "Le Maître du jeu se reconnecte..."}`);
+});
+
+// L'hôte est revenu
+socket.on('game:host_resumed', () => {
+  showBanner('▶️ Le Maître du jeu est de retour !', true);
+});
+
+// Déconnexion définitive de l'hôte (grâce écoulée)
 socket.on('game:host_disconnected', ({ message }) => {
   clearSession();
   alert(message);

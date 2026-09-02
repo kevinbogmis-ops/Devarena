@@ -211,6 +211,65 @@ function broadcastPlayerList(pin) {
   });
 }
 
+// Délai de grâce avant fermeture d'une salle dont l'hôte s'est déconnecté
+// (permet un rechargement de page ou une micro-coupure sans détruire la partie)
+const HOST_GRACE_MS = 45000;
+
+// Constructeur du classement (utilisé pour les résultats de manche et la resync hôte)
+function buildLeaderboard(room) {
+  return Object.values(room.players)
+    .sort((a, b) => b.score - a.score)
+    .map((p, idx) => ({
+      rank: idx + 1,
+      id: p.id,
+      nickname: p.nickname,
+      score: p.score,
+      lastPoints: p.lastPoints,
+      streak: p.streak,
+      avatarIndex: p.avatarIndex
+    }));
+}
+
+// Payload de fin de manche (réémis tel quel à l'hôte lors d'une reconnexion)
+function buildRoundEndedPayload(room) {
+  const currentQ = room.questions[room.currentQuestionIndex];
+  const optionStats = [0, 0, 0, 0];
+  Object.values(room.answers).forEach(ans => {
+    if (ans.answerIndex >= 0 && ans.answerIndex < 4) optionStats[ans.answerIndex]++;
+  });
+  const leaderboard = buildLeaderboard(room);
+  return {
+    correctIndex: currentQ.correctIndex,
+    explanation: currentQ.explanation,
+    optionStats,
+    leaderboard: leaderboard.slice(0, 5),
+    fullLeaderboard: leaderboard,
+    isLastQuestion: room.currentQuestionIndex >= room.questions.length - 1
+  };
+}
+
+// Payload de fin de partie (podium)
+function buildGameOverPayload(room) {
+  const finalRanking = Object.values(room.players)
+    .sort((a, b) => b.score - a.score)
+    .map((p, idx) => ({
+      rank: idx + 1,
+      id: p.id,
+      nickname: p.nickname,
+      score: p.score,
+      totalCorrect: p.totalCorrect,
+      totalQuestions: room.questions.length,
+      avatarIndex: p.avatarIndex,
+      accuracy: Math.round((p.totalCorrect / Math.max(1, room.questions.length)) * 100)
+    }));
+  return {
+    podium: finalRanking.slice(0, 3),
+    fullRanking: finalRanking,
+    totalQuestions: room.questions.length,
+    finalRanking
+  };
+}
+
 // Gestion des WebSockets
 io.on('connection', (socket) => {
   console.log(`[Socket] Connexion établie: ${socket.id}`);
@@ -221,6 +280,8 @@ io.on('connection', (socket) => {
     rooms[pin] = {
       pin,
       hostSocketId: socket.id,
+      hostConnected: true,
+      hostGraceTimer: null,
       state: 'LOBBY', // LOBBY, QUESTION, ROUND_RESULT, GAME_OVER
       players: {}, // socketId -> { id, nickname, score, streak, totalCorrect, lastPoints }
       questions: [],
@@ -245,6 +306,68 @@ io.on('connection', (socket) => {
       totalQuestionsAvailable: allQuestions.length,
       catalog: getQuestionCatalog()
     });
+  });
+
+  // --- 1bis. RECONNEXION DE L'HÔTE (rechargement de page / micro-coupure) ---
+  socket.on('host:reconnect', ({ pin }) => {
+    const cleanPin = (pin || '').toString().trim();
+    const room = rooms[cleanPin];
+
+    if (!room) {
+      // Salle expirée ou fermée : le client créera une nouvelle salle
+      socket.emit('host:reconnect_failed');
+      return;
+    }
+
+    // Annuler le délai de grâce et réassocier le socket de l'hôte
+    if (room.hostGraceTimer) {
+      clearTimeout(room.hostGraceTimer);
+      room.hostGraceTimer = null;
+    }
+    room.hostSocketId = socket.id;
+    room.hostConnected = true;
+    socket.join(`room:${cleanPin}`);
+    socket.join(`host:${cleanPin}`);
+
+    console.log(`[Room ${cleanPin}] Hôte reconnecté (${socket.id}), reprise à l'état ${room.state}.`);
+
+    // Rétablir le contexte de la salle côté hôte
+    socket.emit('host:reconnected', {
+      pin: cleanPin,
+      totalQuestionsAvailable: allQuestions.length,
+      catalog: getQuestionCatalog(),
+      state: room.state
+    });
+    broadcastPlayerList(cleanPin);
+
+    // Resynchroniser la vue de jeu en cours
+    if (room.state === 'QUESTION') {
+      const currentQ = room.questions[room.currentQuestionIndex];
+      const elapsedSec = Math.floor((Date.now() - room.questionStartTime) / 1000);
+      socket.emit('game:question_started', {
+        questionNumber: room.currentQuestionIndex + 1,
+        totalQuestions: room.questions.length,
+        category: currentQ.category,
+        difficulty: currentQ.difficulty,
+        question: currentQ.question,
+        codeSnippet: currentQ.codeSnippet,
+        options: currentQ.options,
+        timeLimit: room.questionTimeLimit,
+        remainingSec: Math.max(0, room.questionTimeLimit - elapsedSec)
+      });
+      const connected = getConnectedPlayers(room);
+      socket.emit('host:player_answered_count', {
+        answeredCount: connected.filter(p => room.answers[p.id] !== undefined).length,
+        totalPlayers: connected.length
+      });
+    } else if (room.state === 'ROUND_RESULT') {
+      socket.emit('game:round_ended', buildRoundEndedPayload(room));
+    } else if (room.state === 'GAME_OVER') {
+      socket.emit('game:game_over', buildGameOverPayload(room));
+    }
+
+    // Informer les joueurs que le Maître du jeu est de retour
+    io.to(`room:${cleanPin}`).emit('game:host_resumed');
   });
 
   // --- 2. REJOINDRE UNE SALLE (JOUEUR) ---
@@ -635,13 +758,23 @@ io.on('connection', (socket) => {
     for (const pin in rooms) {
       const room = rooms[pin];
       if (room.hostSocketId === socket.id) {
-        console.log(`[Room ${pin}] L'hôte s'est déconnecté. Fermeture de la salle.`);
-        clearInterval(room.tickInterval);
-        clearTimeout(room.timer);
-        io.to(`room:${pin}`).emit('game:host_disconnected', {
-          message: "L'arène a été fermée car le Maître du jeu s'est déconnecté."
+        // Délai de grâce : la partie continue, l'hôte peut se reconnecter (refresh, coupure)
+        console.log(`[Room ${pin}] Hôte déconnecté — période de grâce de ${HOST_GRACE_MS / 1000}s avant fermeture.`);
+        room.hostConnected = false;
+        io.to(`room:${pin}`).emit('game:host_paused', {
+          message: "Le Maître du jeu s'est déconnecté... reconnexion en cours."
         });
-        delete rooms[pin];
+
+        if (room.hostGraceTimer) clearTimeout(room.hostGraceTimer);
+        room.hostGraceTimer = setTimeout(() => {
+          console.log(`[Room ${pin}] Délai de grâce écoulé, l'hôte n'est pas revenu. Fermeture de la salle.`);
+          clearInterval(room.tickInterval);
+          clearTimeout(room.timer);
+          io.to(`room:${pin}`).emit('game:host_disconnected', {
+            message: "L'arène a été fermée : le Maître du jeu ne s'est pas reconnecté à temps."
+          });
+          delete rooms[pin];
+        }, HOST_GRACE_MS);
         return;
       }
       
@@ -754,27 +887,7 @@ function endQuestionRound(pin) {
 
   room.state = 'ROUND_RESULT';
   const currentQ = room.questions[room.currentQuestionIndex];
-
-  // Calcul des statistiques de réponses (A, B, C, D)
-  const optionStats = [0, 0, 0, 0];
-  Object.values(room.answers).forEach(ans => {
-    if (ans.answerIndex >= 0 && ans.answerIndex < 4) {
-      optionStats[ans.answerIndex]++;
-    }
-  });
-
-  // Classement actuel
-  const leaderboard = Object.values(room.players)
-    .sort((a, b) => b.score - a.score)
-    .map((p, idx) => ({
-      rank: idx + 1,
-      id: p.id,
-      nickname: p.nickname,
-      score: p.score,
-      lastPoints: p.lastPoints,
-      streak: p.streak,
-      avatarIndex: p.avatarIndex
-    }));
+  const leaderboard = buildLeaderboard(room);
 
   // Notifier chaque joueur individuellement avec son résultat personnalisé
   Object.values(room.players).forEach(player => {
@@ -800,14 +913,7 @@ function endQuestionRound(pin) {
   });
 
   // Notifier toute la salle avec la révélation et le classement
-  io.to(`room:${pin}`).emit('game:round_ended', {
-    correctIndex: currentQ.correctIndex,
-    explanation: currentQ.explanation,
-    optionStats,
-    leaderboard: leaderboard.slice(0, 5), // Top 5
-    fullLeaderboard: leaderboard,
-    isLastQuestion: room.currentQuestionIndex >= room.questions.length - 1
-  });
+  io.to(`room:${pin}`).emit('game:round_ended', buildRoundEndedPayload(room));
 }
 
 // Helper: Fin définitive de la partie et podium
@@ -817,18 +923,8 @@ function finishGame(pin) {
 
   room.state = 'GAME_OVER';
 
-  const finalRanking = Object.values(room.players)
-    .sort((a, b) => b.score - a.score)
-    .map((p, idx) => ({
-      rank: idx + 1,
-      id: p.id,
-      nickname: p.nickname,
-      score: p.score,
-      totalCorrect: p.totalCorrect,
-      totalQuestions: room.questions.length,
-      avatarIndex: p.avatarIndex,
-      accuracy: Math.round((p.totalCorrect / Math.max(1, room.questions.length)) * 100)
-    }));
+  const payload = buildGameOverPayload(room);
+  const finalRanking = payload.finalRanking;
 
   console.log(`[Room ${pin}] Partie terminée ! Vainqueur: ${finalRanking[0]?.nickname || 'Aucun'} avec ${finalRanking[0]?.score || 0} pts.`);
 
@@ -839,11 +935,7 @@ function finishGame(pin) {
       .catch(err => console.error(`[DB] Échec de l'enregistrement de la partie ${pin}:`, err.message));
   }
 
-  io.to(`room:${pin}`).emit('game:game_over', {
-    podium: finalRanking.slice(0, 3),
-    fullRanking: finalRanking,
-    totalQuestions: room.questions.length
-  });
+  io.to(`room:${pin}`).emit('game:game_over', payload);
 }
 
 // Démarrage du serveur HTTP & WebSocket

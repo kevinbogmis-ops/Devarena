@@ -227,11 +227,43 @@ if (customUrlInput) {
   });
 }
 
-// 1. Initialisation de la salle
-socket.emit('host:create_room');
+// 1. Initialisation / reconnexion de la salle
+// Le PIN est mémorisé dans sessionStorage : un rechargement de page (ou une
+// micro-coupure réseau) tente une reconnexion plutôt que de créer une salle neuve.
+const HOST_SESSION_KEY = 'devarena_host_pin';
+
+function getSavedHostPin() {
+  try { return sessionStorage.getItem(HOST_SESSION_KEY); } catch (e) { return null; }
+}
+function saveHostPin(pin) {
+  try { sessionStorage.setItem(HOST_SESSION_KEY, pin); } catch (e) { /* ignore */ }
+}
+function clearHostPin() {
+  try { sessionStorage.removeItem(HOST_SESSION_KEY); } catch (e) { /* ignore */ }
+}
+
+// À chaque (re)connexion du socket : reprendre la salle en mémoire/session, sinon en créer une
+socket.on('connect', () => {
+  const knownPin = currentRoomPin || getSavedHostPin();
+  if (knownPin) {
+    console.log(`[Host] Tentative de reconnexion à la salle ${knownPin}...`);
+    socket.emit('host:reconnect', { pin: knownPin });
+  } else {
+    socket.emit('host:create_room');
+  }
+});
+
+// Échec de reconnexion (salle expirée) : on repart sur une salle neuve
+socket.on('host:reconnect_failed', () => {
+  console.log('[Host] Reconnexion impossible (salle expirée), création d\'une nouvelle salle.');
+  clearHostPin();
+  currentRoomPin = null;
+  socket.emit('host:create_room');
+});
 
 socket.on('host:room_created', ({ pin, totalQuestionsAvailable, catalog }) => {
   currentRoomPin = pin;
+  saveHostPin(pin);
   if (pinDisplay) pinDisplay.textContent = pin;
   console.log(`[Host] Salle prête avec le PIN ${pin} (${totalQuestionsAvailable} questions dispo)`);
 
@@ -240,6 +272,23 @@ socket.on('host:room_created', ({ pin, totalQuestionsAvailable, catalog }) => {
 
   renderLobbyQrCode(pin);
   switchView('lobby');
+});
+
+// Reconnexion réussie : rétablir le contexte. La vue précise (question/résultat/podium)
+// est ensuite fixée par l'événement de jeu resynchronisé qui suit.
+socket.on('host:reconnected', ({ pin, catalog, state }) => {
+  currentRoomPin = pin;
+  saveHostPin(pin);
+  if (pinDisplay) pinDisplay.textContent = pin;
+  questionCatalog = catalog || {};
+  renderFilterChips();
+  renderLobbyQrCode(pin);
+  console.log(`[Host] Reconnecté à la salle ${pin} (état: ${state})`);
+
+  if (state === 'LOBBY') {
+    switchView('lobby');
+  }
+  // QUESTION / ROUND_RESULT / GAME_OVER : la vue est fixée par l'événement suivant
 });
 
 // Bouton copier le lien d'invitation direct
@@ -387,13 +436,14 @@ socket.on('game:question_started', (q) => {
     if (textSpan) textSpan.textContent = optText;
   });
 
-  // Timer UI
+  // Timer UI (en cas de reconnexion, repartir du temps restant réel)
+  const startingSec = (typeof q.remainingSec === 'number') ? q.remainingSec : currentMaxTime;
   if (timerCircle) {
     timerCircle.style.strokeDasharray = circumference;
-    timerCircle.style.strokeDashoffset = 0;
+    timerCircle.style.strokeDashoffset = circumference - (startingSec / currentMaxTime) * circumference;
     timerCircle.classList.remove('warning', 'danger');
   }
-  if (timerText) timerText.textContent = currentMaxTime;
+  if (timerText) timerText.textContent = startingSec;
 
   window.soundManager.playTick();
 });
@@ -579,6 +629,9 @@ async function loadHostHallOfFame() {
 
 if (btnRestart) {
   btnRestart.addEventListener('click', () => {
+    // Nouvelle arène : on oublie le PIN pour forcer la création d'une salle neuve
+    clearHostPin();
+    currentRoomPin = null;
     window.location.reload();
   });
 }
