@@ -105,6 +105,16 @@ console.log('\n3. Cohérence des imports dans les fichiers HTML...');
   if (!content.includes('/socket.io/socket.io.js')) {
     warnings.push(`${htmlFile} ne charge pas le client Socket.io`);
   }
+
+  // Équilibre des balises structurantes (une section non fermée avale les éléments
+  // suivants dans un conteneur potentiellement masqué -> bugs d'affichage invisibles)
+  ['section', 'div'].forEach(tag => {
+    const opened = (content.match(new RegExp(`<${tag}[\\s>]`, 'g')) || []).length;
+    const closed = (content.match(new RegExp(`</${tag}>`, 'g')) || []).length;
+    if (opened !== closed) {
+      errors.push(`${htmlFile} : balises <${tag}> déséquilibrées (${opened} ouvertes / ${closed} fermées).`);
+    }
+  });
 });
 
 // 4. Synthèse
