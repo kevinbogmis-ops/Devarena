@@ -62,6 +62,44 @@ let myStreak = 0;
 let myAvatarIndex = 0;
 let playerMaxTime = 20;
 
+// --- Session de reconnexion (survit au rechargement de la page) ---
+const SESSION_KEY = 'devarena_session';
+
+function saveSession() {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ pin: myRoomPin, nickname: myNickname }));
+  } catch (e) { /* stockage indisponible : reconnexion auto désactivée */ }
+}
+
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
+}
+
+function getSavedSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+  } catch (e) {
+    return null;
+  }
+}
+
+// Reconnexion automatique : à chaque (re)connexion du socket, si on était en partie
+// (dans cette page ou avant un rechargement), on retente de rejoindre avec le même pseudo.
+let initialAutoRejoinDone = false;
+socket.on('connect', () => {
+  if (myRoomPin && myNickname) {
+    console.log('[Player] Socket reconnecté, tentative de reprise de la partie...');
+    socket.emit('player:join_room', { pin: myRoomPin, nickname: myNickname });
+  } else if (!initialAutoRejoinDone) {
+    initialAutoRejoinDone = true;
+    const saved = getSavedSession();
+    if (saved && saved.pin && saved.nickname) {
+      console.log('[Player] Session trouvée, tentative de reconnexion automatique...');
+      socket.emit('player:join_room', { pin: saved.pin, nickname: saved.nickname });
+    }
+  }
+});
+
 function switchView(viewName) {
   Object.keys(views).forEach(k => {
     if (views[k]) {
@@ -113,21 +151,37 @@ function showError(msg) {
 }
 
 socket.on('player:join_error', ({ message }) => {
+  // Si une reconnexion auto échoue (partie terminée...), on oublie la session
+  clearSession();
+  switchView('join');
   showError(message);
   window.soundManager.playWrong();
 });
 
-socket.on('player:join_success', ({ pin, player }) => {
+socket.on('player:join_success', ({ pin, player, resumed, state }) => {
   myRoomPin = pin;
   myNickname = player.nickname;
   myAvatarIndex = player.avatarIndex;
   myScore = player.score || 0;
+  myStreak = player.streak || 0;
+  saveSession();
 
   if (waitingPinBadge) waitingPinBadge.textContent = `#${pin}`;
   if (waitingPlayerAvatar) waitingPlayerAvatar.textContent = getAvatarEmoji(myAvatarIndex);
   if (waitingPlayerName) waitingPlayerName.textContent = myNickname;
 
-  switchView('waiting');
+  if (resumed && state !== 'QUESTION') {
+    // Reconnecté entre deux questions : écran d'attente avec confirmation
+    switchView('answered');
+    const statusMsg = document.getElementById('answered-status-msg');
+    if (statusMsg) {
+      statusMsg.textContent = `✔ Reconnecté ! Score conservé : ${myScore} pts. En attente de la prochaine question...`;
+    }
+  } else if (!resumed) {
+    switchView('waiting');
+  }
+  // Si resumed en plein QUESTION : le serveur renvoie game:question_started juste après.
+
   window.soundManager.playCorrect();
 });
 
@@ -142,6 +196,17 @@ socket.on('game:starting', () => {
 
 // 3. Question en cours
 socket.on('game:question_started', (q) => {
+  // Reconnexion en pleine question alors qu'on avait déjà répondu : écran d'attente
+  if (q.alreadyAnswered) {
+    switchView('answered');
+    const statusMsg = document.getElementById('answered-status-msg');
+    if (statusMsg) {
+      statusMsg.textContent = '✔ Reconnecté ! Ta réponse à cette question est déjà enregistrée.';
+    }
+    playerMaxTime = q.timeLimit || 20;
+    return;
+  }
+
   switchView('question');
 
   playerMaxTime = q.timeLimit || 20;
@@ -168,10 +233,11 @@ socket.on('game:question_started', (q) => {
     }
   }
 
-  // Réinitialiser le timer
-  if (playerTimerText) playerTimerText.textContent = `⏱️ ${playerMaxTime}s`;
+  // Réinitialiser le timer (en cas de reconnexion, repartir du temps restant réel)
+  const startingSec = (typeof q.remainingSec === 'number') ? q.remainingSec : playerMaxTime;
+  if (playerTimerText) playerTimerText.textContent = `⏱️ ${startingSec}s`;
   if (playerTimerBar) {
-    playerTimerBar.style.width = '100%';
+    playerTimerBar.style.width = `${Math.max(0, startingSec / playerMaxTime) * 100}%`;
     playerTimerBar.style.backgroundColor = 'var(--color-d)';
   }
 
@@ -269,6 +335,7 @@ socket.on('player:round_result', (result) => {
 
 // 5. Fin de la partie
 socket.on('game:game_over', ({ fullRanking }) => {
+  clearSession();
   switchView('gameOver');
 
   const me = fullRanking.find(p => p.id === socket.id);
@@ -282,6 +349,7 @@ socket.on('game:game_over', ({ fullRanking }) => {
 
 // Déconnexion de l'hôte
 socket.on('game:host_disconnected', ({ message }) => {
+  clearSession();
   alert(message);
   window.location.reload();
 });

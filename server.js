@@ -139,6 +139,29 @@ function filterQuestions(categories, difficulties) {
   return pool;
 }
 
+// Helper: Joueurs actuellement connectés d'une salle
+function getConnectedPlayers(room) {
+  return Object.values(room.players).filter(p => p.connected !== false);
+}
+
+// Helper: Diffuser la liste des joueurs (avec état de connexion) à toute la salle
+function broadcastPlayerList(pin) {
+  const room = rooms[pin];
+  if (!room) return;
+  const playerList = Object.values(room.players).map(p => ({
+    id: p.id,
+    nickname: p.nickname,
+    avatarIndex: p.avatarIndex,
+    score: p.score,
+    connected: p.connected !== false
+  }));
+  io.to(`room:${pin}`).emit('room:player_list_updated', {
+    players: playerList,
+    count: playerList.length,
+    connectedCount: playerList.filter(p => p.connected).length
+  });
+}
+
 // Gestion des WebSockets
 io.on('connection', (socket) => {
   console.log(`[Socket] Connexion établie: ${socket.id}`);
@@ -186,13 +209,73 @@ io.on('connection', (socket) => {
       return;
     }
 
-    if (room.state !== 'LOBBY') {
-      socket.emit('player:join_error', { message: 'La partie est déjà en cours ou terminée.' });
+    if (!cleanNickname) {
+      socket.emit('player:join_error', { message: 'Veuillez saisir un pseudo valide.' });
       return;
     }
 
-    if (!cleanNickname) {
-      socket.emit('player:join_error', { message: 'Veuillez saisir un pseudo valide.' });
+    if (room.state !== 'LOBBY') {
+      // --- TENTATIVE DE RECONNEXION EN COURS DE PARTIE ---
+      if (room.state === 'GAME_OVER') {
+        socket.emit('player:join_error', { message: 'Cette partie est terminée. Demandez un nouveau PIN au Maître du jeu.' });
+        return;
+      }
+
+      const oldId = Object.keys(room.players).find(id =>
+        room.players[id].connected === false &&
+        room.players[id].nickname.toLowerCase() === cleanNickname.toLowerCase()
+      );
+
+      if (!oldId) {
+        socket.emit('player:join_error', {
+          message: 'La partie est déjà en cours. (Si tu étais dans la partie, reconnecte-toi avec exactement le même pseudo.)'
+        });
+        return;
+      }
+
+      // Réassociation du joueur à son nouveau socket : score et série conservés
+      const playerData = room.players[oldId];
+      delete room.players[oldId];
+      playerData.id = socket.id;
+      playerData.connected = true;
+      room.players[socket.id] = playerData;
+      if (room.answers[oldId] !== undefined) {
+        room.answers[socket.id] = room.answers[oldId];
+        delete room.answers[oldId];
+      }
+
+      socket.join(`room:${cleanPin}`);
+      socket.data.roomPin = cleanPin;
+      socket.data.nickname = playerData.nickname;
+
+      console.log(`[Room ${cleanPin}] Reconnexion de "${playerData.nickname}" (score conservé : ${playerData.score} pts).`);
+
+      socket.emit('player:join_success', {
+        pin: cleanPin,
+        player: playerData,
+        resumed: true,
+        state: room.state
+      });
+
+      // Renvoyer la question en cours pour reprendre la partie immédiatement
+      if (room.state === 'QUESTION') {
+        const currentQ = room.questions[room.currentQuestionIndex];
+        const elapsedSec = Math.floor((Date.now() - room.questionStartTime) / 1000);
+        socket.emit('game:question_started', {
+          questionNumber: room.currentQuestionIndex + 1,
+          totalQuestions: room.questions.length,
+          category: currentQ.category,
+          difficulty: currentQ.difficulty,
+          question: currentQ.question,
+          codeSnippet: currentQ.codeSnippet,
+          options: currentQ.options,
+          timeLimit: room.questionTimeLimit,
+          remainingSec: Math.max(0, room.questionTimeLimit - elapsedSec),
+          alreadyAnswered: room.answers[socket.id] !== undefined
+        });
+      }
+
+      broadcastPlayerList(cleanPin);
       return;
     }
 
@@ -213,7 +296,8 @@ io.on('connection', (socket) => {
       streak: 0,
       totalCorrect: 0,
       lastPoints: 0,
-      avatarIndex: Math.floor(Math.random() * 8)
+      avatarIndex: Math.floor(Math.random() * 8),
+      connected: true
     };
 
     socket.join(`room:${cleanPin}`);
@@ -229,17 +313,7 @@ io.on('connection', (socket) => {
     });
 
     // Mettre à jour la liste des joueurs pour l'hôte et la salle
-    const playerList = Object.values(room.players).map(p => ({
-      id: p.id,
-      nickname: p.nickname,
-      avatarIndex: p.avatarIndex,
-      score: p.score
-    }));
-
-    io.to(`room:${cleanPin}`).emit('room:player_list_updated', {
-      players: playerList,
-      count: playerList.length
-    });
+    broadcastPlayerList(cleanPin);
   });
 
   // --- 3. DÉMARRAGE DU JEU PAR L'HÔTE ---
@@ -356,8 +430,9 @@ io.on('connection', (socket) => {
       receivedAt: now
     });
 
-    const answeredCount = Object.keys(room.answers).length;
-    const totalPlayers = Object.keys(room.players).length;
+    const connectedPlayers = getConnectedPlayers(room);
+    const answeredCount = connectedPlayers.filter(p => room.answers[p.id] !== undefined).length;
+    const totalPlayers = connectedPlayers.length;
 
     // Mise à jour du compteur pour l'hôte
     io.to(`host:${pin}`).emit('host:player_answered_count', {
@@ -367,7 +442,7 @@ io.on('connection', (socket) => {
 
     // Si tous les joueurs connectés ont répondu, fin immédiate de la question
     if (answeredCount >= totalPlayers && totalPlayers > 0) {
-      console.log(`[Room ${pin}] Tous les joueurs (${answeredCount}/${totalPlayers}) ont répondu. Clôture anticipée.`);
+      console.log(`[Room ${pin}] Tous les joueurs connectés (${answeredCount}/${totalPlayers}) ont répondu. Clôture anticipée.`);
       endQuestionRound(pin);
     }
   });
@@ -402,31 +477,29 @@ io.on('connection', (socket) => {
       // Si c'est un joueur
       if (room.players[socket.id]) {
         const pName = room.players[socket.id].nickname;
-        console.log(`[Room ${pin}] Joueur "${pName}" déconnecté.`);
-        delete room.players[socket.id];
-        delete room.answers[socket.id];
 
-        const playerList = Object.values(room.players).map(p => ({
-          id: p.id,
-          nickname: p.nickname,
-          avatarIndex: p.avatarIndex,
-          score: p.score
-        }));
+        if (room.state === 'LOBBY' || room.state === 'GAME_OVER') {
+          // Hors partie : suppression définitive
+          console.log(`[Room ${pin}] Joueur "${pName}" déconnecté (retiré du lobby).`);
+          delete room.players[socket.id];
+          delete room.answers[socket.id];
+        } else {
+          // En pleine partie : on conserve le joueur pour permettre la reconnexion
+          console.log(`[Room ${pin}] Joueur "${pName}" déconnecté en cours de partie (score conservé, reconnexion possible).`);
+          room.players[socket.id].connected = false;
+        }
 
-        io.to(`room:${pin}`).emit('room:player_list_updated', {
-          players: playerList,
-          count: playerList.length
-        });
+        broadcastPlayerList(pin);
 
-        // Si on était en question et qu'avec ce départ tous les restants ont répondu
+        // Si on était en question et qu'avec ce départ tous les connectés restants ont répondu
         if (room.state === 'QUESTION') {
-          const answeredCount = Object.keys(room.answers).length;
-          const remainingPlayers = Object.keys(room.players).length;
+          const connectedPlayers = getConnectedPlayers(room);
+          const answeredCount = connectedPlayers.filter(p => room.answers[p.id] !== undefined).length;
           io.to(`host:${pin}`).emit('host:player_answered_count', {
             answeredCount,
-            totalPlayers: remainingPlayers
+            totalPlayers: connectedPlayers.length
           });
-          if (remainingPlayers > 0 && answeredCount >= remainingPlayers) {
+          if (connectedPlayers.length > 0 && answeredCount >= connectedPlayers.length) {
             endQuestionRound(pin);
           }
         }
@@ -472,7 +545,7 @@ function startNextQuestion(pin) {
   io.to(`room:${pin}`).emit('game:question_started', clientQuestionPayload);
   io.to(`host:${pin}`).emit('host:player_answered_count', {
     answeredCount: 0,
-    totalPlayers: Object.keys(room.players).length
+    totalPlayers: getConnectedPlayers(room).length
   });
 
   // Ticks de synchronisation du timer
