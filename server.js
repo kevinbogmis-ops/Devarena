@@ -32,11 +32,12 @@ const ROOM_GAMEOVER_TTL_MS = parseInt(process.env.ROOM_GAMEOVER_TTL_MS, 10) || 3
 const ROOM_IDLE_TTL_MS = parseInt(process.env.ROOM_IDLE_TTL_MS, 10) || 2 * 60 * 60 * 1000;
 
 // Chargement des questions depuis questions.json (source de vérité pour le seed,
-// et solution de repli si PostgreSQL est indisponible)
+// et solution de repli si PostgreSQL est indisponible).
+// QUESTIONS_FILE surchargeable pour les tests (copie de travail isolée).
+const QUESTIONS_FILE = process.env.QUESTIONS_FILE || path.join(__dirname, 'questions.json');
 let allQuestions = [];
 try {
-  const questionsPath = path.join(__dirname, 'questions.json');
-  const data = fs.readFileSync(questionsPath, 'utf8');
+  const data = fs.readFileSync(QUESTIONS_FILE, 'utf8');
   allQuestions = JSON.parse(data);
   console.log(`[DevArena] ${allQuestions.length} questions chargées depuis questions.json.`);
 } catch (err) {
@@ -103,6 +104,167 @@ app.get('/api/questions/stats', (req, res) => {
     total: allQuestions.length,
     categories
   });
+});
+
+// ==========================================================================
+// ÉDITEUR DE QUESTIONS — API admin protégée par token (header x-admin-token).
+// questions.json reste la source de vérité : chaque écriture réécrit le
+// fichier PUIS resynchronise PostgreSQL (upsert + delete ciblé).
+// ==========================================================================
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+
+// timeLimit imposé par le niveau (même échelle que la banque existante)
+const DIFFICULTY_TIME_LIMITS = {
+  'Débutant': 20,
+  'Intermédiaire': 25,
+  'Avancé': 30,
+  'Expert': 35
+};
+const VALID_DIFFICULTIES = Object.keys(DIFFICULTY_TIME_LIMITS);
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_TOKEN) {
+    res.status(503).json({ error: "Éditeur désactivé : définir la variable d'environnement ADMIN_TOKEN." });
+    return;
+  }
+  if (req.get('x-admin-token') !== ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Token admin invalide.' });
+    return;
+  }
+  next();
+}
+
+function validateQuestionPayload(body) {
+  const errors = [];
+  if (!body || typeof body !== 'object') return ['Payload JSON manquant.'];
+  if (typeof body.category !== 'string' || !body.category.trim()) {
+    errors.push('Catégorie requise.');
+  }
+  if (!VALID_DIFFICULTIES.includes(body.difficulty)) {
+    errors.push(`Difficulté invalide (attendu : ${VALID_DIFFICULTIES.join(', ')}).`);
+  }
+  if (typeof body.question !== 'string' || body.question.trim().length < 10) {
+    errors.push('Énoncé requis (10 caractères minimum).');
+  }
+  if (!Array.isArray(body.options) || body.options.length !== 4 ||
+      body.options.some(o => typeof o !== 'string' || !o.trim())) {
+    errors.push('Exactement 4 options non vides requises.');
+  }
+  if (!Number.isInteger(body.correctIndex) || body.correctIndex < 0 || body.correctIndex > 3) {
+    errors.push('correctIndex doit être un entier entre 0 et 3.');
+  }
+  if (body.codeSnippet != null && typeof body.codeSnippet !== 'string') {
+    errors.push('codeSnippet doit être une chaîne.');
+  }
+  if (body.explanation != null && typeof body.explanation !== 'string') {
+    errors.push('explanation doit être une chaîne.');
+  }
+  return errors;
+}
+
+function buildQuestionFromPayload(body, id) {
+  return {
+    id,
+    category: body.category.trim(),
+    difficulty: body.difficulty,
+    question: body.question.trim(),
+    codeSnippet: (body.codeSnippet || '').trim() || null,
+    options: body.options.map(o => o.trim()),
+    correctIndex: body.correctIndex,
+    timeLimit: DIFFICULTY_TIME_LIMITS[body.difficulty],
+    explanation: (body.explanation || '').trim() || null
+  };
+}
+
+// Réécrit questions.json puis resynchronise la base. Écriture directe (pas de
+// temp+rename) pour rester compatible avec un bind mount Docker du fichier.
+async function persistQuestions(deletedId = null) {
+  fs.writeFileSync(QUESTIONS_FILE, JSON.stringify(allQuestions, null, 2) + '\n', 'utf8');
+  if (dbReady) {
+    try {
+      if (deletedId !== null) await db.deleteQuestion(deletedId);
+      await db.seedQuestions(allQuestions);
+    } catch (err) {
+      // Le fichier (source de vérité) est à jour ; la base se resynchronisera au prochain démarrage
+      console.error('[Admin] Fichier écrit mais échec de synchro PostgreSQL :', err.message);
+    }
+  }
+}
+
+// Liste complète (avec correctIndex — réservée à l'admin, jamais envoyée aux joueurs)
+app.get('/api/admin/questions', requireAdmin, (req, res) => {
+  res.json({
+    total: allQuestions.length,
+    difficulties: VALID_DIFFICULTIES,
+    questions: allQuestions
+  });
+});
+
+app.post('/api/admin/questions', requireAdmin, async (req, res) => {
+  const validationErrors = validateQuestionPayload(req.body);
+  if (validationErrors.length > 0) {
+    res.status(400).json({ error: validationErrors.join(' ') });
+    return;
+  }
+  const nextId = allQuestions.reduce((max, q) => Math.max(max, q.id), 0) + 1;
+  const question = buildQuestionFromPayload(req.body, nextId);
+  allQuestions.push(question);
+  try {
+    await persistQuestions();
+  } catch (err) {
+    allQuestions.pop();
+    console.error('[Admin] Échec d\'écriture de questions.json :', err.message);
+    res.status(500).json({ error: 'Échec d\'écriture du fichier questions.json.' });
+    return;
+  }
+  console.log(`[Admin] Question #${question.id} ajoutée (${question.category} / ${question.difficulty}).`);
+  res.status(201).json({ question });
+});
+
+app.put('/api/admin/questions/:id', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = allQuestions.findIndex(q => q.id === id);
+  if (index === -1) {
+    res.status(404).json({ error: `Question #${id} introuvable.` });
+    return;
+  }
+  const validationErrors = validateQuestionPayload(req.body);
+  if (validationErrors.length > 0) {
+    res.status(400).json({ error: validationErrors.join(' ') });
+    return;
+  }
+  const previous = allQuestions[index];
+  allQuestions[index] = buildQuestionFromPayload(req.body, id);
+  try {
+    await persistQuestions();
+  } catch (err) {
+    allQuestions[index] = previous;
+    console.error('[Admin] Échec d\'écriture de questions.json :', err.message);
+    res.status(500).json({ error: 'Échec d\'écriture du fichier questions.json.' });
+    return;
+  }
+  console.log(`[Admin] Question #${id} modifiée.`);
+  res.json({ question: allQuestions[index] });
+});
+
+app.delete('/api/admin/questions/:id', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = allQuestions.findIndex(q => q.id === id);
+  if (index === -1) {
+    res.status(404).json({ error: `Question #${id} introuvable.` });
+    return;
+  }
+  const [removed] = allQuestions.splice(index, 1);
+  try {
+    await persistQuestions(id);
+  } catch (err) {
+    allQuestions.splice(index, 0, removed);
+    console.error('[Admin] Échec d\'écriture de questions.json :', err.message);
+    res.status(500).json({ error: 'Échec d\'écriture du fichier questions.json.' });
+    return;
+  }
+  console.log(`[Admin] Question #${id} supprimée (${removed.category}).`);
+  res.json({ deleted: id, total: allQuestions.length });
 });
 
 // État en mémoire vive (RAM)

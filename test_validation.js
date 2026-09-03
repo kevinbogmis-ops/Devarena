@@ -73,12 +73,14 @@ const requiredFiles = [
   'public/index.html',
   'public/host.html',
   'public/player.html',
+  'public/admin.html',
   'public/css/style.css',
   'public/js/sound.js',
   'public/js/client.js',
   'public/js/qrcode.js',
   'public/js/host.js',
   'public/js/player.js',
+  'public/js/admin.js',
   'Dockerfile',
   '.dockerignore',
   'package.json',
@@ -97,12 +99,13 @@ requiredFiles.forEach(file => {
 
 // 3. Vérification des balises script et liens CSS dans les HTML
 console.log('\n3. Cohérence des imports dans les fichiers HTML...');
-['public/index.html', 'public/host.html', 'public/player.html'].forEach(htmlFile => {
+['public/index.html', 'public/host.html', 'public/player.html', 'public/admin.html'].forEach(htmlFile => {
   const content = fs.readFileSync(path.join(__dirname, htmlFile), 'utf8');
   if (!content.includes('css/style.css')) {
     warnings.push(`${htmlFile} ne semble pas lier css/style.css`);
   }
-  if (!content.includes('/socket.io/socket.io.js')) {
+  // La page admin est purement HTTP (API REST), pas de temps réel
+  if (htmlFile !== 'public/admin.html' && !content.includes('/socket.io/socket.io.js')) {
     warnings.push(`${htmlFile} ne charge pas le client Socket.io`);
   }
 

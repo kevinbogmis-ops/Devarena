@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevArena | Éditeur de Questions</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+</head>
+<body>
+  <!-- Barre d'en-tête globale -->
+  <header class="app-header">
+    <a href="index.html" class="logo-link">
+      <span style="font-size: 1.6rem;">⚡</span>
+      <span class="logo-text">Dev<span class="highlight">Arena</span></span>
+      <span class="logo-tag">ADMIN</span>
+    </a>
+    <a href="index.html" class="btn-sound-toggle" style="text-decoration: none;">← Retour à l'accueil</a>
+  </header>
+
+  <main class="container" style="padding: 24px 16px; max-width: 980px; margin: 0 auto;">
+
+    <!-- ================= VUE 1 : CONNEXION (TOKEN ADMIN) ================= -->
+    <section id="view-admin-login" class="terminal-window" style="max-width: 520px; margin: 10vh auto 0 auto;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">sudo devarena-admin --login</span>
+        <div class="terminal-status"><span>🔒 PROTÉGÉ</span></div>
+      </div>
+      <div style="padding: 30px;">
+        <h1 style="font-size: 1.4rem; margin-bottom: 8px;">🔐 Éditeur de Questions</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+          Accès réservé. Saisissez le token admin (variable d'environnement <code>ADMIN_TOKEN</code> du serveur).
+        </p>
+        <div class="input-group">
+          <label class="input-label" for="admin-token-input">$ export ADMIN_TOKEN=</label>
+          <input type="password" id="admin-token-input" class="input-field" placeholder="••••••••••••" autocomplete="off">
+        </div>
+        <div id="admin-login-error" class="admin-error" style="display: none;"></div>
+        <button id="admin-login-btn" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Se connecter</button>
+      </div>
+    </section>
+
+    <!-- ================= VUE 2 : LISTE DES QUESTIONS ================= -->
+    <section id="view-admin-list" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-admin --list-questions</span>
+        <div class="terminal-status">
+          <span class="pulse"></span>
+          <span id="admin-question-count">0 questions</span>
+        </div>
+      </div>
+      <div style="padding: 20px;">
+
+        <!-- Barre d'outils : recherche + filtres + nouvelle question -->
+        <div class="admin-toolbar">
+          <input type="text" id="admin-search-input" class="input-field" placeholder="🔍 Rechercher dans les énoncés..." style="flex: 1; min-width: 200px; margin: 0;">
+          <select id="admin-filter-category" class="input-field admin-select">
+            <option value="">Toutes catégories</option>
+          </select>
+          <select id="admin-filter-difficulty" class="input-field admin-select">
+            <option value="">Tous niveaux</option>
+          </select>
+          <button id="admin-new-btn" class="btn btn-cyber">+ Nouvelle question</button>
+        </div>
+
+        <div id="admin-list-feedback" class="admin-feedback" style="display: none;"></div>
+
+        <!-- Liste des questions -->
+        <div id="admin-question-list" class="admin-question-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= VUE 3 : FORMULAIRE AJOUT / MODIFICATION ================= -->
+    <section id="view-admin-form" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title" id="admin-form-title">devarena-admin --new-question</span>
+        <div class="terminal-status"><span>📝 ÉDITION</span></div>
+      </div>
+      <div style="padding: 24px;">
+
+        <div class="admin-form-grid">
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-form-category">Catégorie</label>
+            <input type="text" id="admin-form-category" class="input-field" list="admin-category-suggestions" placeholder="Docker, Linux, ..." style="margin: 0;">
+            <datalist id="admin-category-suggestions"></datalist>
+          </div>
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-form-difficulty">Difficulté (fixe le chrono)</label>
+            <select id="admin-form-difficulty" class="input-field admin-select" style="width: 100%; margin: 0;"></select>
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-form-question">Énoncé de la question</label>
+          <textarea id="admin-form-question" class="input-field admin-textarea" rows="3" placeholder="Quelle commande permet de..."></textarea>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-form-snippet">Snippet de code (optionnel)</label>
+          <textarea id="admin-form-snippet" class="input-field admin-textarea admin-code" rows="3" placeholder="docker run -d ..."></textarea>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <span class="input-label">Les 4 options — cochez la bonne réponse</span>
+          <div id="admin-form-options" class="admin-options-grid"></div>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-form-explanation">Explication (affichée après la réponse, optionnel)</label>
+          <textarea id="admin-form-explanation" class="input-field admin-textarea" rows="2" placeholder="Parce que..."></textarea>
+        </div>
+
+        <div id="admin-form-error" class="admin-error" style="display: none;"></div>
+
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button id="admin-form-save-btn" class="btn btn-primary" style="flex: 1;">💾 Enregistrer</button>
+          <button id="admin-form-cancel-btn" class="btn btn-secondary" style="flex: 1;">Annuler</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+    &copy; 2026 <strong>DevArena</strong> &bull; Éditeur de questions &bull; Les modifications sont écrites dans <code>questions.json</code> puis synchronisées en base.
+  </footer>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

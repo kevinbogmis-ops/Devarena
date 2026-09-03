@@ -117,6 +117,12 @@ async function loadQuestions() {
   }));
 }
 
+// Suppression d'une question (utilisée par l'éditeur admin ; le re-seed upsert
+// ne retire jamais de lignes, la suppression doit donc être explicite)
+async function deleteQuestion(id) {
+  await pool.query('DELETE FROM questions WHERE id = $1', [id]);
+}
+
 // Enregistrement d'une partie terminée et de son classement final
 async function saveGameResults(pin, finalRanking, totalQuestions) {
   const client = await pool.connect();
@@ -183,6 +189,7 @@ module.exports = {
   init,
   seedQuestions,
   loadQuestions,
+  deleteQuestion,
   saveGameResults,
   getTopScores
 };

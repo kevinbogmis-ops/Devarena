@@ -31,6 +31,14 @@ services:
       DATABASE_URL: postgresql://devarena:devarena@db:5432/devarena
       # En prod public, restreindre les origines : CORS_ORIGIN="https://mondomaine"
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      # Éditeur de questions (/admin.html) : définir un token pour l'activer,
+      # sinon l'API admin répond 503. Ex : ADMIN_TOKEN="monsecret" docker compose up -d
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+    volumes:
+      # questions.json est la source de vérité : monté depuis l'hôte pour que
+      # les modifications faites via l'éditeur survivent aux redémarrages
+      # du conteneur et restent versionnables dans git
+      - ./questions.json:/app/questions.json
     depends_on:
       db:
         condition: service_healthy

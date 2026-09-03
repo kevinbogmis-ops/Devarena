@@ -1,0 +1,5 @@
+# Secrets locaux
+.env
+
+# Dependances (actuellement versionnees - a untracker si souhaite)
+# node_modules/

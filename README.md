@@ -102,9 +102,21 @@ DEVARENA_PORT=8088 docker compose up -d
 | `PORT` | `3000` | Port d'écoute du serveur Node.js |
 | `DATABASE_URL` | `postgresql://devarena:devarena@localhost:5432/devarena` | Connexion PostgreSQL |
 | `CORS_ORIGIN` | `*` | Origines autorisées (`*` en dev ; en prod, liste séparée par des virgules, ex. `https://devarena.fr`) |
+| `ADMIN_TOKEN` | *(vide)* | Token d'accès à l'éditeur de questions (`/admin.html`). **Vide = éditeur désactivé** (l'API admin répond 503) |
+| `QUESTIONS_FILE` | `questions.json` | Chemin du fichier de questions (surchargé par les tests pour travailler sur une copie) |
 | `ROOM_GAMEOVER_TTL_MS` | `1800000` (30 min) | Délai avant suppression d'une salle terminée |
 | `ROOM_IDLE_TTL_MS` | `7200000` (2 h) | Délai avant suppression d'une salle inactive |
 | `ROOM_SWEEP_INTERVAL_MS` | `300000` (5 min) | Fréquence de nettoyage des salles abandonnées |
+
+### 📝 Éditeur de questions (admin)
+
+Une interface d'administration permet de gérer la banque de questions sans toucher au JSON à la main :
+
+- **Accès** : `http://localhost:3300/admin.html` (lien « ⚙️ Éditeur » dans le pied de page de l'accueil).
+- **Protection** : token obligatoire, défini via `ADMIN_TOKEN` (fichier `.env` à la racine pour docker compose, non versionné). Sans token configuré, l'éditeur est désactivé.
+- **Fonctionnalités** : liste avec recherche + filtres catégorie/niveau, ajout, modification, suppression (double confirmation). Le `timeLimit` est déduit automatiquement du niveau (Débutant 20s / Intermédiaire 25s / Avancé 30s / Expert 35s).
+- **Persistance** : `questions.json` reste la **source de vérité** — chaque écriture réécrit le fichier (monté en volume dans le conteneur, donc versionnable dans git) puis resynchronise PostgreSQL. Les modifications sont immédiatement visibles par le moteur de jeu.
+- **API** : `GET/POST /api/admin/questions`, `PUT/DELETE /api/admin/questions/:id` (header `x-admin-token`).
 
 Test de persistance de bout en bout (nécessite la stack compose démarrée) :
 ```bash
