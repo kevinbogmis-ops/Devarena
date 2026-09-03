@@ -15,7 +15,10 @@
       <span class="logo-text">Dev<span class="highlight">Arena</span></span>
       <span class="logo-tag">v1.0.0</span>
     </a>
-    <button id="sound-toggle-btn" class="btn-sound-toggle">🔊 Son: ON</button>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="admin.html" class="btn-sound-toggle" style="text-decoration: none;" title="Éditeur de questions (accès protégé par token)">⚙️ Éditeur</a>
+      <button id="sound-toggle-btn" class="btn-sound-toggle">🔊 Son: ON</button>
+    </div>
   </header>
 
   <!-- Contenu Principal -->
@@ -118,7 +121,7 @@
   </main>
 
   <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
-    &copy; 2026 <strong>DevArena</strong> &bull; Conçu et développé par <strong>Kevin BOGMIS</strong> &bull; 100% Conteneurisable avec Docker &bull; Node.js, Express &amp; Socket.io &bull; <a href="admin.html" style="color: var(--text-muted);">⚙️ Éditeur</a>
+    &copy; 2026 <strong>DevArena</strong> &bull; Conçu et développé par <strong>Kevin BOGMIS</strong> &bull; 100% Conteneurisable avec Docker &bull; Node.js, Express &amp; Socket.io
   </footer>
 
   <script src="/socket.io/socket.io.js"></script>
