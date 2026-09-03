@@ -1,5 +1,5 @@
 # Secrets locaux
 .env
 
-# Dependances (actuellement versionnees - a untracker si souhaite)
-# node_modules/
+# Dépendances (réinstallables via npm install)
+node_modules/
