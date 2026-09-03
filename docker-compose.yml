@@ -29,9 +29,41 @@ services:
       - "${DEVARENA_PORT:-3300}:3000"
     environment:
       DATABASE_URL: postgresql://devarena:devarena@db:5432/devarena
+      # En prod public, restreindre les origines : CORS_ORIGIN="https://mondomaine"
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Exposition HTTPS publique via Cloudflare Tunnel (profile "tunnel", inactif
+  # par défaut). Aucun port à ouvrir sur la box, HTTPS et WebSockets gérés.
+  #
+  #   Mode éphémère (zéro config, URL aléatoire trycloudflare.com) :
+  #     docker compose --profile tunnel up -d
+  #     docker compose logs -f cloudflared   # récupérer l'URL https://...
+  #
+  #   Mode permanent (URL/domaine fixe, nécessite un compte Cloudflare) :
+  #     1. Créer un tunnel sur https://one.dash.cloudflare.com → copier le token
+  #     2. TUNNEL_TOKEN="xxxx" docker compose --profile tunnel-named up -d
+  # --------------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: devarena-tunnel
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate --url http://app:3000
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  cloudflared-named:
+    image: cloudflare/cloudflared:latest
+    container_name: devarena-tunnel-named
+    profiles: ["tunnel-named"]
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on:
+      - app
     restart: unless-stopped
 
 volumes:

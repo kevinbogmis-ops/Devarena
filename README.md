@@ -119,6 +119,39 @@ docker run -d -p 3000:3000 --name devarena devarena-app
 
 ---
 
+## 🌍 Exposition publique en HTTPS (Cloudflare Tunnel)
+
+Pour jouer avec des joueurs distants (smartphones hors du réseau local), on expose l'app en HTTPS via **Cloudflare Tunnel** — aucun port à ouvrir sur la box, certificat HTTPS et WebSockets gérés automatiquement.
+
+### Mode éphémère (zéro configuration, URL aléatoire)
+```bash
+# Démarrer l'app + la base, puis le tunnel
+docker compose up -d
+docker compose --profile tunnel up -d
+
+# Récupérer l'URL publique https://xxxx.trycloudflare.com
+docker compose logs cloudflared | grep trycloudflare.com
+```
+L'URL change à chaque redémarrage du tunnel. Idéale pour une session ponctuelle.
+
+**Astuce QR code** : collez l'URL `https://...trycloudflare.com` dans le champ *« URL Cloudflare Tunnel »* de l'écran Host — le QR code et le lien d'invitation pointeront alors vers l'adresse publique, scannables par n'importe quel smartphone.
+
+### Mode permanent (URL/domaine fixe, compte Cloudflare requis)
+```bash
+# 1. Créer un tunnel sur https://one.dash.cloudflare.com et copier le token
+# 2. Le lancer (URL/domaine stable) :
+TUNNEL_TOKEN="votre-token" docker compose --profile tunnel-named up -d
+```
+
+### Arrêter le tunnel
+```bash
+docker compose --profile tunnel down     # ou --profile tunnel-named
+```
+
+> 🔒 En exposition publique, pensez à restreindre `CORS_ORIGIN` à votre domaine (voir le tableau des variables d'environnement).
+
+---
+
 ## 👨‍💻 Auteur & Copyright
 
 - **Auteur & Concepteur** : **Kevin BOGMIS**
