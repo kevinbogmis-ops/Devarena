@@ -747,6 +747,49 @@ io.on('connection', (socket) => {
     }, 3500);
   });
 
+  // --- 3bis. ARRÊT DE LA PARTIE PAR L'HÔTE (mauvais filtre, faux départ...) ---
+  // Ramène toute la salle au lobby : même PIN, joueurs conservés, scores remis à zéro.
+  socket.on('host:abort_game', ({ pin }) => {
+    const cleanPin = (pin || '').toString().trim();
+    const room = rooms[cleanPin];
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.state === 'LOBBY' || room.state === 'GAME_OVER') return;
+
+    clearInterval(room.tickInterval);
+    clearTimeout(room.timer);
+    room.state = 'LOBBY';
+    room.questions = [];
+    room.currentQuestionIndex = -1;
+    room.answers = {};
+    room.lastActivity = Date.now();
+
+    // Retour aux règles du lobby : les joueurs déconnectés sont retirés,
+    // les présents repartent de zéro (score, série, énergie, jokers)
+    Object.keys(room.players).forEach(id => {
+      const p = room.players[id];
+      if (p.connected === false) {
+        delete room.players[id];
+        return;
+      }
+      p.score = 0;
+      p.streak = 0;
+      p.totalCorrect = 0;
+      p.lastPoints = 0;
+      p.energy = 0;
+      p.jokersUsed = { defensive: false, offensive: false };
+      p.shieldActive = false;
+      p.boostActive = false;
+      p.attackedUntil = {};
+    });
+
+    console.log(`[Room ${cleanPin}] Partie arrêtée par l'hôte — retour au lobby (${Object.keys(room.players).length} joueur(s) conservé(s)).`);
+
+    io.to(`room:${cleanPin}`).emit('game:aborted', {
+      message: "Le Maître du jeu a arrêté la partie. Retour à la salle d'attente !"
+    });
+    broadcastPlayerList(cleanPin);
+  });
+
   // --- 4. RÉPONSE D'UN JOUEUR ---
   socket.on('player:submit_answer', ({ pin, answerIndex }) => {
     const room = rooms[pin];
@@ -1082,6 +1125,16 @@ function endQuestionRound(pin) {
   const currentQ = room.questions[room.currentQuestionIndex];
   const leaderboard = buildLeaderboard(room);
 
+  // Top 5 partagé avec les joueurs (indispensable en partie à distance,
+  // où personne ne voit l'écran de l'hôte)
+  const topFive = leaderboard.slice(0, 5).map(l => ({
+    rank: l.rank,
+    nickname: l.nickname,
+    score: l.score,
+    avatarIndex: l.avatarIndex,
+    lastPoints: l.lastPoints
+  }));
+
   // Notifier chaque joueur individuellement avec son résultat personnalisé
   Object.values(room.players).forEach(player => {
     const playerAnswer = room.answers[player.id];
@@ -1101,7 +1154,8 @@ function endQuestionRound(pin) {
       correctIndex: currentQ.correctIndex,
       correctOptionLetter: ['A', 'B', 'C', 'D'][currentQ.correctIndex],
       correctAnswerText: currentQ.options[currentQ.correctIndex],
-      explanation: currentQ.explanation
+      explanation: currentQ.explanation,
+      topFive
     });
   });
 

@@ -209,7 +209,8 @@ socket.on('joker:use_ack', ({ jokerId, energy, scoreAfter, stolenAmount, target 
 
   updateEnergyDisplay();
   renderJokersBar();
-  window.soundManager.playCorrect();
+  // Jingle propre au joker activé
+  window.soundManager.playJokerActivate(jokerId);
 });
 
 socket.on('joker:error', ({ message }) => {
@@ -228,7 +229,7 @@ socket.on('joker:fifty_result', ({ removedIndexes }) => {
 });
 
 socket.on('joker:attacked', ({ type, from, duration, amount }) => {
-  window.soundManager.playWrong();
+  window.soundManager.playAttacked(type);
 
   if (type === 'ddos') {
     showBanner(`💥 DDoS reçu de ${from} ! Tiens bon...`);
@@ -389,6 +390,7 @@ socket.on('player:join_success', ({ pin, player, resumed, state, jokers, energyM
   // Si resumed en plein QUESTION : le serveur renvoie game:question_started juste après.
 
   window.soundManager.playCorrect();
+  window.soundManager.startMusic();
 });
 
 // 2. Démarrage de la partie
@@ -419,6 +421,8 @@ socket.on('game:question_started', (q) => {
 
   // Réinitialisation de l'état des jokers pour la nouvelle question
   hasAnsweredThisQuestion = false;
+  const answeredTimer = document.getElementById('answered-timer');
+  if (answeredTimer) answeredTimer.style.display = 'none';
   jokersUsedLocal = { defensive: false, offensive: false };
   activeJokerBadges = {};
   closeJokerConfirm();
@@ -429,8 +433,14 @@ socket.on('game:question_started', (q) => {
   if (playerHeaderScore) playerHeaderScore.textContent = `${myScore} pts`;
   if (playerHeaderStreak) playerHeaderStreak.textContent = myStreak > 1 ? `🔥 x${myStreak}` : '';
 
-  // Affichage de la question et des métadonnées
-  if (playerQuestionText) playerQuestionText.textContent = q.question;
+  // Affichage de la question et des métadonnées (machine à écrire, sauf reconnexion)
+  if (playerQuestionText) {
+    if (window.fx && typeof q.remainingSec !== 'number') {
+      window.fx.typewriter(playerQuestionText, q.question, 550);
+    } else {
+      playerQuestionText.textContent = q.question;
+    }
+  }
   if (playerCategoryBadge) {
     playerCategoryBadge.textContent = q.category;
     playerCategoryBadge.className = `badge badge-${(q.category || 'devops').toLowerCase()}`;
@@ -453,6 +463,7 @@ socket.on('game:question_started', (q) => {
   if (playerTimerBar) {
     playerTimerBar.style.width = `${Math.max(0, startingSec / playerMaxTime) * 100}%`;
     playerTimerBar.style.backgroundColor = 'var(--color-d)';
+    playerTimerBar.classList.remove('player-timer-urgent');
   }
 
   // Réinitialiser les boutons de réponse
@@ -473,11 +484,24 @@ socket.on('game:question_started', (q) => {
 // Décompte du chronomètre côté joueur
 socket.on('game:timer_tick', ({ remainingSec }) => {
   if (playerTimerText) playerTimerText.textContent = `⏱️ ${remainingSec}s`;
+
+  // Écran d'attente après réponse : afficher le temps max avant la révélation
+  const answeredTimer = document.getElementById('answered-timer');
+  const answeredTimerSec = document.getElementById('answered-timer-sec');
+  if (answeredTimer && answeredTimerSec && hasAnsweredThisQuestion) {
+    answeredTimer.style.display = 'block';
+    answeredTimerSec.textContent = remainingSec;
+  }
   if (playerTimerBar) {
     const ratio = Math.max(0, remainingSec / playerMaxTime);
     playerTimerBar.style.width = `${ratio * 100}%`;
     if (remainingSec <= 5) {
       playerTimerBar.style.backgroundColor = 'var(--color-a)';
+      playerTimerBar.classList.add('player-timer-urgent');
+      // Tick de tension uniquement si le joueur n'a pas encore répondu
+      if (!hasAnsweredThisQuestion) {
+        window.soundManager.playTick(remainingSec);
+      }
     } else if (remainingSec <= 10) {
       playerTimerBar.style.backgroundColor = 'var(--color-c)';
     }
@@ -487,7 +511,7 @@ socket.on('game:timer_tick', ({ remainingSec }) => {
 // Clics sur les touches A, B, C, D
 playerButtons.forEach((btn, index) => {
   btn.addEventListener('click', () => {
-    window.soundManager.playClick();
+    window.soundManager.playLock();
 
     // Verrouillage immédiat pour éviter le double-envoi
     hasAnsweredThisQuestion = true;
@@ -528,7 +552,12 @@ socket.on('player:round_result', (result) => {
     feedbackIcon.textContent = '🎯';
     feedbackTitle.textContent = 'EXCELLENT !';
     feedbackTitle.style.color = 'var(--color-d)';
-    feedbackPoints.textContent = `+${result.pointsGained} pts`;
+    // Les points gagnés comptent devant les yeux du joueur
+    if (window.fx) {
+      window.fx.countUp(feedbackPoints, 0, result.pointsGained, { prefix: '+', suffix: ' pts', duration: 1000 });
+    } else {
+      feedbackPoints.textContent = `+${result.pointsGained} pts`;
+    }
     window.soundManager.playCorrect();
   } else {
     feedbackBox.className = 'feedback-screen feedback-wrong';
@@ -553,6 +582,24 @@ socket.on('player:round_result', (result) => {
   if (playerExplanationText) {
     playerExplanationText.textContent = result.explanation || 'Validation terminée par le moteur DevArena.';
   }
+
+  // Top 5 de l'arène : la ligne du joueur est mise en évidence
+  const top5List = document.getElementById('player-top5-list');
+  if (top5List && Array.isArray(result.topFive)) {
+    top5List.innerHTML = result.topFive.map(p => {
+      const isMe = p.nickname === myNickname;
+      return `
+      <div class="leaderboard-item" style="padding: 8px 12px;${isMe ? ' border-color: var(--color-b); background-color: rgba(88, 166, 255, 0.08);' : ''}">
+        <div class="player-info">
+          <span class="rank-badge top-${p.rank}">#${p.rank}</span>
+          <span style="font-size: 1.1rem;">${getAvatarEmoji(p.avatarIndex)}</span>
+          <span class="player-name" style="font-size: 0.9rem;">${escapeHtmlCommon(p.nickname)}${isMe ? ' <small style="color: var(--color-b);">(toi)</small>' : ''}</span>
+        </div>
+        <span class="player-score" style="font-size: 0.9rem;">${p.score} pts</span>
+      </div>`;
+    }).join('');
+    if (window.fx) window.fx.staggerList(top5List, 70);
+  }
 });
 
 // 5. Fin de la partie
@@ -564,9 +611,38 @@ socket.on('game:game_over', ({ fullRanking }) => {
   if (me) {
     if (finalRankBadge) finalRankBadge.textContent = `#${me.rank}`;
     if (finalScoreBadge) finalScoreBadge.textContent = `${me.score} pts (${me.accuracy}% de réussite)`;
+    // Pluie de confettis pour le champion de l'arène
+    if (me.rank === 1 && window.fx) {
+      window.fx.confetti({ durationMs: 4000 });
+    }
   }
 
+  window.soundManager.stopMusic();
   window.soundManager.playVictory();
+});
+
+// L'hôte a arrêté la partie : retour à la salle d'attente, compteurs remis à zéro
+socket.on('game:aborted', ({ message }) => {
+  myScore = 0;
+  myStreak = 0;
+  myEnergy = 0;
+  hasAnsweredThisQuestion = false;
+  jokersUsedLocal = { defensive: false, offensive: false };
+  activeJokerBadges = {};
+  closeJokerConfirm();
+  updateEnergyDisplay();
+  if (playerHeaderScore) playerHeaderScore.textContent = '0 pts';
+  if (playerHeaderStreak) playerHeaderStreak.textContent = '';
+  const answeredTimer = document.getElementById('answered-timer');
+  if (answeredTimer) answeredTimer.style.display = 'none';
+
+  const waitingText = document.getElementById('waiting-status-text');
+  if (waitingText) {
+    waitingText.textContent = '⏹ Partie arrêtée par le Maître du jeu. En attente d\'un nouveau lancement...';
+  }
+  switchView('waiting');
+  showBanner(`⏹ ${message || 'Le Maître du jeu a arrêté la partie.'}`, true);
+  window.soundManager.playWrong();
 });
 
 // L'hôte s'est déconnecté temporairement (période de grâce) : on prévient sans bloquer

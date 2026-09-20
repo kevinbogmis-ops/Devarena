@@ -5,14 +5,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700;800&display=swap');
 
 :root {
-  /* Palette de Base */
+  /* Palette de Base — Dark IDE d'origine */
   --bg-main: #090d13;
   --bg-panel: #111722;
   --bg-panel-secondary: #182232;
   --bg-input: #0e131b;
   --border-color: #243044;
   --border-focus: #58a6ff;
-  
+
   /* Typographie & Texte */
   --text-main: #e6edf3;
   --text-muted: #8b949e;
@@ -63,7 +63,7 @@ body {
   flex-direction: column;
   line-height: 1.5;
   overflow-x: hidden;
-  background-image: 
+  background-image:
     radial-gradient(circle at 15% 20%, rgba(88, 166, 255, 0.04) 0%, transparent 40%),
     radial-gradient(circle at 85% 80%, rgba(63, 185, 80, 0.04) 0%, transparent 40%);
 }
@@ -759,7 +759,7 @@ body.under-ddos {
 }
 
 .timer-bg {
-  stroke: #21262d;
+  stroke: var(--border-color);
 }
 
 .timer-progress {
@@ -1179,4 +1179,133 @@ body.under-ddos {
   .admin-row-difficulty {
     display: none;
   }
+}
+
+/* ==========================================================================
+   NÉON ARCADE — GLOW, ANIMATIONS & GAME FEEL
+   ========================================================================== */
+
+/* Correctif : fadeIn était référencé par le JS mais jamais défini */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Curseur bloc clignotant pendant l'effet machine à écrire */
+.typing::after {
+  content: '▊';
+  color: var(--color-cyan);
+  animation: caret-blink 0.6s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Entrée en cascade des lignes de classement (delay posé en inline par le JS) */
+.stagger-in {
+  opacity: 0;
+  animation: stagger-slide 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes stagger-slide {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Timer sous tension : anneau et chiffre qui pulsent sous 5 secondes */
+.timer-progress.danger {
+  filter: drop-shadow(0 0 6px var(--color-a));
+}
+
+.timer-text.danger {
+  color: var(--color-a);
+  animation: timer-panic 1s ease infinite;
+  text-shadow: 0 0 10px var(--color-a-glow);
+}
+
+@keyframes timer-panic {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+/* Barre de temps joueur en urgence */
+.player-timer-urgent {
+  animation: bar-pulse 0.5s ease infinite alternate;
+}
+
+@keyframes bar-pulse {
+  from { opacity: 1; }
+  to   { opacity: 0.55; }
+}
+
+/* Pop du score au comptage */
+.score-pop {
+  animation: score-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* Podium théâtral : les marches montent en cascade 3e -> 2e -> 1er.
+   Ordre DOM du podium : 2e place, 1re place, 3e place. */
+.podium-step {
+  opacity: 0;
+  animation: podium-rise 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.podium-step:nth-child(3) { animation-delay: 0.15s; }  /* 3e place */
+.podium-step:nth-child(1) { animation-delay: 0.85s; }  /* 2e place */
+.podium-step:nth-child(2) { animation-delay: 1.55s; }  /* 1re place */
+
+@keyframes podium-rise {
+  from { opacity: 0; transform: translateY(120px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Canvas confettis plein écran (podium) */
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Accessibilité : désactiver les effets pour qui préfère éviter le mouvement */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .stagger-in, .podium-step { opacity: 1; }
+}
+
+/* Bouton d'arrêt de partie (host) : discret, s'arme en rouge au 1er clic */
+.btn-abort {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-abort:hover {
+  border-color: var(--color-a);
+  color: var(--color-a);
+}
+
+.btn-abort.is-armed {
+  background: var(--color-a);
+  border-color: var(--color-a);
+  color: #fff;
+  font-weight: 700;
 }

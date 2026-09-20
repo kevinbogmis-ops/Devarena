@@ -272,6 +272,8 @@ socket.on('host:room_created', ({ pin, totalQuestionsAvailable, catalog }) => {
 
   renderLobbyQrCode(pin);
   switchView('lobby');
+  // Ambiance arcade (démarre au 1er clic si l'autoplay est bloqué par le navigateur)
+  window.soundManager.startMusic();
 });
 
 // Reconnexion réussie : rétablir le contexte. La vue précise (question/résultat/podium)
@@ -285,6 +287,9 @@ socket.on('host:reconnected', ({ pin, catalog, state }) => {
   renderLobbyQrCode(pin);
   console.log(`[Host] Reconnecté à la salle ${pin} (état: ${state})`);
 
+  if (state !== 'GAME_OVER') {
+    window.soundManager.startMusic();
+  }
   if (state === 'LOBBY') {
     switchView('lobby');
   }
@@ -314,6 +319,10 @@ let connectedPlayersCount = 0;
 
 socket.on('room:player_list_updated', ({ players, count, connectedCount }) => {
   const nbConnected = (typeof connectedCount === 'number') ? connectedCount : count;
+  // Blip radar quand un joueur rejoint le lobby
+  if (nbConnected > connectedPlayersCount) {
+    window.soundManager.playJoin();
+  }
   connectedPlayersCount = nbConnected;
   if (playerCountBadge) playerCountBadge.textContent = `${nbConnected} joueur${nbConnected > 1 ? 's' : ''}`;
 
@@ -418,7 +427,14 @@ socket.on('game:question_started', (q) => {
     qCategoryBadge.className = `badge badge-${q.category.toLowerCase()}`;
   }
   if (qDifficultyBadge) qDifficultyBadge.textContent = q.difficulty;
-  if (qText) qText.textContent = q.question;
+  // Effet machine à écrire sur l'énoncé (sauté en cas de reconnexion en cours de question)
+  if (qText) {
+    if (window.fx && typeof q.remainingSec !== 'number') {
+      window.fx.typewriter(qText, q.question);
+    } else {
+      qText.textContent = q.question;
+    }
+  }
 
   // Snippet de code
   if (qCodeBox) {
@@ -443,14 +459,20 @@ socket.on('game:question_started', (q) => {
     timerCircle.style.strokeDashoffset = circumference - (startingSec / currentMaxTime) * circumference;
     timerCircle.classList.remove('warning', 'danger');
   }
-  if (timerText) timerText.textContent = startingSec;
+  if (timerText) {
+    timerText.textContent = startingSec;
+    timerText.classList.remove('danger');
+  }
 
   window.soundManager.playTick();
 });
 
 // Ticks de chronomètre
 socket.on('game:timer_tick', ({ remainingSec }) => {
-  if (timerText) timerText.textContent = remainingSec;
+  if (timerText) {
+    timerText.textContent = remainingSec;
+    timerText.classList.toggle('danger', remainingSec <= 5);
+  }
   if (timerCircle) {
     const offset = circumference - (remainingSec / currentMaxTime) * circumference;
     timerCircle.style.strokeDashoffset = offset;
@@ -458,7 +480,8 @@ socket.on('game:timer_tick', ({ remainingSec }) => {
     if (remainingSec <= 5) {
       timerCircle.classList.add('danger');
       timerCircle.classList.remove('warning');
-      window.soundManager.playTick();
+      // Tick qui monte en fréquence : la tension grimpe à chaque seconde
+      window.soundManager.playTick(remainingSec);
     } else if (remainingSec <= 10) {
       timerCircle.classList.add('warning');
     }
@@ -499,7 +522,7 @@ socket.on('game:round_ended', ({ correctIndex, explanation, leaderboard, isLastQ
     `;
   }
 
-  // Rendu du Leaderboard Top 5
+  // Rendu du Leaderboard Top 5 : entrée en cascade + scores qui comptent
   if (resLeaderboardList) {
     resLeaderboardList.innerHTML = leaderboard.map((p, idx) => `
       <div class="leaderboard-item">
@@ -509,11 +532,22 @@ socket.on('game:round_ended', ({ correctIndex, explanation, leaderboard, isLastQ
           <span class="player-name">${escapeHtml(p.nickname)} ${p.streak > 1 ? `🔥<small style="color: var(--color-c); font-size: 0.8rem;">x${p.streak}</small>` : ''}</span>
         </div>
         <div style="text-align: right;">
-          <div class="player-score">${p.score} pts</div>
+          <div class="player-score" data-score="${p.score}" data-gained="${p.lastPoints || 0}">${p.score} pts</div>
           ${p.lastPoints > 0 ? `<small style="color: var(--color-d);">+${p.lastPoints}</small>` : ''}
         </div>
       </div>
     `).join('');
+
+    if (window.fx) {
+      window.fx.staggerList(resLeaderboardList, 90);
+      resLeaderboardList.querySelectorAll('.player-score').forEach(el => {
+        const score = parseInt(el.dataset.score, 10);
+        const gained = parseInt(el.dataset.gained, 10);
+        if (gained > 0) {
+          window.fx.countUp(el, score - gained, score, { suffix: ' pts', duration: 1100 });
+        }
+      });
+    }
   }
 
   // Bouton suivant
@@ -521,7 +555,9 @@ socket.on('game:round_ended', ({ correctIndex, explanation, leaderboard, isLastQ
     btnNextQuestion.textContent = isLastQuestion ? '🏆 Voir le Podium Final' : '▶ Question Suivante';
   }
 
-  window.soundManager.playCorrect();
+  // Roulement de tambour puis accord de révélation
+  window.soundManager.playReveal();
+  setTimeout(() => window.soundManager.playCorrect(), 700);
 });
 
 if (btnNextQuestion) {
@@ -530,6 +566,44 @@ if (btnNextQuestion) {
     socket.emit('host:next_question', { pin: currentRoomPin });
   });
 }
+
+// --- Arrêt de la partie (mauvais filtre, faux départ...) ---
+// Confirmation à 2 clics : le 1er arme le bouton en rouge, le 2e envoie l'arrêt.
+function setupAbortButton(btn) {
+  if (!btn) return;
+  const originalText = btn.textContent;
+  btn.addEventListener('click', () => {
+    if (!btn.dataset.armed) {
+      window.soundManager.playClick();
+      btn.dataset.armed = '1';
+      btn.textContent = 'Confirmer l\'arrêt ?';
+      btn.classList.add('is-armed');
+      setTimeout(() => {
+        btn.dataset.armed = '';
+        btn.textContent = originalText;
+        btn.classList.remove('is-armed');
+      }, 3000);
+      return;
+    }
+    btn.dataset.armed = '';
+    btn.textContent = originalText;
+    btn.classList.remove('is-armed');
+    socket.emit('host:abort_game', { pin: currentRoomPin });
+  });
+}
+setupAbortButton(document.getElementById('btn-abort-question'));
+setupAbortButton(document.getElementById('btn-abort-result'));
+
+// Retour au lobby après un arrêt : PIN et joueurs conservés, prêt à relancer
+socket.on('game:aborted', () => {
+  if (startBtn) {
+    startBtn.disabled = false;
+    startBtn.textContent = '🚀 Lancer la Partie';
+  }
+  updateFilterCount();
+  switchView('lobby');
+  window.soundManager.playWrong();
+});
 
 // 6. Fin du Jeu & Podium
 socket.on('game:game_over', ({ podium, fullRanking }) => {
@@ -575,6 +649,11 @@ socket.on('game:game_over', ({ podium, fullRanking }) => {
     `;
   }
 
+  // Confettis quand la 1re place se dévoile (cascade CSS : ~1.55s + montée)
+  if (window.fx) {
+    setTimeout(() => window.fx.confetti({ durationMs: 4500 }), 1600);
+  }
+
   // Tableau complet des scores
   if (finalLeaderboardList) {
     finalLeaderboardList.innerHTML = fullRanking.map(p => `
@@ -590,8 +669,10 @@ socket.on('game:game_over', ({ podium, fullRanking }) => {
         </div>
       </div>
     `).join('');
+    if (window.fx) window.fx.staggerList(finalLeaderboardList, 60);
   }
 
+  window.soundManager.stopMusic();
   window.soundManager.playVictory();
 
   // Charger le Hall of Fame all-time (la partie vient d'être enregistrée en base)
@@ -617,7 +698,7 @@ async function loadHostHallOfFame() {
         </div>
         <div style="text-align: right;">
           <span class="player-score">${s.score} pts</span>
-          <div style="font-size: 0.72rem; color: var(--text-muted);">${s.total_correct}/${s.total_questions} bonnes</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${s.total_correct}/${s.total_questions} bonnes${formatGameDate(s.played_at) ? ' · ' + formatGameDate(s.played_at) : ''}</div>
         </div>
       </div>
     `).join('');
