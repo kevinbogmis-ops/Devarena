@@ -199,6 +199,12 @@
       <p id="answered-status-msg" style="color: var(--text-muted); font-size: 0.95rem;">
         Réponse verrouillée. En attente de la fin du compte à rebours...
       </p>
+      <div id="answered-timer" style="margin-top: 18px; font-size: 1.1rem; font-weight: 700; color: var(--color-c); display: none;">
+        ⏱️ Révélation dans <span id="answered-timer-sec">--</span>s max
+      </div>
+      <div style="margin-top: 6px; font-size: 0.75rem; color: var(--text-muted);">
+        (plus tôt si tout le monde a répondu)
+      </div>
     </div>
 
   </section>
@@ -227,6 +233,14 @@
       <div id="player-explanation-text" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.4; border-top: 1px dashed var(--border-color); padding-top: 8px;">
         Explication...
       </div>
+    </div>
+
+    <!-- Top 5 de l'arène (classement partagé — visible aussi en partie à distance) -->
+    <div class="question-card" style="margin-top: 14px; padding: 14px 16px; text-align: left;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+        🏆 TOP 5 DE L'ARÈNE
+      </div>
+      <div id="player-top5-list" class="leaderboard-list" style="gap: 6px;"></div>
     </div>
 
     <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">
@@ -284,6 +298,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/sound.js"></script>
+  <script src="js/fx.js"></script>
   <script src="js/client.js"></script>
   <script src="js/player.js"></script>
 </body>

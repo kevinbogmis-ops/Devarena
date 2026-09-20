@@ -222,6 +222,11 @@
 
       </div>
 
+      <!-- Arrêt d'urgence (mauvais filtre, faux départ...) -->
+      <div style="text-align: center; margin-top: 20px;">
+        <button id="btn-abort-question" class="btn-abort">⏹ Arrêter la partie</button>
+      </div>
+
     </section>
 
     <!-- ==================== VUE 4 : RÉSULTAT DU ROUND & LEADERBOARD ==================== -->
@@ -249,9 +254,12 @@
         <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main);">
           🏆 Top 5 de l'Arène
         </h3>
-        <button id="btn-next-question" class="btn btn-primary">
-          ▶ Question Suivante
-        </button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="btn-abort-result" class="btn-abort">⏹ Arrêter</button>
+          <button id="btn-next-question" class="btn btn-primary">
+            ▶ Question Suivante
+          </button>
+        </div>
       </div>
 
       <!-- Liste du classement -->
@@ -314,6 +322,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/qrcode.js"></script>
   <script src="js/sound.js"></script>
+  <script src="js/fx.js"></script>
   <script src="js/client.js"></script>
   <script src="js/host.js"></script>
 </body>

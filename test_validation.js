@@ -76,6 +76,7 @@ const requiredFiles = [
   'public/admin.html',
   'public/css/style.css',
   'public/js/sound.js',
+  'public/js/fx.js',
   'public/js/client.js',
   'public/js/qrcode.js',
   'public/js/host.js',
