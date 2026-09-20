@@ -17,6 +17,16 @@ function escapeHtmlCommon(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Date courte d'une partie (ex : « 3 sept. 2026 ») — distingue les homonymes du Hall of Fame
+function formatGameDate(isoDate) {
+  if (!isoDate) return '';
+  try {
+    return new Date(isoDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (e) {
+    return '';
+  }
+}
+
 // Chargement et rendu du Hall of Fame (meilleurs scores all-time depuis la base).
 // Inerte si l'élément #hall-of-fame n'est pas présent sur la page.
 async function loadHallOfFame() {
@@ -39,7 +49,7 @@ async function loadHallOfFame() {
         </div>
         <div style="text-align: right;">
           <span class="player-score">${s.score} pts</span>
-          <div style="font-size: 0.72rem; color: var(--text-muted);">${s.total_correct}/${s.total_questions} bonnes</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">${s.total_correct}/${s.total_questions} bonnes${formatGameDate(s.played_at) ? ' · ' + formatGameDate(s.played_at) : ''}</div>
         </div>
       </div>
     `).join('');

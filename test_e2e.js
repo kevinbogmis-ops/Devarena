@@ -103,6 +103,26 @@ async function runE2ETest() {
       }, 500);
     });
 
+    // Fin de manche : on attend l'événement de l'hôte ET le résultat individuel
+    // du joueur (qui doit contenir le Top 5 partagé)
+    let hostRoundEnded = false;
+    let playerTopFiveOk = false;
+    const maybeResolve = () => {
+      if (hostRoundEnded && playerTopFiveOk) resolve();
+    };
+
+    player1.on('player:round_result', (result) => {
+      if (!Array.isArray(result.topFive) || result.topFive.length !== 2) {
+        throw new Error(`topFive manquant ou incomplet dans player:round_result (reçu : ${JSON.stringify(result.topFive)})`);
+      }
+      if (typeof result.topFive[0].nickname !== 'string' || typeof result.topFive[0].rank !== 'number') {
+        throw new Error('Entrées topFive mal formées (nickname/rank attendus).');
+      }
+      console.log(`   ✓ Top 5 reçu par le joueur : ${result.topFive.map(p => `#${p.rank} ${p.nickname}`).join(', ')}`);
+      playerTopFiveOk = true;
+      maybeResolve();
+    });
+
     hostSocket.on('game:round_ended', ({ correctIndex, explanation, leaderboard }) => {
       console.log(`\n5. Round terminé ! Bonne réponse : [${['A','B','C','D'][correctIndex]}]`);
       console.log(`   Explication : ${explanation}`);
@@ -111,12 +131,35 @@ async function runE2ETest() {
         console.log(`      #${p.rank} ${p.nickname} : ${p.score} pts (+${p.lastPoints})`);
       });
 
-      resolve();
+      hostRoundEnded = true;
+      maybeResolve();
     });
   });
 
+  // 6. Arrêt de la partie par l'hôte : retour au lobby, joueurs conservés, scores à zéro
+  await new Promise(resolve => {
+    player1.once('game:aborted', ({ message }) => {
+      console.log(`\n6. ✓ Joueur notifié de l'arrêt : "${message}"`);
+    });
+    hostSocket.on('room:player_list_updated', ({ players, connectedCount }) => {
+      if (players.length !== 2 || players.some(p => p.score > 0)) return; // attendre le broadcast du reset
+      console.log(`   ✓ Retour au lobby : ${connectedCount} joueurs conservés, scores remis à zéro`);
+      resolve();
+    });
+    hostSocket.emit('host:abort_game', { pin: roomPin });
+  });
+
+  // 7. La salle est réutilisable : un nouveau lancement fonctionne immédiatement
+  await new Promise(resolve => {
+    hostSocket.once('game:starting', ({ totalQuestions }) => {
+      console.log(`7. ✓ Salle réutilisée après l'arrêt : nouvelle partie de ${totalQuestions} questions lancée`);
+      resolve();
+    });
+    hostSocket.emit('host:start_game', { pin: roomPin, questionCount: 5, shuffle: true, categories: [], difficulties: [] });
+  });
+
   console.log('\n✅ TOUT LE CYCLE WEBSOCKET & CALCUL DE SCORE FONCTIONNE PARFAITEMENT !');
-  
+
   hostSocket.disconnect();
   player1.disconnect();
   player2.disconnect();
