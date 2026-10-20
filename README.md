@@ -2,48 +2,126 @@
 
 **DevArena** est une application web de quiz multijoueur en temps réel conçue sur-mesure pour les étudiants et professionnels de l'informatique (Dev, Réseau, DevOps, Cloud, Cyber).
 
----
-
-## 🚀 Fonctionnalités Clés
-
-- **Temps Réel avec WebSockets** : Moteur WebSocket basé sur `Socket.io` pour une synchronisation instantanée entre l'écran du Maître du jeu (Host) et les smartphones des joueurs.
-- **Anti-Triche & Calcul Serveur des Scores** : Les questions sont diffusées sans la réponse correcte. Le serveur calcule le score selon la formule :
-  $$\text{Points} = 1000 \times \left(1 - \frac{\text{Temps de réponse}}{\text{Temps limite}}\right) + \text{Bonus Streak}$$
-- **Banque de 200 Questions Techniques** : 10 catégories — **Cisco (24), Docker (24), AWS (24), Linux (24), Réseau (20), Terraform (20), Ansible (20), Supabase (20), Git (12), Kubernetes (12)** — classées sur 4 niveaux : **Débutant, Intermédiaire, Avancé, Expert**.
-- **Design Sombre "Dark IDE / Hacker"** :
-  - Typographie monospace `Fira Code`.
-  - Touches de clavier mécanique 3D aux couleurs de coloration syntaxique.
-  - Synthétiseur de bruitages 8-bit rétro intégré via la Web Audio API (aucun fichier MP3 requis).
-- **100% Conteneurisable avec Docker** : Dockerfile multi-stage avec utilisateur non-root et `HEALTHCHECK`.
+![Une question en cours, côté joueur, avec la barre de jokers](docs/screenshots/question.png)
 
 ---
 
-## 📁 Structure du Projet
+## 💡 Pourquoi DevArena ?
+
+J'ai créé DevArena pour travailler mes bases en informatique avec mes amis, qui vivent dans des villes différentes. Réviser seul, c'est vite pénible : l'idée était d'en faire un jeu qu'on lance ensemble à distance, qui donne envie d'en savoir plus et rend l'apprentissage agréable.
+
+Le projet est **toujours en amélioration** : il évolue au fil des parties et des retours.
+
+---
+
+## 🎮 Comment jouer
+
+1. **Le Maître du jeu (Host)** ouvre l'écran Host sur un grand écran (ou en partage d'écran), choisit les catégories, le niveau et le nombre de questions.
+2. **Les joueurs** rejoignent depuis leur smartphone avec le **code PIN** ou en scannant le **QR code**, puis choisissent un pseudo.
+3. Chaque question est chronométrée : **plus on répond vite et juste, plus on marque**. Les bonnes réponses remplissent la jauge d'énergie ⚡ qui débloque les **jokers**.
+4. Après chaque question : bonne réponse, statistiques et Top 5. En fin de partie : podium et **Hall of Fame** all-time.
+
+| Accueil | Lobby du Maître du jeu |
+|---|---|
+| ![Page d'accueil](docs/screenshots/accueil.png) | ![Lobby Host avec PIN, QR code et filtres](docs/screenshots/host-lobby.png) |
+
+---
+
+## 🃏 Les jokers
+
+Chaque bonne réponse remplit une **jauge d'énergie ⚡ (max 100)**. Plus la série de bonnes réponses 🔥 est longue, plus elle se remplit vite :
+
+| Série en cours | 1 | 2 | 3 | 4 | 5 et + |
+|---|---|---|---|---|---|
+| Énergie gagnée | +10 ⚡ | +15 ⚡ | +20 ⚡ | +25 ⚡ | +30 ⚡ (plafond x3) |
+
+Cette énergie se dépense en jokers, **pendant une question et avant d'avoir répondu**.
+
+### 🛡️ Jokers défensifs (pour soi)
+
+| Joker | Coût | Effet |
+|---|---|---|
+| 🎯 `--fifty` | 30 ⚡ | Élimine 2 mauvaises réponses de ton écran |
+| 🛡️ `try/catch` | 40 ⚡ | Ta série 🔥 survit même si tu réponds faux |
+| 🚀 `sudo boost` | 45 ⚡ | Ta réponse à cette question vaut le double de points |
+
+### ⚔️ Jokers offensifs (contre un adversaire)
+
+| Joker | Coût | Effet |
+|---|---|---|
+| 💥 `DDoS.sh` | 25 ⚡ | Fait glitcher l'écran de la cible pendant 4 s |
+| 🕵️ `rot13 --attack` | 35 ⚡ | Chiffre les réponses de la cible pendant 5 s |
+| 💰 `exploit --steal` | 60 ⚡ | Vole immédiatement 10 % des points de la cible |
+
+### Règles
+
+- **Ciblage automatique** : une attaque vise toujours le joueur **juste au-dessus de toi** au classement (le n°1 attaque le n°2). Le leader est donc le plus exposé, ce qui permet aux autres de remonter.
+- **Maximum 1 joker défensif + 1 joker offensif par question.**
+- Une même attaque ne se cumule pas : impossible de DDoS un joueur déjà sous DDoS.
+- Chaque utilisation s'affiche en direct sur l'écran du Maître du jeu.
+
+---
+
+## 🧮 Calcul des points
+
+Le score est calculé **côté serveur** : les questions sont envoyées aux joueurs **sans la bonne réponse** (anti-triche).
+
+$$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de réponse}}{\text{Temps limite}}\right)\right) + \text{Bonus de série}$$
+
+- **Bonus de série** : +50 pts par bonne réponse consécutive (plafonné à +250).
+- **Plancher** : une bonne réponse rapporte au moins 150 pts, même à la dernière seconde.
+- `sudo boost` double le total. Mauvaise réponse = 0 pt et série remise à zéro (sauf `try/catch`).
+- **Temps limite selon le niveau** : Débutant 20 s, Intermédiaire 25 s, Avancé 30 s, Expert 35 s.
+
+---
+
+## 🚀 Fonctionnalités clés
+
+- **Temps réel avec WebSockets** : synchronisation instantanée via `Socket.io` entre l'écran du Host et les smartphones.
+- **Banque de 200 questions techniques** : 10 catégories, **Cisco (24), Docker (24), AWS (24), Linux (24), Réseau (20), Terraform (20), Ansible (20), Supabase (20), Git (12), Kubernetes (12)**, sur 4 niveaux : **Débutant, Intermédiaire, Avancé, Expert**.
+- **Parties sur mesure** : filtres multi-sélection par catégorie et niveau, de 5 à 50 questions (mode Marathon).
+- **Jokers & jauge d'énergie** : voir [Les jokers](#-les-jokers).
+- **Classements** : Top 5 envoyé aux joueurs après chaque question, podium animé, **Hall of Fame** all-time (PostgreSQL).
+- **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
+- **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
+- **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
+- **Design « Dark IDE / Terminal »** : police `Fira Code`, touches façon clavier mécanique 3D, animations (machine à écrire, podium, confettis).
+- **Son 100 % généré** : bruitages 8-bit et musique de fond chiptune synthétisés par la Web Audio API, **aucun fichier audio**.
+- **Prêt pour Docker** : image Alpine multi-stage, utilisateur non-root, `HEALTHCHECK`, arrêt propre ; Docker Compose avec PostgreSQL et tunnel Cloudflare pour jouer à distance en HTTPS.
+
+---
+
+## 📁 Structure du projet
 
 ```
 devarena/
-├── package.json               # Dépendances Node.js (express, socket.io, cors)
-├── server.js                  # Serveur backend, WebSocket Socket.io et logique métier
-├── questions.json             # Banque de 200 questions IT (10 catégories, 4 niveaux)
-├── Dockerfile                 # Image Docker Alpine sécurisée et légère
-├── .dockerignore              # Fichiers exclus du build Docker
-├── README.md                  # Ce fichier de documentation
-└── public/                    # Frontend Vanilla HTML5 / CSS3 / JS
-    ├── index.html             # Accueil (Hub de sélection Host / Player)
-    ├── host.html              # Écran Maître du Jeu (Code PIN géant, questions, podium)
-    ├── player.html            # Écran Joueur Mobile-first (4 touches interactives)
-    ├── css/
-    │   └── style.css          # Design System Cyber / Dark IDE (touches 3D)
+├── server.js                  # Serveur Express + Socket.io : salles, scores, jokers, API admin
+├── db.js                      # Module PostgreSQL (schéma, seed, parties, top scores)
+├── questions.json             # Banque de 200 questions (source de vérité)
+├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel
+├── Dockerfile                 # Image Alpine multi-stage, non-root, HEALTHCHECK
+├── package.json               # Dépendances (express, socket.io, pg, cors)
+├── test_*.js                  # Suites de tests (validation, e2e, reconnexion, jokers...)
+├── docs/screenshots/          # Captures d'écran du README
+└── public/                    # Frontend Vanilla HTML5 / CSS3 / JS (sans build)
+    ├── index.html             # Accueil (Host / Player, Hall of Fame)
+    ├── host.html              # Écran Maître du jeu (PIN, QR code, filtres, podium)
+    ├── player.html            # Écran joueur mobile-first (4 touches, jokers)
+    ├── admin.html             # Éditeur de questions
+    ├── css/style.css          # Design system Dark IDE
     └── js/
-        ├── sound.js           # Synthétiseur de son Web Audio API 8-bit
-        ├── client.js          # Utilitaires clients partagés
-        ├── host.js            # Contrôleur d'écran du Host
-        └── player.js          # Contrôleur d'écran du Joueur
+        ├── client.js          # Utilitaires partagés
+        ├── host.js            # Contrôleur de l'écran Host
+        ├── player.js          # Contrôleur de l'écran joueur
+        ├── admin.js           # Contrôleur de l'éditeur
+        ├── fx.js              # Animations (machine à écrire, compteurs, confettis)
+        ├── sound.js           # Synthé Web Audio (bruitages + musique chiptune)
+        └── qrcode.js          # Génération du QR code
 ```
 
 ---
 
-## 💻 Démarrage en Local
+## 💻 Démarrage en local
 
 ### 1. Installation des dépendances
 ```bash
@@ -60,6 +138,19 @@ Rendez-vous ensuite sur :
 - **Accueil** : `http://localhost:3000`
 - **Maître du jeu (Host)** : `http://localhost:3000/host.html`
 - **Joueurs** : `http://localhost:3000/player.html`
+
+Sans base PostgreSQL, le serveur fonctionne en **mode fichier** (pas de Hall of Fame).
+
+### 3. Tests
+```bash
+npm test
+```
+7 suites : validation des questions et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur.
+
+Sans Node.js installé, les tests peuvent tourner dans un conteneur jetable :
+```bash
+docker run --rm -v "${PWD}:/app" -w /app node:20-alpine npm test
+```
 
 ---
 
@@ -112,10 +203,10 @@ DEVARENA_PORT=8088 docker compose up -d
 
 Une interface d'administration permet de gérer la banque de questions sans toucher au JSON à la main :
 
-- **Accès** : `http://localhost:3300/admin.html` (lien « ⚙️ Éditeur » dans le pied de page de l'accueil).
+- **Accès** : `http://localhost:3300/admin.html` (bouton « ⚙️ Éditeur » dans l'en-tête de l'accueil).
 - **Protection** : token obligatoire, défini via `ADMIN_TOKEN` (fichier `.env` à la racine pour docker compose, non versionné). Sans token configuré, l'éditeur est désactivé.
 - **Fonctionnalités** : liste avec recherche + filtres catégorie/niveau, ajout, modification, suppression (double confirmation). Le `timeLimit` est déduit automatiquement du niveau (Débutant 20s / Intermédiaire 25s / Avancé 30s / Expert 35s).
-- **Persistance** : `questions.json` reste la **source de vérité** — chaque écriture réécrit le fichier (monté en volume dans le conteneur, donc versionnable dans git) puis resynchronise PostgreSQL. Les modifications sont immédiatement visibles par le moteur de jeu.
+- **Persistance** : `questions.json` reste la **source de vérité** : chaque écriture réécrit le fichier (monté en volume dans le conteneur, donc versionnable dans git) puis resynchronise PostgreSQL. Les modifications sont immédiatement visibles par le moteur de jeu.
 - **API** : `GET/POST /api/admin/questions`, `PUT/DELETE /api/admin/questions/:id` (header `x-admin-token`).
 
 Test de persistance de bout en bout (nécessite la stack compose démarrée) :
@@ -133,7 +224,7 @@ docker run -d -p 3000:3000 --name devarena devarena-app
 
 ## 🌍 Exposition publique en HTTPS (Cloudflare Tunnel)
 
-Pour jouer avec des joueurs distants (smartphones hors du réseau local), on expose l'app en HTTPS via **Cloudflare Tunnel** — aucun port à ouvrir sur la box, certificat HTTPS et WebSockets gérés automatiquement.
+Pour jouer avec des joueurs distants (smartphones hors du réseau local), on expose l'app en HTTPS via **Cloudflare Tunnel** : aucun port à ouvrir sur la box, certificat HTTPS et WebSockets gérés automatiquement.
 
 ### Mode éphémère (zéro configuration, URL aléatoire)
 ```bash
@@ -146,7 +237,7 @@ docker compose logs cloudflared | grep trycloudflare.com
 ```
 L'URL change à chaque redémarrage du tunnel. Idéale pour une session ponctuelle.
 
-**Astuce QR code** : collez l'URL `https://...trycloudflare.com` dans le champ *« URL Cloudflare Tunnel »* de l'écran Host — le QR code et le lien d'invitation pointeront alors vers l'adresse publique, scannables par n'importe quel smartphone.
+**Astuce QR code** : collez l'URL `https://...trycloudflare.com` dans le champ *« URL Cloudflare Tunnel »* de l'écran Host. Le QR code et le lien d'invitation pointeront alors vers l'adresse publique, scannables par n'importe quel smartphone.
 
 ### Mode permanent (URL/domaine fixe, compte Cloudflare requis)
 ```bash
@@ -164,9 +255,20 @@ docker compose --profile tunnel down     # ou --profile tunnel-named
 
 ---
 
+## 🛠️ En cours d'amélioration
+
+DevArena évolue au fil des parties. Quelques idées dans la liste :
+
+- Nouveaux jokers : `git revert`, `virus.exe`, `MITM`
+- Éditeur : prévisualisation des questions, import/export
+- Toujours plus de questions et de catégories
+
+Idées de questions, de jokers ou retours de partie : les **issues** et **pull requests** sont les bienvenues !
+
+---
+
 ## 👨‍💻 Auteur & Copyright
 
 - **Auteur & Concepteur** : **Kevin BOGMIS**
 - **Projet** : DevArena (2026)
-- **Licence** : MIT
-
+- **Licence** : [MIT](LICENSE)
