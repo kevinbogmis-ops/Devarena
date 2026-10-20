@@ -1222,3 +1222,25 @@ server.listen(PORT, () => {
   console.log(`📱 Mode Player: http://localhost:${PORT}/player.html`);
   console.log('====================================================');
 });
+
+// Arrêt propre : `docker stop` envoie SIGTERM. Sans ce handler, Node (PID 1
+// dans le conteneur) ignore le signal et Docker le tue après 10s (exit 137).
+let shuttingDown = false;
+function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[DevArena] ${signal} reçu, arrêt en cours...`);
+  // Filet de sécurité si une fermeture reste bloquée
+  setTimeout(() => process.exit(1), 5000).unref();
+  // io.close() ferme les sockets clients puis le serveur HTTP
+  io.close(() => {
+    db.pool.end()
+      .catch(() => {})
+      .finally(() => {
+        console.log('[DevArena] Arrêt terminé.');
+        process.exit(0);
+      });
+  });
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

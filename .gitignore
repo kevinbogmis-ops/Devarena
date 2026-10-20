@@ -3,3 +3,6 @@
 
 # Dépendances (réinstallables via npm install)
 node_modules/
+
+# Réglages locaux Claude Code
+.claude/
