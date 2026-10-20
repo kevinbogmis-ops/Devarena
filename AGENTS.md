@@ -5,6 +5,7 @@
 - **Langue** : Toujours répondre en français.
 - **Maintien du contexte** : Maintenir ce fichier à jour à chaque changement notable (nouvelle fonctionnalité, décision technique, correction de bug, refactorisation), en ajoutant une entrée dans la section « Journal / Contexte en cours ».
 - **Intégrité et tests** : Toujours vérifier que la suite de tests passe (`npm test`) après toute modification du code.
+- **Commits** : ne jamais ajouter de ligne `Co-Authored-By` (ni aucune autre attribution à un agent) dans les messages de commit ou de PR. Kevin veut être le seul contributeur affiché sur GitHub.
 - **Code style & Philosophie** : Conserver l'approche Vanilla / zéro framework pour le frontend (HTML5/CSS3/ES6 natif, Web Audio API pour les bruitages et musique).
 
 ---
