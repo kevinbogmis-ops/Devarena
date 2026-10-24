@@ -473,6 +473,8 @@ function buildRoundEndedPayload(room) {
   const leaderboard = buildLeaderboard(room);
   return {
     correctIndex: currentQ.correctIndex,
+    // Texte de la bonne réponse : sur le grand écran, les options ont déjà disparu
+    correctAnswerText: currentQ.options[currentQ.correctIndex],
     explanation: currentQ.explanation,
     optionStats,
     leaderboard: leaderboard.slice(0, 5),
@@ -714,7 +716,8 @@ io.on('connection', (socket) => {
       jokersUsed: { defensive: false, offensive: false },
       shieldActive: false,
       boostActive: false,
-      attackedUntil: {}
+      attackedUntil: {},
+      mistakes: []          // questions ratées, renvoyées au joueur en fin de partie
     };
 
     socket.join(`room:${cleanPin}`);
@@ -777,6 +780,7 @@ io.on('connection', (socket) => {
     room.questions = selectedQuestions.slice(0, count);
     room.currentQuestionIndex = -1;
     room.state = 'STARTING';
+    Object.values(room.players).forEach(p => { p.mistakes = []; });
 
     const filterInfo = [
       categories.length > 0 ? `catégories: ${categories.join(', ')}` : 'toutes catégories',
@@ -827,6 +831,7 @@ io.on('connection', (socket) => {
       p.shieldActive = false;
       p.boostActive = false;
       p.attackedUntil = {};
+      p.mistakes = [];
     });
 
     console.log(`[Room ${cleanPin}] Partie arrêtée par l'hôte — retour au lobby (${Object.keys(room.players).length} joueur(s) conservé(s)).`);
@@ -1190,6 +1195,21 @@ function endQuestionRound(pin) {
     const currentRankObj = leaderboard.find(l => l.id === player.id);
     const rank = currentRankObj ? currentRankObj.rank : 1;
 
+    // Question ratée (ou sans réponse) : mémorisée pour le récapitulatif de fin de partie
+    if (!isCorrect) {
+      if (!Array.isArray(player.mistakes)) player.mistakes = [];
+      player.mistakes.push({
+        questionNumber: room.currentQuestionIndex + 1,
+        category: currentQ.category,
+        difficulty: currentQ.difficulty,
+        question: currentQ.question,
+        codeSnippet: currentQ.codeSnippet || null,
+        yourAnswer: playerAnswer ? currentQ.options[playerAnswer.answerIndex] : null,
+        correctAnswer: currentQ.options[currentQ.correctIndex],
+        explanation: currentQ.explanation || null
+      });
+    }
+
     io.to(player.id).emit('player:round_result', {
       isCorrect,
       hasAnswered: !!playerAnswer,
@@ -1230,6 +1250,15 @@ function finishGame(pin) {
   }
 
   io.to(`room:${pin}`).emit('game:game_over', payload);
+
+  // Récapitulatif personnel : chaque joueur reçoit uniquement SES erreurs
+  Object.values(room.players).forEach(player => {
+    if (player.connected === false) return;
+    io.to(player.id).emit('player:game_recap', {
+      totalQuestions: room.questions.length,
+      mistakes: player.mistakes || []
+    });
+  });
 }
 
 // Nettoyage périodique des salles abandonnées (évite la fuite mémoire) :

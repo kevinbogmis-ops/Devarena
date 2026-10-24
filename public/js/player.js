@@ -619,6 +619,63 @@ socket.on('game:game_over', ({ fullRanking }) => {
 
   window.soundManager.stopMusic();
   window.soundManager.playVictory();
+
+  // Le récapitulatif arrive juste après (player:game_recap) : on part d'un bloc vide
+  const recap = document.getElementById('player-recap');
+  if (recap) recap.style.display = 'none';
+});
+
+// Récapitulatif de fin de partie : les questions ratées, à relire à froid
+// Les explications citent les commandes entre apostrophes ('docker ps') : rendues en <code>.
+// L'apostrophe ouvrante doit suivre un espace ou un début de texte, pour ne pas
+// confondre avec les élisions françaises (« l'image », « C'est »).
+const RECAP_QUOTE_RE = /(^|[\s(«])'([^'\n]{1,60}?)'(?=[\s.,;:!?)»]|$)/g;
+
+function formatRecapText(text) {
+  const raw = String(text || '');
+  let html = '';
+  let last = 0;
+  let match;
+  RECAP_QUOTE_RE.lastIndex = 0;
+  while ((match = RECAP_QUOTE_RE.exec(raw)) !== null) {
+    const quoteStart = match.index + match[1].length;
+    html += escapeHtmlCommon(raw.slice(last, quoteStart)) + `<code>${escapeHtmlCommon(match[2])}</code>`;
+    last = quoteStart + match[2].length + 2;
+  }
+  return html + escapeHtmlCommon(raw.slice(last));
+}
+
+socket.on('player:game_recap', ({ totalQuestions, mistakes }) => {
+  const recap = document.getElementById('player-recap');
+  const list = document.getElementById('player-recap-list');
+  const intro = document.getElementById('player-recap-intro');
+  const count = document.getElementById('player-recap-count');
+  if (!recap || !list || !intro || !Array.isArray(mistakes)) return;
+
+  if (mistakes.length === 0) {
+    count.textContent = 'SANS FAUTE';
+    intro.textContent = `🎯 Sans faute sur ${totalQuestions} question${totalQuestions > 1 ? 's' : ''} : rien à revoir !`;
+    list.innerHTML = '';
+  } else {
+    count.textContent = `${mistakes.length} À REVOIR`;
+    intro.textContent = `${mistakes.length} question${mistakes.length > 1 ? 's' : ''} sur ${totalQuestions} t'${mistakes.length > 1 ? 'ont' : 'a'} échappé. Relis la bonne réponse et le pourquoi : c'est là qu'on apprend.`;
+    list.innerHTML = mistakes.map(m => `
+      <div class="recap-item">
+        <div class="recap-meta">
+          <span class="recap-qnum">Q${m.questionNumber}</span>
+          <span class="badge badge-${escapeHtmlCommon((m.category || '').toLowerCase())}">${escapeHtmlCommon(m.category)}</span>
+          ${m.difficulty ? `<span class="badge badge-devops">${escapeHtmlCommon(m.difficulty)}</span>` : ''}
+        </div>
+        <div class="recap-question">${escapeHtmlCommon(m.question)}</div>
+        ${m.codeSnippet ? `<pre class="recap-code">${escapeHtmlCommon(m.codeSnippet)}</pre>` : ''}
+        <div class="recap-answer recap-wrong">${m.yourAnswer !== null ? `✘ Ta réponse : ${escapeHtmlCommon(m.yourAnswer)}` : '⏱ Pas de réponse à temps'}</div>
+        <div class="recap-answer recap-right">✔ Bonne réponse : ${escapeHtmlCommon(m.correctAnswer)}</div>
+        ${m.explanation ? `<div class="recap-explanation">${formatRecapText(m.explanation)}</div>` : ''}
+      </div>`).join('');
+  }
+
+  recap.style.display = 'block';
+  if (window.fx) window.fx.staggerList(list, 60);
 });
 
 // L'hôte a arrêté la partie : retour à la salle d'attente, compteurs remis à zéro

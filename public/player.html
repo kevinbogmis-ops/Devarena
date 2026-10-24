@@ -274,6 +274,24 @@
       </a>
     </div>
 
+    <!-- Récapitulatif personnel : questions ratées, bonne réponse et explication -->
+    <div id="player-recap" class="terminal-window recap-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena --review</span>
+        <div class="terminal-status"><span id="player-recap-count"></span></div>
+      </div>
+      <div class="recap-body">
+        <p id="player-recap-intro" class="recap-intro"></p>
+        <div id="player-recap-list" class="recap-list"></div>
+        <a href="labs.html" class="btn btn-secondary recap-labs-link">⌨️ S'entraîner sur les labs commandes</a>
+      </div>
+    </div>
+
   </section>
 
   <!-- Popup de confirmation de joker (style terminal) -->

@@ -19,7 +19,7 @@ Le projet est **toujours en amélioration** : il évolue au fil des parties et d
 1. **Le Maître du jeu (Host)** ouvre l'écran Host sur un grand écran (ou en partage d'écran), choisit les catégories, le niveau et le nombre de questions.
 2. **Les joueurs** rejoignent depuis leur smartphone avec le **code PIN** ou en scannant le **QR code**, puis choisissent un pseudo.
 3. Chaque question est chronométrée : **plus on répond vite et juste, plus on marque**. Les bonnes réponses remplissent la jauge d'énergie ⚡ qui débloque les **jokers**.
-4. Après chaque question : bonne réponse, statistiques et Top 5. En fin de partie : podium et **Hall of Fame** all-time.
+4. Après chaque question : la bonne réponse **et son explication**, les statistiques et le Top 5. En fin de partie : podium, **Hall of Fame** all-time, et pour chaque joueur un **récapitulatif de ses erreurs** (sa réponse, la bonne, et le pourquoi) à relire à froid.
 
 | Accueil | Lobby du Maître du jeu |
 |---|---|
@@ -82,6 +82,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 - **Parties sur mesure** : filtres multi-sélection par catégorie et niveau, de 5 à 50 questions (mode Marathon).
 - **Jokers & jauge d'énergie** : voir [Les jokers](#-les-jokers).
 - **Classements** : Top 5 envoyé aux joueurs après chaque question, podium animé, **Hall of Fame** all-time (PostgreSQL).
+- **Apprendre de ses erreurs** : chaque question a une explication, affichée à tous après la manche. En fin de partie, chaque joueur reçoit la liste de ses questions ratées avec la bonne réponse et l'explication.
 - **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
 - **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
 - **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
@@ -151,7 +152,7 @@ Sans base PostgreSQL, le serveur fonctionne en **mode fichier** (pas de Hall of 
 ```bash
 npm test
 ```
-8 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes.
+9 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes, récapitulatif de fin de partie.
 
 Sans Node.js installé, les tests peuvent tourner dans un conteneur jetable :
 ```bash

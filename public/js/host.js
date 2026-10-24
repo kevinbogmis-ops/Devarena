@@ -509,14 +509,14 @@ socket.on('host:joker_event', ({ from, icon, jokerName, target }) => {
 });
 
 // 5. Fin du round & Révélation
-socket.on('game:round_ended', ({ correctIndex, explanation, leaderboard, isLastQuestion }) => {
+socket.on('game:round_ended', ({ correctIndex, correctAnswerText, explanation, leaderboard, isLastQuestion }) => {
   switchView('result');
 
-  // Mettre en évidence la bonne réponse
+  // Mettre en évidence la bonne réponse : lettre ET texte (les options ne sont plus à l'écran)
   if (resExplanation) {
     resExplanation.innerHTML = `
-      <div style="margin-bottom: 8px;">
-        <strong style="color: var(--color-d);">✓ Bonne réponse : [${['A', 'B', 'C', 'D'][correctIndex]}]</strong>
+      <div style="margin-bottom: 8px; font-size: 1.15rem; line-height: 1.4;">
+        <strong style="color: var(--color-d);">✓ Bonne réponse : [${['A', 'B', 'C', 'D'][correctIndex]}] ${escapeHtml(correctAnswerText || '')}</strong>
       </div>
       <div style="color: var(--text-muted); font-size: 0.95rem;">${escapeHtml(explanation)}</div>
     `;

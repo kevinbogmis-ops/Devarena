@@ -1589,3 +1589,103 @@ body.under-ddos {
     flex: 1;
   }
 }
+
+/* ==========================================================================
+   RÉCAPITULATIF DE FIN DE PARTIE (joueur) - questions ratées à relire
+   ========================================================================== */
+
+.recap-window {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.recap-body {
+  padding: 16px;
+}
+
+.recap-intro {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.recap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recap-item {
+  padding: 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--color-a);
+  border-radius: var(--radius-sm);
+}
+
+.recap-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.recap-qnum {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.recap-question {
+  font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.recap-code {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: #05080c;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-code);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.recap-answer {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.recap-wrong { color: var(--color-a); }
+.recap-right { color: var(--color-d); font-weight: 700; }
+
+.recap-explanation {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.recap-explanation code {
+  background: var(--bg-panel-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0 5px;
+  color: var(--text-code);
+  font-size: 0.85em;
+}
+
+.recap-labs-link {
+  width: 100%;
+  margin-top: 16px;
+}
