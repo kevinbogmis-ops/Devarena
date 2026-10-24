@@ -85,6 +85,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 - **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
 - **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
 - **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
+- **Labs pratiques** : terminal Docker reproductible avec DSOXLab pour pratiquer Terraform, Docker, Linux… sur de vrais systèmes (voir [Labs pratiques](#-labs-pratiques-dsoxlab)).
 - **Design « Dark IDE / Terminal »** : police `Fira Code`, touches façon clavier mécanique 3D, animations (machine à écrire, podium, confettis).
 - **Son 100 % généré** : bruitages 8-bit et musique de fond chiptune synthétisés par la Web Audio API, **aucun fichier audio**.
 - **Prêt pour Docker** : image Alpine multi-stage, utilisateur non-root, `HEALTHCHECK`, arrêt propre ; Docker Compose avec PostgreSQL et tunnel Cloudflare pour jouer à distance en HTTPS.
@@ -98,10 +99,11 @@ devarena/
 ├── server.js                  # Serveur Express + Socket.io : salles, scores, jokers, API admin
 ├── db.js                      # Module PostgreSQL (schéma, seed, parties, top scores)
 ├── questions.json             # Banque de 200 questions (source de vérité)
-├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel
+├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel et labs
 ├── Dockerfile                 # Image Alpine multi-stage, non-root, HEALTHCHECK
 ├── package.json               # Dépendances (express, socket.io, pg, cors)
 ├── test_*.js                  # Suites de tests (validation, e2e, reconnexion, jokers...)
+├── lab/Dockerfile             # Terminal de labs DSOXLab (profils lab / lab-docker)
 ├── docs/screenshots/          # Captures d'écran du README
 └── public/                    # Frontend Vanilla HTML5 / CSS3 / JS (sans build)
     ├── index.html             # Accueil (Host / Player, Hall of Fame)
@@ -252,6 +254,53 @@ docker compose --profile tunnel down     # ou --profile tunnel-named
 ```
 
 > 🔒 En exposition publique, pensez à restreindre `CORS_ORIGIN` à votre domaine (voir le tableau des variables d'environnement).
+
+---
+
+## 🧪 Labs pratiques (DSOXLab)
+
+Pour passer de la théorie à la pratique, DevArena fournit un **terminal de labs reproductible** basé sur [DSOXLab](https://github.com/stephrobert/dsoxlab), le moteur de labs de [Stéphane Robert](https://www.stephane-robert.info). Chaque lab donne une mission, puis **vérifie l'état réel du système** (pas les commandes tapées) et attribue un score.
+
+Tout tourne dans Docker, en versions figées (voir [`lab/Dockerfile`](lab/Dockerfile)) : DSOXLab 0.5.5, Terraform 1.16.7, client Docker 27.5.1 et les catalogues fixés à un commit précis. Rien à installer sur sa machine, pas même Python.
+
+### Labs « shell » (Terraform, Linux…)
+```bash
+docker compose --profile lab run --rm lab
+```
+Un terminal s'ouvre avec `dsoxlab` prêt. Par exemple :
+```bash
+dsoxlab demo && cd ~/.local/share/dsoxlab/demo   # lab de découverte
+dsoxlab course premiers-pas                       # le cours
+dsoxlab challenge premiers-pas                    # la mission
+dsoxlab check premiers-pas                        # la vérification et le score
+
+cd ~/catalogs/terraform && dsoxlab list-labs      # 91 labs Terraform
+```
+
+### Labs Docker
+```bash
+docker compose --profile lab-docker run --rm lab-docker
+cd ~/catalogs/containers && dsoxlab list-labs
+
+# Après la session, arrêter le moteur Docker du lab :
+docker compose --profile lab-docker stop dind
+```
+Ce profil ajoute un moteur `docker:dind` **privilégié**, nécessaire pour construire et lancer des conteneurs dans le lab : à utiliser **uniquement en local**.
+
+### Bon à savoir
+
+- **Progression conservée** dans le volume `labhome` (catalogues et scores). Pour repartir de zéro : `docker volume rm devarena_labhome`.
+- **Autres catalogues** : `dsoxlab catalog add linux` (ou `ansible`…) depuis le terminal du lab.
+- **Export des résultats** en JSON : `dsoxlab export`.
+- **Isolation** : les labs tournent sur un réseau séparé (`labnet`), sans port publié, jamais exposés par le tunnel Cloudflare.
+
+| Type de lab | En conteneur |
+|---|---|
+| Labs « shell » (Terraform, une partie de Linux) | ✅ Testé : lab Terraform validé 7/7 |
+| Labs Docker | ✅ Testé avec le profil `lab-docker` : lab validé 7/7 |
+| Labs « vm » (la majorité du catalogue Linux) | ❌ Nécessitent KVM : utiliser [l'appliance VM officielle](https://github.com/stephrobert/dsoxlab/blob/main/docs/appliance.md) |
+
+> **Crédits** : DSOXLab (licence Apache 2.0) et ses catalogues de labs (licence CC BY 4.0) sont l'œuvre de **Stéphane Robert**, [www.stephane-robert.info](https://www.stephane-robert.info). DevArena ne fait que les assembler dans un environnement Docker.
 
 ---
 

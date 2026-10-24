@@ -74,5 +74,64 @@ services:
       - app
     restart: unless-stopped
 
+  # --------------------------------------------------------------------------
+  # Labs pratiques DSOXLab (profils "lab" et "lab-docker", inactifs par défaut).
+  # Terminal reproductible : dsoxlab + Terraform + catalogues en versions figées
+  # (voir lab/Dockerfile). Totalement séparé de l'application : réseau "labnet"
+  # isolé, aucun port publié, jamais exposé par le tunnel.
+  #
+  #   Labs "shell" (Terraform, Linux...) :
+  #     docker compose --profile lab run --rm lab
+  #
+  #   Labs Docker (ajoute un moteur docker:dind PRIVILÉGIÉ, usage local) :
+  #     docker compose --profile lab-docker run --rm lab-docker
+  #     docker compose --profile lab-docker stop dind      # après la session
+  #
+  # Progression conservée dans le volume "labhome" (catalogues + scores).
+  # --------------------------------------------------------------------------
+  lab:
+    build: ./lab
+    image: devarena-lab:latest
+    profiles: ["lab"]
+    stdin_open: true
+    tty: true
+    volumes:
+      - labhome:/home/student
+    networks: [labnet]
+
+  dind:
+    image: docker:27.5.1-dind
+    profiles: ["lab-docker"]
+    # Requis par Docker-in-Docker : ce conteneur a des droits étendus sur la
+    # machine. À n'utiliser qu'en local, jamais sur un serveur exposé.
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""   # API sans TLS, joignable uniquement depuis labnet
+    command: ["--host=tcp://0.0.0.0:2375"]
+    volumes:
+      - dinddata:/var/lib/docker
+    networks: [labnet]
+
+  lab-docker:
+    image: devarena-lab:latest
+    build: ./lab
+    profiles: ["lab-docker"]
+    stdin_open: true
+    tty: true
+    # Partage le réseau du moteur : les ports publiés par les labs sont
+    # joignables sur localhost, comme les tests DSOXLab l'attendent
+    network_mode: "service:dind"
+    environment:
+      DOCKER_HOST: tcp://localhost:2375
+    volumes:
+      - labhome:/home/student
+    depends_on:
+      - dind
+
+networks:
+  labnet:
+
 volumes:
   pgdata:
+  labhome:
+  dinddata:
