@@ -64,7 +64,30 @@ const ACCEPTED = {
   41: ['dig example.com MX @1.1.1.1', 'dig @1.1.1.1 -t mx example.com'],
   42: ['sh ip int br', 'show ip int brief'],
   43: ['copy run start', 'wr', 'write memory'],
-  45: ['aws s3 ls s3://mon-bucket/']
+  45: ['aws s3 ls s3://mon-bucket/'],
+  // Cisco insensible à la casse
+  42: ['sh ip int br', 'show ip int brief', 'SH IP INT BR'],
+  43: ['copy run start', 'wr', 'write memory', 'COPY RUN START'],
+  // Labs ajoutés (Expert, Cisco, AWS, Ansible, Supabase)
+  46: ['docker buildx build --platform=linux/arm64,linux/amd64 --push -t registry.example.com/monapp:1.0 .', 'docker buildx build . --push --tag registry.example.com/monapp:1.0 --platform linux/amd64,linux/arm64'],
+  47: ['kubectl drain node/worker-2 --ignore-daemonsets --delete-emptydir-data', 'kubectl drain --ignore-daemonsets worker-2'],
+  48: ['git rebase --interactive HEAD~3', 'git rebase -i @~3'],
+  49: ['journalctl -f -b -u nginx.service', 'journalctl --unit=nginx --boot --follow'],
+  50: ['terraform apply -replace aws_instance.web', 'terraform apply --replace=aws_instance.web'],
+  51: ['traceroute 8.8.8.8 -n', 'tracepath -n 8.8.8.8'],
+  52: ['en', 'ENABLE', 'ena'],
+  53: ['int g0/1', 'INT Gi0/1', 'interface gigabitethernet 0/1'],
+  54: ['ip add 192.168.1.1 255.255.255.0', 'IP ADDRESS 192.168.1.1 255.255.255.0'],
+  55: ['IP ROUTE 0.0.0.0 0.0.0.0 203.0.113.1'],
+  56: ['aws s3 cp ./rapport.pdf s3://mon-bucket', 'aws s3 cp rapport.pdf s3://mon-bucket/rapport.pdf'],
+  57: ['aws --region eu-west-3 ec2 describe-instances', 'aws ec2 describe-instances --region=eu-west-3'],
+  58: ['aws s3 sync site s3://mon-site/ --delete', 'aws s3 sync --delete ./site/ s3://mon-site'],
+  59: ['aws sts assume-role --role-session-name audit --role-arn arn:aws:iam::123456789012:role/Admin'],
+  61: ['ansible-playbook -l web1 -t nginx site.yml', 'ansible-playbook site.yml --tags=nginx --limit=web1'],
+  62: ['ansible-inventory --host web1 -i hosts.ini', 'ansible-inventory --inventory=hosts.ini --host=web1'],
+  63: ['npx supabase start'],
+  64: ['npx supabase migration new add_profiles'],
+  65: ['npx supabase db push']
 };
 
 // Réponses fausses qui DOIVENT être refusées
@@ -82,7 +105,27 @@ const REJECTED = {
   35: ['ansible all -m ping'],
   38: ['ping 8.8.8.8'],
   43: ['copy start run'],
-  45: ['aws s3 ls mon-bucket']
+  45: ['aws s3 ls mon-bucket'],
+  46: ['docker build -t registry.example.com/monapp:1.0 .', 'docker buildx build --platform linux/amd64,linux/arm64 -t registry.example.com/monapp:1.0 .'],
+  47: ['kubectl drain worker-2', 'kubectl cordon worker-2'],
+  48: ['git rebase HEAD~3', 'git reset --soft HEAD~3'],
+  49: ['journalctl -u nginx -f', 'tail -f /var/log/nginx/error.log'],
+  50: ['terraform taint aws_instance.web', 'terraform apply -target=aws_instance.web'],
+  51: ['traceroute 8.8.8.8', 'ping -c 4 8.8.8.8'],
+  52: ['e', 'configure terminal'],
+  53: ['int g0/2', 'interface fa0/1'],
+  54: ['ip address 192.168.1.1/24', 'ip address 192.168.1.1 255.255.0.0'],
+  55: ['ip route 0.0.0.0 255.255.255.255 203.0.113.1', 'ip default-gateway 203.0.113.1'],
+  56: ['aws s3 cp s3://mon-bucket rapport.pdf', 'aws s3 mv rapport.pdf s3://mon-bucket/'],
+  57: ['aws ec2 describe-instances', 'aws ec2 describe-instances --region eu-west-1'],
+  58: ['aws s3 sync ./site s3://mon-site', 'aws s3 cp ./site s3://mon-site --recursive'],
+  59: ['aws sts assume-role --role-arn arn:aws:iam::123456789012:role/Admin', 'aws sts get-caller-identity'],
+  60: ['ansible-vault decrypt secrets.yml', 'ansible-vault create secrets.yml'],
+  61: ['ansible-playbook site.yml --limit web1', 'ansible-playbook site.yml --skip-tags nginx --limit web1'],
+  62: ['ansible-inventory -i hosts.ini --list', 'ansible web1 -i hosts.ini -m setup'],
+  63: ['supabase stop', 'docker compose up'],
+  64: ['supabase migration new', 'supabase db diff'],
+  65: ['supabase db pull', 'supabase db reset']
 };
 
 async function post(urlPath, body) {

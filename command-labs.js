@@ -22,11 +22,14 @@ function normalizeCommand(raw) {
   return s;
 }
 
+// ignoreCase : pour les CLI insensibles à la casse (Cisco IOS : « int G0/1 » = « int g0/1 »)
 function compileLab(lab) {
+  const fold = s => (lab.ignoreCase ? s.toLowerCase() : s);
   return {
     ...lab,
-    _accepted: new Set((lab.accepted || []).map(normalizeCommand)),
-    _patterns: (lab.patterns || []).map(p => new RegExp(p))
+    _fold: fold,
+    _accepted: new Set([lab.solution, ...(lab.accepted || [])].map(a => fold(normalizeCommand(a)))),
+    _patterns: (lab.patterns || []).map(p => new RegExp(p, lab.ignoreCase ? 'i' : ''))
   };
 }
 
@@ -39,15 +42,15 @@ function loadLabs(file) {
 function isAccepted(lab, answer) {
   const normalized = normalizeCommand(answer);
   if (!normalized) return false;
-  if (lab._accepted.has(normalized) || normalizeCommand(lab.solution) === normalized) return true;
+  if (lab._accepted.has(lab._fold(normalized))) return true;
   return lab._patterns.some(re => re.test(normalized));
 }
 
 // Indice de proximité d'une mauvaise réponse, comparée à la solution :
 // 'subcommand' = bon outil et bonne sous-commande, 'command' = bon outil seulement
 function nearMiss(lab, answer) {
-  const given = normalizeCommand(answer).split(' ');
-  const expected = normalizeCommand(lab.solution).split(' ');
+  const given = lab._fold(normalizeCommand(answer)).split(' ');
+  const expected = lab._fold(normalizeCommand(lab.solution)).split(' ');
   if (!given[0] || given[0] !== expected[0]) return null;
   if (given.length > 1 && expected.length > 1 && given[1] === expected[1]) return 'subcommand';
   return 'command';
@@ -69,6 +72,7 @@ module.exports = {
   DIFFICULTIES,
   MAX_ANSWER_LENGTH,
   normalizeCommand,
+  compileLab,
   loadLabs,
   isAccepted,
   nearMiss,

@@ -104,7 +104,7 @@ devarena/
 ├── server.js                  # Serveur Express + Socket.io : salles, scores, jokers, API admin
 ├── db.js                      # Module PostgreSQL (schéma, seed, parties, top scores)
 ├── questions.json             # Banque de 218 questions (source de vérité)
-├── commands.json              # 45 labs « tape la commande » (mission, variantes, indice, explication)
+├── commands.json              # 65 labs « tape la commande » (mission, variantes, indice, explication)
 ├── command-labs.js            # Vérification des commandes côté serveur
 ├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel et labs
 ├── Dockerfile                 # Image Alpine multi-stage, non-root, HEALTHCHECK
@@ -215,16 +215,17 @@ DEVARENA_PORT=8088 docker compose up -d
 | `ROOM_IDLE_TTL_MS` | `7200000` (2 h) | Délai avant suppression d'une salle inactive |
 | `ROOM_SWEEP_INTERVAL_MS` | `300000` (5 min) | Fréquence de nettoyage des salles abandonnées |
 
-### 📝 Éditeur de questions (admin)
+### 📝 Éditeur de questions et de labs (admin)
 
-Une interface d'administration permet de gérer la banque de questions sans toucher au JSON à la main :
+Une interface d'administration permet de gérer la banque de questions **et les labs commandes** sans toucher au JSON à la main (deux onglets) :
 
 - **Accès** : `http://localhost:3300/admin.html` (bouton « ⚙️ Éditeur » dans l'en-tête de l'accueil).
 - **Protection** : token obligatoire, défini via `ADMIN_TOKEN` (fichier `.env` à la racine pour docker compose, non versionné). Sans token configuré, l'éditeur est désactivé.
 - **Anti-force brute** : après 10 tokens invalides en 15 minutes, un visiteur est bloqué jusqu'à la fin de la fenêtre (même avec le bon token), et au-delà de 50 échecs au total l'éditeur se ferme pour tout le monde. Derrière le tunnel Cloudflare, chaque visiteur est identifié par sa vraie adresse (`CF-Connecting-IP`). Le token est comparé en temps constant.
 - **Fonctionnalités** : liste avec recherche + filtres catégorie/niveau, ajout, modification, suppression (double confirmation). Le `timeLimit` est déduit automatiquement du niveau (Débutant 20s / Intermédiaire 25s / Avancé 30s / Expert 35s).
 - **Persistance** : `questions.json` reste la **source de vérité** : chaque écriture réécrit le fichier (monté en volume dans le conteneur, donc versionnable dans git) puis resynchronise PostgreSQL. Les modifications sont immédiatement visibles par le moteur de jeu.
-- **API** : `GET/POST /api/admin/questions`, `PUT/DELETE /api/admin/questions/:id` (header `x-admin-token`).
+- **Labs** : mission, contexte, solution, variantes acceptées et motifs (un par ligne), option « ignorer la casse », indice, explication. Un **banc d'essai** teste une commande sur le brouillon avant d'enregistrer. Les labs sont écrits dans `commands.json` (monté en volume lui aussi) et jouables aussitôt.
+- **API** : `GET/POST /api/admin/questions`, `PUT/DELETE /api/admin/questions/:id`, `GET/POST /api/admin/labs`, `PUT/DELETE /api/admin/labs/:id`, `POST /api/admin/labs/try` (header `x-admin-token`).
 
 Test de persistance de bout en bout (nécessite la stack compose démarrée) :
 ```bash
@@ -297,9 +298,9 @@ Chaque lab donne une **mission** (« Liste les pods de tous les namespaces ») e
 - **Filtres** par catégorie et niveau, mode « seulement les labs pas encore réussis », **progression** gardée dans le navigateur (sans compte).
 - **Anti-triche** : comme pour le quiz, les solutions ne sont jamais envoyées au navigateur ; chaque commande est vérifiée par le serveur.
 
-45 labs pour commencer : Docker (7), Kubernetes (7), Git (6), Linux (8), Terraform (6), Ansible (3), Réseau (4), Cisco (2), AWS (2).
+65 labs sur les 10 catégories, du niveau Débutant à Expert : Docker (8), Kubernetes (8), Git (7), Linux (9), Terraform (7), Ansible (6), Réseau (5), Cisco (6), AWS (6), Supabase (3).
 
-**Ajouter un lab** : une entrée dans [`commands.json`](commands.json) avec `mission`, `solution`, `hint`, `explanation` et, si besoin, `accepted` (autres écritures exactes) ou `patterns` (expressions régulières ancrées, pour les options dans le désordre). `npm test` vérifie le format et que la solution est bien acceptée.
+**Ajouter un lab** : depuis l'onglet « Labs commandes » de l'éditeur admin (avec banc d'essai), ou directement dans [`commands.json`](commands.json) avec `mission`, `solution`, `hint`, `explanation` et, si besoin, `accepted` (autres écritures exactes), `patterns` (expressions régulières ancrées, pour les options dans le désordre) et `ignoreCase` (CLI insensibles à la casse comme Cisco IOS). `npm test` vérifie le format et que la solution est bien acceptée.
 
 ---
 

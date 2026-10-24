@@ -12,6 +12,9 @@ const TOKEN = 'test-token-devarena';
 const TMP_QUESTIONS = path.join(os.tmpdir(), `devarena_questions_admin_test_${Date.now()}.json`);
 
 fs.copyFileSync(path.join(__dirname, 'questions.json'), TMP_QUESTIONS);
+const TMP_COMMANDS = path.join(os.tmpdir(), `devarena_commands_admin_test_${Date.now()}.json`);
+fs.copyFileSync(path.join(__dirname, 'commands.json'), TMP_COMMANDS);
+process.env.COMMANDS_FILE = TMP_COMMANDS;
 
 process.env.PORT = String(PORT);
 process.env.ADMIN_TOKEN = TOKEN;
@@ -35,7 +38,23 @@ const watchdog = setTimeout(() => {
 
 function cleanup() {
   try { fs.unlinkSync(TMP_QUESTIONS); } catch (_) { /* déjà supprimé */ }
+  try { fs.unlinkSync(TMP_COMMANDS); } catch (_) { /* déjà supprimé */ }
 }
+
+function readWorkingLabs() {
+  return JSON.parse(fs.readFileSync(TMP_COMMANDS, 'utf8'));
+}
+
+const validLab = {
+  category: 'Docker',
+  difficulty: 'Intermédiaire',
+  mission: 'TEST ADMIN : affiche les volumes Docker de la machine.',
+  solution: 'docker volume ls',
+  accepted: ['docker volume list'],
+  patterns: ['^docker volume (ls|list) (-q|--quiet)$'],
+  hint: 'La sous-commande volume, puis lister.',
+  explanation: '`docker volume ls` liste les volumes.'
+};
 
 function readWorkingFile() {
   return JSON.parse(fs.readFileSync(TMP_QUESTIONS, 'utf8'));
@@ -140,7 +159,60 @@ async function run() {
   }
   console.log(`7. ✓ Question #${newId} supprimée du fichier, 404 sur un id inexistant`);
 
-  // 8. Limitation par visiteur : 5 échecs -> bloqué (429), même avec le bon token.
+  // 8. Labs : liste admin complète (avec solutions), validation des motifs
+  const labList = await call('GET', '/api/admin/labs');
+  if (labList.status !== 200 || !Array.isArray(labList.json.labs) || !labList.json.labs[0].solution) {
+    throw new Error(`Liste admin des labs invalide (status ${labList.status}).`);
+  }
+  const initialLabs = labList.json.total;
+  const notAnchored = await call('POST', '/api/admin/labs', { body: { ...validLab, patterns: ['docker volume ls'] } });
+  const badRegex = await call('POST', '/api/admin/labs', { body: { ...validLab, patterns: ['^docker (volume$'] } });
+  const noHint = await call('POST', '/api/admin/labs', { body: { ...validLab, hint: '' } });
+  if (notAnchored.status !== 400 || badRegex.status !== 400 || noHint.status !== 400) {
+    throw new Error(`Lab invalide accepté (${notAnchored.status} / ${badRegex.status} / ${noHint.status}).`);
+  }
+  console.log(`8. ✓ Labs : liste admin (${initialLabs} labs, solutions incluses) ; motif non ancré, regex invalide et indice vide rejetés (400)`);
+
+  // 9. Banc d'essai sur un brouillon (rien n'est écrit)
+  const tryOk = await call('POST', '/api/admin/labs/try', { body: { lab: validLab, answer: 'docker volume list --quiet' } });
+  const tryKo = await call('POST', '/api/admin/labs/try', { body: { lab: validLab, answer: 'docker volume rm data' } });
+  if (tryOk.json.accepted !== true || tryKo.json.accepted !== false || tryKo.json.near !== 'subcommand') {
+    throw new Error(`Banc d'essai incohérent (${JSON.stringify(tryOk.json)} / ${JSON.stringify(tryKo.json)}).`);
+  }
+  if (readWorkingLabs().length !== initialLabs) throw new Error('Le banc d\'essai ne doit rien écrire.');
+  console.log('9. ✓ Banc d\'essai : variante acceptée, erreur refusée avec indice de proximité, fichier inchangé');
+
+  // 10. Création -> visible et jouable côté joueurs (sans la solution), puis modification
+  const createdLab = await call('POST', '/api/admin/labs', { body: validLab });
+  if (createdLab.status !== 201) throw new Error(`Création de lab refusée (${createdLab.status}: ${createdLab.json.error}).`);
+  const labId = createdLab.json.lab.id;
+  if (!readWorkingLabs().some(l => l.id === labId && l.solution === 'docker volume ls')) {
+    throw new Error('Le lab créé est absent de commands.json.');
+  }
+  const publicLabs = await (await fetch(`${BASE}/api/labs`)).json();
+  const publicLab = publicLabs.labs.find(l => l.id === labId);
+  const played = await fetch(`${BASE}/api/labs/${labId}/check`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer: 'docker volume list' })
+  }).then(r => r.json());
+  if (!publicLab || 'solution' in publicLab || played.correct !== true) {
+    throw new Error('Le lab créé doit être jouable tout de suite, sans exposer sa solution.');
+  }
+  const updatedLab = await call('PUT', `/api/admin/labs/${labId}`, { body: { ...validLab, solution: 'docker volume ls -q', ignoreCase: true } });
+  const inLabFile = readWorkingLabs().find(l => l.id === labId);
+  if (updatedLab.status !== 200 || !inLabFile || inLabFile.solution !== 'docker volume ls -q' || inLabFile.ignoreCase !== true) {
+    throw new Error(`Modification de lab échouée (${updatedLab.status}).`);
+  }
+  console.log(`10. ✓ Lab #${labId} créé (jouable aussitôt, solution non exposée) puis modifié, persisté dans commands.json`);
+
+  // 11. Suppression (+ 404 sur id inexistant)
+  const deletedLab = await call('DELETE', `/api/admin/labs/${labId}`);
+  const missingLab = await call('DELETE', '/api/admin/labs/999999');
+  if (deletedLab.status !== 200 || missingLab.status !== 404 || readWorkingLabs().length !== initialLabs) {
+    throw new Error(`Suppression de lab incohérente (${deletedLab.status} / ${missingLab.status}).`);
+  }
+  console.log(`11. ✓ Lab #${labId} supprimé du fichier, 404 sur un id inexistant`);
+
+  // 12. Limitation par visiteur : 5 échecs -> bloqué (429), même avec le bon token.
   //    (Échecs comptés jusqu'ici : 2 à l'étape 1, au global.)
   const attacker = '198.51.100.7';
   for (let i = 1; i <= 5; i++) {
@@ -156,17 +228,17 @@ async function run() {
   if (otherVisitor.status !== 200) {
     throw new Error(`Un autre visiteur ne doit pas être bloqué (reçu ${otherVisitor.status}).`);
   }
-  console.log(`8. ✓ Visiteur bloqué après 5 échecs (429, Retry-After ${locked.retryAfter}s, même avec le bon token) ; les autres visiteurs passent`);
+  console.log(`12. ✓ Visiteur bloqué après 5 échecs (429, Retry-After ${locked.retryAfter}s, même avec le bon token) ; les autres visiteurs passent`);
 
-  // 9. Limite globale : changer d'adresse ne contourne pas le plafond (8 échecs au total)
+  // 13. Limite globale : changer d'adresse ne contourne pas le plafond (8 échecs au total)
   const rotated = await call('GET', '/api/admin/questions', { token: 'essai-x', visitor: '192.0.2.99' });
   const anyone = await call('GET', '/api/admin/questions', { visitor: '203.0.113.42' });
   if (rotated.status !== 401 || anyone.status !== 429) {
     throw new Error(`Plafond global attendu (reçu ${rotated.status} puis ${anyone.status}).`);
   }
-  console.log('9. ✓ Plafond global atteint : un attaquant qui change d\'adresse est arrêté (429 pour tous)');
+  console.log('13. ✓ Plafond global atteint : un attaquant qui change d\'adresse est arrêté (429 pour tous)');
 
-  console.log('\n✅ ÉDITEUR DE QUESTIONS VALIDÉ : TOKEN, LIMITATION DES TENTATIVES, VALIDATION, CRUD ET PERSISTANCE FICHIER !');
+  console.log("\n✅ ÉDITEUR VALIDÉ : TOKEN, LIMITATION DES TENTATIVES, QUESTIONS ET LABS (VALIDATION, CRUD, BANC D'ESSAI, PERSISTANCE FICHIER) !");
 
   clearTimeout(watchdog);
   cleanup();

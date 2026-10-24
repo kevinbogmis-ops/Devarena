@@ -97,6 +97,9 @@ try {
       if (!validLevels.includes(lab.difficulty)) {
         errors.push(`${ref} : difficulté "${lab.difficulty}" hors échelle (${validLevels.join(', ')}).`);
       }
+      if (lab.ignoreCase !== undefined && typeof lab.ignoreCase !== 'boolean') {
+        errors.push(`${ref} : 'ignoreCase' doit être un booléen.`);
+      }
       if (lab.accepted !== undefined && (!Array.isArray(lab.accepted) || lab.accepted.some(a => typeof a !== 'string' || !a.trim()))) {
         errors.push(`${ref} : 'accepted' doit être un tableau de commandes non vides.`);
       }

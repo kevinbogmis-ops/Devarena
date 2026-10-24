@@ -403,6 +403,161 @@ app.delete('/api/admin/questions/:id', requireAdmin, async (req, res) => {
   res.json({ deleted: id, total: allQuestions.length });
 });
 
+// ==========================================================================
+// ÉDITEUR DE LABS — même principe que les questions : commands.json reste la
+// source de vérité, réécrit à chaque modification (pas de base de données).
+// ==========================================================================
+const MAX_LAB_PATTERN_LENGTH = 500;
+
+// Version écrite dans le fichier : sans les champs compilés (_fold, _accepted, _patterns)
+function serializeLab(lab) {
+  const out = { id: lab.id, category: lab.category, difficulty: lab.difficulty, mission: lab.mission };
+  if (lab.context) out.context = lab.context;
+  out.solution = lab.solution;
+  if (lab.accepted && lab.accepted.length) out.accepted = lab.accepted;
+  if (lab.patterns && lab.patterns.length) out.patterns = lab.patterns;
+  if (lab.ignoreCase) out.ignoreCase = true;
+  out.hint = lab.hint;
+  out.explanation = lab.explanation;
+  return out;
+}
+
+function validateLabPayload(body) {
+  const errors = [];
+  if (!body || typeof body !== 'object') return ['Payload JSON manquant.'];
+  const requiredText = { category: 'Catégorie', solution: 'Solution', hint: 'Indice', explanation: 'Explication' };
+  Object.entries(requiredText).forEach(([field, label]) => {
+    if (typeof body[field] !== 'string' || !body[field].trim()) errors.push(`${label} requise.`);
+  });
+  if (typeof body.mission !== 'string' || body.mission.trim().length < 10) {
+    errors.push('Mission requise (10 caractères minimum).');
+  }
+  if (!commandLabs.DIFFICULTIES.includes(body.difficulty)) {
+    errors.push(`Difficulté invalide (attendu : ${commandLabs.DIFFICULTIES.join(', ')}).`);
+  }
+  if (typeof body.solution === 'string' && body.solution.length > commandLabs.MAX_ANSWER_LENGTH) {
+    errors.push(`Solution trop longue (${commandLabs.MAX_ANSWER_LENGTH} caractères max).`);
+  }
+  if (body.context != null && typeof body.context !== 'string') errors.push('Le contexte doit être un texte.');
+  if (body.ignoreCase != null && typeof body.ignoreCase !== 'boolean') errors.push('ignoreCase doit être un booléen.');
+  if (body.accepted != null && (!Array.isArray(body.accepted) || body.accepted.some(a => typeof a !== 'string'))) {
+    errors.push('Les variantes acceptées doivent être une liste de commandes.');
+  }
+  if (body.patterns != null) {
+    if (!Array.isArray(body.patterns)) {
+      errors.push('Les motifs doivent être une liste.');
+    } else {
+      body.patterns.filter(p => typeof p !== 'string' || p.trim()).forEach(p => {
+        if (typeof p !== 'string' || !p.startsWith('^') || !p.endsWith('$')) {
+          errors.push(`Motif non ancré (doit commencer par ^ et finir par $) : ${p}`);
+        } else if (p.length > MAX_LAB_PATTERN_LENGTH) {
+          errors.push(`Motif trop long (${MAX_LAB_PATTERN_LENGTH} caractères max).`);
+        } else {
+          try { new RegExp(p); } catch (e) { errors.push(`Motif invalide (${e.message}).`); }
+        }
+      });
+    }
+  }
+  return errors;
+}
+
+function buildLabFromPayload(body, id) {
+  const clean = list => (Array.isArray(list) ? list.map(s => s.trim()).filter(Boolean) : []);
+  return commandLabs.compileLab({
+    id,
+    category: body.category.trim(),
+    difficulty: body.difficulty,
+    mission: body.mission.trim(),
+    context: (body.context || '').trim() || undefined,
+    solution: body.solution.trim(),
+    accepted: clean(body.accepted),
+    patterns: clean(body.patterns),
+    ignoreCase: body.ignoreCase === true,
+    hint: body.hint.trim(),
+    explanation: body.explanation.trim()
+  });
+}
+
+// Écriture directe (compatible bind mount), comme pour questions.json
+function persistLabs() {
+  fs.writeFileSync(COMMANDS_FILE, JSON.stringify(allLabs.map(serializeLab), null, 2) + '\n', 'utf8');
+}
+
+app.get('/api/admin/labs', requireAdmin, (req, res) => {
+  res.json({
+    total: allLabs.length,
+    difficulties: commandLabs.DIFFICULTIES,
+    labs: allLabs.map(serializeLab)
+  });
+});
+
+// Essai d'une commande sur un brouillon de lab (rien n'est enregistré)
+app.post('/api/admin/labs/try', requireAdmin, (req, res) => {
+  const draft = req.body && req.body.lab;
+  const answer = req.body && req.body.answer;
+  const errors = validateLabPayload(draft);
+  if (errors.length > 0) return res.status(400).json({ error: errors.join(' ') });
+  if (typeof answer !== 'string' || !answer.trim()) return res.status(400).json({ error: 'Commande à tester vide.' });
+  const lab = buildLabFromPayload(draft, 0);
+  res.json({
+    accepted: commandLabs.isAccepted(lab, answer),
+    near: commandLabs.nearMiss(lab, answer),
+    normalized: commandLabs.normalizeCommand(answer)
+  });
+});
+
+app.post('/api/admin/labs', requireAdmin, (req, res) => {
+  const errors = validateLabPayload(req.body);
+  if (errors.length > 0) return res.status(400).json({ error: errors.join(' ') });
+  const nextId = allLabs.reduce((max, l) => Math.max(max, l.id), 0) + 1;
+  const lab = buildLabFromPayload(req.body, nextId);
+  allLabs.push(lab);
+  try {
+    persistLabs();
+  } catch (err) {
+    allLabs.pop();
+    console.error('[Admin] Échec d\'écriture de commands.json :', err.message);
+    return res.status(500).json({ error: 'Échec d\'écriture du fichier commands.json.' });
+  }
+  console.log(`[Admin] Lab #${lab.id} ajouté (${lab.category} / ${lab.difficulty}).`);
+  res.status(201).json({ lab: serializeLab(lab) });
+});
+
+app.put('/api/admin/labs/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = allLabs.findIndex(l => l.id === id);
+  if (index === -1) return res.status(404).json({ error: `Lab #${id} introuvable.` });
+  const errors = validateLabPayload(req.body);
+  if (errors.length > 0) return res.status(400).json({ error: errors.join(' ') });
+  const previous = allLabs[index];
+  allLabs[index] = buildLabFromPayload(req.body, id);
+  try {
+    persistLabs();
+  } catch (err) {
+    allLabs[index] = previous;
+    console.error('[Admin] Échec d\'écriture de commands.json :', err.message);
+    return res.status(500).json({ error: 'Échec d\'écriture du fichier commands.json.' });
+  }
+  console.log(`[Admin] Lab #${id} modifié.`);
+  res.json({ lab: serializeLab(allLabs[index]) });
+});
+
+app.delete('/api/admin/labs/:id', requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = allLabs.findIndex(l => l.id === id);
+  if (index === -1) return res.status(404).json({ error: `Lab #${id} introuvable.` });
+  const [removed] = allLabs.splice(index, 1);
+  try {
+    persistLabs();
+  } catch (err) {
+    allLabs.splice(index, 0, removed);
+    console.error('[Admin] Échec d\'écriture de commands.json :', err.message);
+    return res.status(500).json({ error: 'Échec d\'écriture du fichier commands.json.' });
+  }
+  console.log(`[Admin] Lab #${id} supprimé (${removed.category}).`);
+  res.json({ deleted: id, total: allLabs.length });
+});
+
 // État en mémoire vive (RAM)
 const rooms = {};
 

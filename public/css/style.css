@@ -1869,3 +1869,86 @@ body.under-ddos {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ==========================================================================
+   ÉDITEUR ADMIN - onglets Questions / Labs et banc d'essai des labs
+   ========================================================================== */
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-tab:hover {
+  color: var(--text-main);
+  border-color: var(--color-b);
+}
+
+.admin-tab.is-active {
+  color: var(--color-d);
+  border-color: var(--color-d);
+  background: rgba(63, 185, 80, 0.1);
+  font-weight: 700;
+}
+
+.admin-row-question code {
+  color: var(--text-code);
+  margin-right: 6px;
+}
+
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.admin-checkbox input {
+  accent-color: var(--color-d);
+  width: 16px;
+  height: 16px;
+}
+
+.admin-lab-try {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.admin-lab-try-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.admin-lab-try-row .input-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-lab-try-result {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-lab-try-result.is-ok { color: var(--color-d); }
+.admin-lab-try-result.is-ko { color: var(--color-a); }

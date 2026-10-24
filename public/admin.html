@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevArena | Éditeur de Questions</title>
+  <title>DevArena | Éditeur</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
 </head>
@@ -32,7 +32,7 @@
         <div class="terminal-status"><span>🔒 PROTÉGÉ</span></div>
       </div>
       <div style="padding: 30px;">
-        <h1 style="font-size: 1.4rem; margin-bottom: 8px;">🔐 Éditeur de Questions</h1>
+        <h1 style="font-size: 1.4rem; margin-bottom: 8px;">🔐 Éditeur DevArena</h1>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
           Accès réservé. Saisissez le token admin (variable d'environnement <code>ADMIN_TOKEN</code> du serveur).
         </p>
@@ -44,6 +44,12 @@
         <button id="admin-login-btn" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Se connecter</button>
       </div>
     </section>
+
+    <!-- Onglets (visibles une fois connecté) -->
+    <nav id="admin-tabs" class="admin-tabs" style="display: none;">
+      <button type="button" class="admin-tab is-active" data-tab="list">❓ Questions du quiz</button>
+      <button type="button" class="admin-tab" data-tab="labs">⌨️ Labs commandes</button>
+    </nav>
 
     <!-- ================= VUE 2 : LISTE DES QUESTIONS ================= -->
     <section id="view-admin-list" class="terminal-window" style="display: none;">
@@ -134,10 +140,124 @@
       </div>
     </section>
 
+    <!-- ================= VUE 4 : LISTE DES LABS ================= -->
+    <section id="view-admin-labs" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-admin --list-labs</span>
+        <div class="terminal-status">
+          <span class="pulse"></span>
+          <span id="admin-lab-count">0 labs</span>
+        </div>
+      </div>
+      <div style="padding: 20px;">
+        <div class="admin-toolbar">
+          <input type="text" id="admin-lab-search" class="input-field" placeholder="🔍 Rechercher dans les missions et solutions..." style="flex: 1; min-width: 200px; margin: 0;">
+          <select id="admin-lab-filter-category" class="input-field admin-select">
+            <option value="">Toutes catégories</option>
+          </select>
+          <select id="admin-lab-filter-difficulty" class="input-field admin-select">
+            <option value="">Tous niveaux</option>
+          </select>
+          <button id="admin-lab-new-btn" class="btn btn-cyber">+ Nouveau lab</button>
+        </div>
+        <div id="admin-lab-feedback" class="admin-feedback" style="display: none;"></div>
+        <div id="admin-lab-list" class="admin-question-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= VUE 5 : FORMULAIRE D'UN LAB ================= -->
+    <section id="view-admin-lab-form" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title" id="admin-lab-form-title">devarena-admin --new-lab</span>
+        <div class="terminal-status"><span>📝 ÉDITION</span></div>
+      </div>
+      <div style="padding: 24px;">
+        <div class="admin-form-grid">
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-lab-category">Catégorie</label>
+            <input type="text" id="admin-lab-category" class="input-field" list="admin-lab-category-suggestions" placeholder="Docker, Linux, ..." style="margin: 0;">
+            <datalist id="admin-lab-category-suggestions"></datalist>
+          </div>
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-lab-difficulty">Difficulté</label>
+            <select id="admin-lab-difficulty" class="input-field admin-select" style="width: 100%; margin: 0;"></select>
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-lab-mission">Mission (ce que le joueur doit faire)</label>
+          <textarea id="admin-lab-mission" class="input-field admin-textarea" rows="2" placeholder="Liste tous les conteneurs, y compris ceux qui sont arrêtés."></textarea>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-lab-context">Contexte affiché (optionnel, ex. sortie de terminal)</label>
+          <textarea id="admin-lab-context" class="input-field admin-textarea admin-code" rows="2" placeholder="$ kubectl get pods"></textarea>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-lab-solution">Solution officielle (affichée au joueur)</label>
+          <input type="text" id="admin-lab-solution" class="input-field admin-code" placeholder="docker ps -a" style="margin: 0;">
+        </div>
+
+        <div class="admin-form-grid" style="margin-top: 16px;">
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-lab-accepted">Autres écritures acceptées (une par ligne)</label>
+            <textarea id="admin-lab-accepted" class="input-field admin-textarea admin-code" rows="3" placeholder="docker ps --all"></textarea>
+          </div>
+          <div class="input-group" style="margin: 0;">
+            <label class="input-label" for="admin-lab-patterns">Motifs regex ancrés ^…$ (un par ligne)</label>
+            <textarea id="admin-lab-patterns" class="input-field admin-textarea admin-code" rows="3" placeholder="^docker (container )?ls (-a|--all)$"></textarea>
+          </div>
+        </div>
+
+        <label class="admin-checkbox">
+          <input type="checkbox" id="admin-lab-ignorecase">
+          Ignorer majuscules / minuscules (CLI comme Cisco IOS)
+        </label>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-lab-hint">Indice</label>
+          <textarea id="admin-lab-hint" class="input-field admin-textarea" rows="2" placeholder="Une option ajoute les conteneurs arrêtés."></textarea>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <label class="input-label" for="admin-lab-explanation">Explication (`commande` entre accents graves = affichée en code)</label>
+          <textarea id="admin-lab-explanation" class="input-field admin-textarea" rows="3" placeholder="`docker ps` liste les conteneurs en cours d'exécution..."></textarea>
+        </div>
+
+        <!-- Banc d'essai : tester une commande sur le brouillon, sans enregistrer -->
+        <div class="admin-lab-try">
+          <label class="input-label" for="admin-lab-try-input">🧪 Tester une commande sur ce brouillon (rien n'est enregistré)</label>
+          <div class="admin-lab-try-row">
+            <input type="text" id="admin-lab-try-input" class="input-field admin-code" placeholder="docker container ls -a" style="margin: 0;">
+            <button type="button" id="admin-lab-try-btn" class="btn btn-secondary">Tester</button>
+          </div>
+          <div id="admin-lab-try-result" class="admin-lab-try-result" style="display: none;"></div>
+        </div>
+
+        <div id="admin-lab-form-error" class="admin-error" style="display: none;"></div>
+
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button id="admin-lab-save-btn" class="btn btn-primary" style="flex: 1;">💾 Enregistrer</button>
+          <button id="admin-lab-cancel-btn" class="btn btn-secondary" style="flex: 1;">Annuler</button>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
-    &copy; 2026 <strong>DevArena</strong> &bull; Éditeur de questions &bull; Les modifications sont écrites dans <code>questions.json</code> puis synchronisées en base.
+    &copy; 2026 <strong>DevArena</strong> &bull; Éditeur &bull; Les questions sont écrites dans <code>questions.json</code> (puis synchronisées en base), les labs dans <code>commands.json</code>.
   </footer>
 
   <script src="js/admin.js"></script>

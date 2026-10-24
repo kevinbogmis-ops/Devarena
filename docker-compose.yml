@@ -39,6 +39,8 @@ services:
       # les modifications faites via l'éditeur survivent aux redémarrages
       # du conteneur et restent versionnables dans git
       - ./questions.json:/app/questions.json
+      # Idem pour les labs « tape la commande », modifiables dans l'éditeur
+      - ./commands.json:/app/commands.json
     depends_on:
       db:
         condition: service_healthy
