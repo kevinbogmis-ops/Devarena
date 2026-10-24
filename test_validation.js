@@ -54,6 +54,11 @@ try {
       if (typeof q.timeLimit !== 'number' || q.timeLimit <= 0) {
         errors.push(`Question #${qNum} : 'timeLimit' (${q.timeLimit}) invalide.`);
       }
+      // Temps de réponse imposé par le niveau (même règle que l'éditeur admin)
+      const expectedTime = { 'Débutant': 20, 'Intermédiaire': 25, 'Avancé': 30, 'Expert': 35 }[q.difficulty];
+      if (expectedTime && q.timeLimit !== expectedTime) {
+        errors.push(`Question #${q.id ?? qNum} : timeLimit ${q.timeLimit}s au lieu de ${expectedTime}s pour le niveau ${q.difficulty}.`);
+      }
       if (!q.category) {
         warnings.push(`Question #${qNum} : 'category' absente.`);
       } else {

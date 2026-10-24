@@ -12,7 +12,7 @@
       "configure terminal"
     ],
     "correctIndex": 2,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "La commande 'enable' (ou son raccourci 'en') permet d'accéder au mode d'exécution privilégié (Privileged EXEC Mode), reconnaissable au prompt '#'."
   },
   {
@@ -28,7 +28,7 @@
       "save running-config"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "'copy running-config startup-config' (ou 'copy run start' / 'write memory') copie la configuration en RAM dans la NVRAM afin qu'elle soit rechargée au démarrage."
   },
   {
@@ -44,7 +44,7 @@
       "64 hôtes"
     ],
     "correctIndex": 2,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "32 - 26 = 6 bits pour la partie hôte. 2^6 = 64 adresses au total. On soustrait l'adresse réseau (.0) et de broadcast (.63), ce qui donne 64 - 2 = 62 hôtes utilisables."
   },
   {
@@ -60,7 +60,7 @@
       "Port 443"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "SSH (Secure Shell) utilise par défaut le port TCP 22 avec chiffrement. Le port TCP 23 est réservé à Telnet (non sécurisé, en clair)."
   },
   {
@@ -76,7 +76,7 @@
       "display ip addresses"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "'show ip interface brief' (ou 'sh ip int br') est la commande incontournable pour vérifier rapidement l'adresse IP, le statut de la couche physique (Status) et liaison (Protocol)."
   },
   {
@@ -92,7 +92,7 @@
       "switchport mode access\nswitchport access vlan 10"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "On configure le port en mode accès avec 'switchport mode access' puis on lui associe le VLAN avec 'switchport access vlan 10'."
   },
   {
@@ -108,7 +108,7 @@
       "Discover -> Offer -> Request -> Acknowledge"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "Le cycle DHCP est DORA : DHCPDISCOVER (broadcast client), DHCPOFFER (proposition du serveur), DHCPREQUEST (demande du client) et DHCPACK (confirmation du serveur)."
   },
   {
@@ -124,7 +124,7 @@
       "default-router 192.168.1.254"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "Sur un switch Layer 2 (sans routage IP actif), la commande 'ip default-gateway <IP>' est nécessaire pour permettre au switch de communiquer avec des sous-réseaux distants (management SSH/SNMP)."
   },
   {
@@ -140,7 +140,7 @@
       "La table ARP (Address Resolution Protocol)"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "Un commutateur L2 apprend dynamiquement les adresses MAC sources des trames entrantes et les associe à ses ports physiques dans la table MAC (mémoire CAM)."
   },
   {
@@ -156,7 +156,7 @@
       "remove"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 20,
     "explanation": "Le mot-clé 'no' placé devant n'importe quelle commande Cisco IOS annule la directive ou la désactive (ex: 'no shutdown', 'no ip address')."
   },
   {
@@ -172,7 +172,7 @@
       "Elles sont transmises sans étiquette (Untagged, sans tag 802.1Q de 4 octets)"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Le VLAN Natif transporte le trafic sans en-tête 802.1Q (non étiqueté / untagged). Si les deux extrémités d'un lien Trunk ont un VLAN Natif différent (Native VLAN Mismatch), le protocole CDP lève une alerte critique."
   },
   {
@@ -188,7 +188,7 @@
       "ip route 0.0.0.0 0.0.0.0 203.0.113.1"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Une route statique par défaut s'écrit avec l'adresse réseau 0.0.0.0 et le masque 0.0.0.0 : 'ip route 0.0.0.0 0.0.0.0 <Next_Hop_IP>'."
   },
   {
@@ -204,7 +204,7 @@
       "LACP (Link Aggregation Control Protocol)"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Le mode 'active' active LACP (norme IEEE 802.3ad / 802.1AX). Le mode 'desirable' active quant à lui PAgP (protocole propriétaire Cisco)."
   },
   {
@@ -220,7 +220,7 @@
       "1"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Les distances administratives clés sont : Connecté (0), Statique (1), EIGRP interne (90), OSPF (110), RIP (120), eBGP (20)."
   },
   {
@@ -236,7 +236,7 @@
       "Le switch avec l'adresse IP la plus basse devient Root Bridge"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "En STP, le commutateur qui possède le plus petit Bridge ID (Priorité la plus basse, ou en cas d'égalité l'adresse MAC la plus basse) est élu Pont Racine."
   },
   {
@@ -252,7 +252,7 @@
       "ip vlan tag 20"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "La commande 'encapsulation dot1Q <vlan_id>' permet au routeur de reconnaître et d'étiqueter les trames 802.1Q transitant sur la sous-interface correspondante."
   },
   {
@@ -268,7 +268,7 @@
       "1 à 99 (et 1300 à 1999 étendue)"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Les ACLs Standard (qui ne filtrent que sur l'IP source) utilisent les numéros 1 à 99 et 1300 à 1999. Les ACLs Étendues (source, destination, protocoles, ports) utilisent les numéros 100 à 199 et 2000 à 2699."
   },
   {
@@ -284,7 +284,7 @@
       "Il désactive le pare-feu en cas d'utilisation CPU > 90%"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "'overload' configure le PAT (Port Address Translation / NAT Overload), permettant à des centaines de machines privées de sortir sur Internet en partageant une unique adresse IP publique via des ports source uniques."
   },
   {
@@ -300,7 +300,7 @@
       "Le port est immédiatement désactivé et passe à l'état 'err-disabled' (nécessite une réactivation)"
     ],
     "correctIndex": 3,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Le mode 'shutdown' (mode par défaut de port-security) passe l'interface à l'état 'err-disabled', incrémente le compteur de violation et envoie une trap SNMP. Pour réactiver le port, il faut taper 'shutdown' puis 'no shutdown'."
   },
   {
@@ -316,7 +316,7 @@
       "0.0.240.255"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 25,
     "explanation": "Le Wildcard Mask se calcule en soustrayant chaque octet du masque à 255 : (255-255).(255-255).(255-240).(255-0) = 0.0.15.255."
   },
   {
@@ -332,7 +332,7 @@
       "LSA Type 1 (Router LSA)"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "Les LSA Type 1 sont générés par tous les routeurs d'une zone, les LSA Type 2 par le DR. L'ABR (Area Border Router) convertit ces informations en LSA Type 3 (Summary LSA) pour les diffuser dans les autres aires."
   },
   {
@@ -348,7 +348,7 @@
       "La Préférence Locale ('Local Preference' - la plus élevée)"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "L'ordre de décision BGP chez Cisco est : 1. Weight (attribut propriétaire Cisco local, valeur max gagne), 2. Local_Pref (valeur max gagne), 3. Routes générées localement, 4. AS_Path le plus court, 5. Origin code (IGP < EGP < Incomplete), 6. MED le plus bas."
   },
   {
@@ -364,7 +364,7 @@
       "0000.5e00.010a"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "En HSRP v1, l'adresse MAC virtuelle est de la forme 0000.0c07.acXX, où XX est le numéro du groupe HSRP en hexadécimal (10 en décimal = 0A en hexadécimal -> 0000.0c07.ac0a). VRRP utilise 0000.5e00.01XX."
   },
   {
@@ -380,7 +380,7 @@
       "Le switch passera automatiquement en mode Transparent sans impact"
     ],
     "correctIndex": 2,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "VTP synchronise sa base de données selon le numéro de révision le plus élevé. Un switch inséré avec un 'Revision Number' supérieur met à jour tous les autres switches du domaine, pouvant supprimer l'intégralité des VLANs de production !"
   },
   {
@@ -396,7 +396,7 @@
       "BPDU Guard"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "Dynamic ARP Inspection (DAI) inspecte toutes les requêtes et réponses ARP sur les ports non approuvés (untrusted) et vérifie la correspondance IP/MAC dans la table DHCP Snooping pour bloquer le spoofing ARP."
   },
   {
@@ -412,7 +412,7 @@
       "10.1.0.0/20"
     ],
     "correctIndex": 1,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "En binaire, le 3e octet varie de 0 (00000000) à 3 (00000011). Les 6 premiers bits du 3e octet sont identiques (000000xx). 8 + 8 + 6 = 22 bits communs. Le résumé optimal est donc 10.1.0.0/22 (couvrant 10.1.0.0 à 10.1.3.255)."
   },
   {
@@ -428,7 +428,7 @@
       "L'octet 00 devient FF"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "En EUI-64, on insère FF:FE au milieu (001A:2BFF:FE3C:4D5E) et on inverse le 7e bit (bit U/L) du premier octet : 00 (00000000 en binaire) devient 02 (00000010 en binaire). Le résultat est 021A:2BFF:FE3C:4D5E."
   },
   {
@@ -444,7 +444,7 @@
       "Type 0 (Texte en clair)"
     ],
     "correctIndex": 2,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "Type 0 = clair, Type 7 = réversible (obsolète), Type 5 = hash MD5, Type 8 = SHA-256 et Type 9 = Scrypt (hautement résistant aux attaques par force brute GPU)."
   },
   {
@@ -460,7 +460,7 @@
       "tcp window-size 1360"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "'ip tcp adjust-mss <valeur>' intercepte les segments SYN TCP lors du 3-Way Handshake et réécrit la valeur MSS (Maximum Segment Size) pour éviter que les paquets ne dépassent le MTU une fois les en-têtes GRE/IPsec encapsulés."
   },
   {
@@ -476,7 +476,7 @@
       "Learning"
     ],
     "correctIndex": 0,
-    "timeLimit": 35,
+    "timeLimit": 30,
     "explanation": "RSTP (IEEE 802.1w) simplifie les 5 états 802.1D en seulement 3 états opérationnels : Discarding (fusion de Disabled, Blocking et Listening), Learning (apprentissage des MACs) et Forwarding (acheminement normal)."
   },
   {
