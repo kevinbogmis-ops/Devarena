@@ -1,5 +1,7 @@
 # ⚡ DevArena - Le Kahoot! des Développeurs & DevOps
 
+[![CI](https://github.com/kevinbogmis-ops/Devarena/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinbogmis-ops/Devarena/actions/workflows/ci.yml)
+
 **DevArena** est une application web de quiz multijoueur en temps réel conçue sur-mesure pour les étudiants et professionnels de l'informatique (Dev, Réseau, DevOps, Cloud, Cyber).
 
 ![Une question en cours, côté joueur, avec la barre de jokers](docs/screenshots/question.png)
@@ -153,6 +155,8 @@ Sans base PostgreSQL, le serveur fonctionne en **mode fichier** (pas de Hall of 
 npm test
 ```
 9 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes, récapitulatif de fin de partie.
+
+Les mêmes tests tournent automatiquement sur GitHub Actions à chaque push (avec l'audit de sécurité des dépendances et le build de l'image Docker), ainsi que chaque lundi pour repérer les nouvelles failles publiées.
 
 Sans Node.js installé, les tests peuvent tourner dans un conteneur jetable :
 ```bash

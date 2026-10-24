@@ -1,0 +1,62 @@
+# ==========================================================================
+# DEVARENA - INTÉGRATION CONTINUE
+# À chaque push et pull request sur main : les 9 suites de tests, l'audit de
+# sécurité des dépendances et le build de l'image Docker (avec /health).
+# Chaque lundi, le même contrôle tourne seul pour repérer les nouvelles
+# failles publiées dans les dépendances (sans créer aucun commit).
+# ==========================================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'   # chaque lundi à 6 h UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests (npm test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Sans PostgreSQL, le serveur passe en mode fichier : c'est le cas testé
+      - run: npm test
+
+  audit:
+    name: Audit de sécurité des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Échoue sur toute faille grave ou critique dans les dépendances de production
+      - run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    name: Image Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build de l'image de l'application
+        run: docker build -t devarena-app .
+      - name: Démarrage du conteneur et contrôle de /health
+        run: |
+          docker run -d --name devarena -p 3000:3000 devarena-app
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:3000/health; then exit 0; fi
+            sleep 1
+          done
+          docker logs devarena
+          exit 1
