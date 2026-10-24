@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const db = require('./db');
 const commandLabs = require('./command-labs');
 
@@ -202,15 +203,70 @@ const DIFFICULTY_TIME_LIMITS = {
 };
 const VALID_DIFFICULTIES = Object.keys(DIFFICULTY_TIME_LIMITS);
 
+// Limitation des tentatives de token : par visiteur ET au global, sur une
+// fenêtre glissante. Derrière le tunnel Cloudflare, toutes les requêtes arrivent
+// du conteneur cloudflared : l'adresse réelle du visiteur est dans CF-Connecting-IP
+// (posé par Cloudflare). En accès direct (LAN), cet en-tête peut être falsifié
+// pour changer de « visiteur » : la limite globale borne alors le nombre d'essais.
+const ADMIN_MAX_FAILS = parseInt(process.env.ADMIN_MAX_FAILS, 10) || 10;
+const ADMIN_GLOBAL_MAX_FAILS = parseInt(process.env.ADMIN_GLOBAL_MAX_FAILS, 10) || 50;
+const ADMIN_FAIL_WINDOW_MS = parseInt(process.env.ADMIN_FAIL_WINDOW_MS, 10) || 15 * 60 * 1000;
+const adminFailures = new Map(); // visiteur -> horodatages des échecs récents
+let adminGlobalFailures = [];
+
+function adminClientKey(req) {
+  return req.get('cf-connecting-ip') || req.ip || 'inconnu';
+}
+
+function recentFailures(timestamps, now) {
+  return timestamps.filter(t => now - t < ADMIN_FAIL_WINDOW_MS);
+}
+
+// Comparaison en temps constant (empreintes de même longueur) : la durée de la
+// réponse ne révèle rien sur le nombre de caractères corrects
+function adminTokenMatches(given) {
+  const a = crypto.createHash('sha256').update(String(given || '')).digest();
+  const b = crypto.createHash('sha256').update(ADMIN_TOKEN).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
 function requireAdmin(req, res, next) {
   if (!ADMIN_TOKEN) {
     res.status(503).json({ error: "Éditeur désactivé : définir la variable d'environnement ADMIN_TOKEN." });
     return;
   }
-  if (req.get('x-admin-token') !== ADMIN_TOKEN) {
+
+  const now = Date.now();
+  const key = adminClientKey(req);
+  const clientFails = recentFailures(adminFailures.get(key) || [], now);
+  adminGlobalFailures = recentFailures(adminGlobalFailures, now);
+
+  // Bloqué : même le bon token est refusé jusqu'à la fin de la fenêtre
+  const clientLocked = clientFails.length >= ADMIN_MAX_FAILS;
+  if (clientLocked || adminGlobalFailures.length >= ADMIN_GLOBAL_MAX_FAILS) {
+    const oldest = clientLocked ? clientFails[0] : adminGlobalFailures[0];
+    const retrySec = Math.max(1, Math.ceil((oldest + ADMIN_FAIL_WINDOW_MS - now) / 1000));
+    res.set('Retry-After', String(retrySec));
+    res.status(429).json({ error: `Trop de tentatives de connexion. Réessaie dans ${Math.ceil(retrySec / 60)} min.` });
+    return;
+  }
+
+  if (!adminTokenMatches(req.get('x-admin-token'))) {
+    clientFails.push(now);
+    adminFailures.set(key, clientFails);
+    adminGlobalFailures.push(now);
+    // Ménage des visiteurs dont tous les échecs sont expirés
+    if (adminFailures.size > 500) {
+      for (const [k, list] of adminFailures) {
+        if (recentFailures(list, now).length === 0) adminFailures.delete(k);
+      }
+    }
+    console.warn(`[Admin] Token invalide depuis ${key} (${clientFails.length}/${ADMIN_MAX_FAILS} sur ${Math.round(ADMIN_FAIL_WINDOW_MS / 60000)} min).`);
     res.status(401).json({ error: 'Token admin invalide.' });
     return;
   }
+
+  adminFailures.delete(key);
   next();
 }
 

@@ -207,6 +207,9 @@ DEVARENA_PORT=8088 docker compose up -d
 | `DATABASE_URL` | `postgresql://devarena:devarena@localhost:5432/devarena` | Connexion PostgreSQL |
 | `CORS_ORIGIN` | `*` | Origines autorisées (`*` en dev ; en prod, liste séparée par des virgules, ex. `https://devarena.fr`) |
 | `ADMIN_TOKEN` | *(vide)* | Token d'accès à l'éditeur de questions (`/admin.html`). **Vide = éditeur désactivé** (l'API admin répond 503) |
+| `ADMIN_MAX_FAILS` | `10` | Échecs de token tolérés par visiteur avant blocage temporaire de l'éditeur (429) |
+| `ADMIN_GLOBAL_MAX_FAILS` | `50` | Échecs de token tolérés au total, tous visiteurs confondus, avant blocage |
+| `ADMIN_FAIL_WINDOW_MS` | `900000` (15 min) | Fenêtre de comptage des échecs (et durée du blocage) |
 | `QUESTIONS_FILE` | `questions.json` | Chemin du fichier de questions (surchargé par les tests pour travailler sur une copie) |
 | `ROOM_GAMEOVER_TTL_MS` | `1800000` (30 min) | Délai avant suppression d'une salle terminée |
 | `ROOM_IDLE_TTL_MS` | `7200000` (2 h) | Délai avant suppression d'une salle inactive |
@@ -218,6 +221,7 @@ Une interface d'administration permet de gérer la banque de questions sans touc
 
 - **Accès** : `http://localhost:3300/admin.html` (bouton « ⚙️ Éditeur » dans l'en-tête de l'accueil).
 - **Protection** : token obligatoire, défini via `ADMIN_TOKEN` (fichier `.env` à la racine pour docker compose, non versionné). Sans token configuré, l'éditeur est désactivé.
+- **Anti-force brute** : après 10 tokens invalides en 15 minutes, un visiteur est bloqué jusqu'à la fin de la fenêtre (même avec le bon token), et au-delà de 50 échecs au total l'éditeur se ferme pour tout le monde. Derrière le tunnel Cloudflare, chaque visiteur est identifié par sa vraie adresse (`CF-Connecting-IP`). Le token est comparé en temps constant.
 - **Fonctionnalités** : liste avec recherche + filtres catégorie/niveau, ajout, modification, suppression (double confirmation). Le `timeLimit` est déduit automatiquement du niveau (Débutant 20s / Intermédiaire 25s / Avancé 30s / Expert 35s).
 - **Persistance** : `questions.json` reste la **source de vérité** : chaque écriture réécrit le fichier (monté en volume dans le conteneur, donc versionnable dans git) puis resynchronise PostgreSQL. Les modifications sont immédiatement visibles par le moteur de jeu.
 - **API** : `GET/POST /api/admin/questions`, `PUT/DELETE /api/admin/questions/:id` (header `x-admin-token`).

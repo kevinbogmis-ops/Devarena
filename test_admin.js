@@ -18,6 +18,9 @@ process.env.ADMIN_TOKEN = TOKEN;
 process.env.QUESTIONS_FILE = TMP_QUESTIONS;
 // Port fermé -> échec de connexion immédiat, le serveur bascule en mode fichier
 process.env.DATABASE_URL = 'postgresql://devarena:devarena@127.0.0.1:59999/devarena';
+// Limites de tentatives abaissées pour le test (par visiteur / au global)
+process.env.ADMIN_MAX_FAILS = '5';
+process.env.ADMIN_GLOBAL_MAX_FAILS = '8';
 
 require('./server.js');
 const BASE = `http://localhost:${PORT}`;
@@ -38,18 +41,20 @@ function readWorkingFile() {
   return JSON.parse(fs.readFileSync(TMP_QUESTIONS, 'utf8'));
 }
 
-async function call(method, urlPath, { token = TOKEN, body } = {}) {
+async function call(method, urlPath, { token = TOKEN, body, visitor } = {}) {
   const res = await fetch(`${BASE}${urlPath}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { 'x-admin-token': token } : {})
+      ...(token ? { 'x-admin-token': token } : {}),
+      // Simule un visiteur arrivé par le tunnel Cloudflare
+      ...(visitor ? { 'cf-connecting-ip': visitor } : {})
     },
     body: body ? JSON.stringify(body) : undefined
   });
   let json = {};
   try { json = await res.json(); } catch (_) { /* réponse vide */ }
-  return { status: res.status, json };
+  return { status: res.status, json, retryAfter: res.headers.get('retry-after') };
 }
 
 const validPayload = {
@@ -135,7 +140,33 @@ async function run() {
   }
   console.log(`7. ✓ Question #${newId} supprimée du fichier, 404 sur un id inexistant`);
 
-  console.log('\n✅ ÉDITEUR DE QUESTIONS VALIDÉ : TOKEN, VALIDATION, CRUD ET PERSISTANCE FICHIER !');
+  // 8. Limitation par visiteur : 5 échecs -> bloqué (429), même avec le bon token.
+  //    (Échecs comptés jusqu'ici : 2 à l'étape 1, au global.)
+  const attacker = '198.51.100.7';
+  for (let i = 1; i <= 5; i++) {
+    const r = await call('GET', '/api/admin/questions', { token: `essai-${i}`, visitor: attacker });
+    if (r.status !== 401) throw new Error(`Essai ${i} : 401 attendu, reçu ${r.status}.`);
+  }
+  const locked = await call('GET', '/api/admin/questions', { token: 'essai-6', visitor: attacker });
+  const lockedGood = await call('GET', '/api/admin/questions', { visitor: attacker });
+  if (locked.status !== 429 || !locked.retryAfter || lockedGood.status !== 429) {
+    throw new Error(`Blocage attendu après 5 échecs (reçu ${locked.status}, Retry-After ${locked.retryAfter}, bon token ${lockedGood.status}).`);
+  }
+  const otherVisitor = await call('GET', '/api/admin/questions', { visitor: '203.0.113.42' });
+  if (otherVisitor.status !== 200) {
+    throw new Error(`Un autre visiteur ne doit pas être bloqué (reçu ${otherVisitor.status}).`);
+  }
+  console.log(`8. ✓ Visiteur bloqué après 5 échecs (429, Retry-After ${locked.retryAfter}s, même avec le bon token) ; les autres visiteurs passent`);
+
+  // 9. Limite globale : changer d'adresse ne contourne pas le plafond (8 échecs au total)
+  const rotated = await call('GET', '/api/admin/questions', { token: 'essai-x', visitor: '192.0.2.99' });
+  const anyone = await call('GET', '/api/admin/questions', { visitor: '203.0.113.42' });
+  if (rotated.status !== 401 || anyone.status !== 429) {
+    throw new Error(`Plafond global attendu (reçu ${rotated.status} puis ${anyone.status}).`);
+  }
+  console.log('9. ✓ Plafond global atteint : un attaquant qui change d\'adresse est arrêté (429 pour tous)');
+
+  console.log('\n✅ ÉDITEUR DE QUESTIONS VALIDÉ : TOKEN, LIMITATION DES TENTATIVES, VALIDATION, CRUD ET PERSISTANCE FICHIER !');
 
   clearTimeout(watchdog);
   cleanup();
