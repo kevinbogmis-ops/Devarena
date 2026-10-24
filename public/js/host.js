@@ -518,7 +518,7 @@ socket.on('game:round_ended', ({ correctIndex, correctAnswerText, explanation, l
       <div style="margin-bottom: 8px; font-size: 1.15rem; line-height: 1.4;">
         <strong style="color: var(--color-d);">✓ Bonne réponse : [${['A', 'B', 'C', 'D'][correctIndex]}] ${escapeHtml(correctAnswerText || '')}</strong>
       </div>
-      <div style="color: var(--text-muted); font-size: 0.95rem;">${escapeHtml(explanation)}</div>
+      <div class="explanation-text explanation-host">${formatExplanationHtml(explanation)}</div>
     `;
   }
 

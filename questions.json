@@ -909,7 +909,7 @@
     ],
     "correctIndex": 0,
     "timeLimit": 20,
-    "explanation": "Ansible se connecte en SSH standard, sans agent à installer sur les machines cibles."
+    "explanation": "Ansible se connecte en SSH standard, sans agent à installer sur les machines cibles : un accès SSH et Python côté serveur suffisent. FTP ne sert qu'à transférer des fichiers, Telnet n'est pas chiffré, et HTTP n'est pas un protocole d'administration. Pour les serveurs Windows, Ansible passe plutôt par WinRM."
   },
   {
     "id": 58,
@@ -1069,7 +1069,7 @@
     ],
     "correctIndex": 2,
     "timeLimit": 20,
-    "explanation": "EC2 (Elastic Compute Cloud) est le service de serveurs virtuels à la demande d'AWS."
+    "explanation": "EC2 (Elastic Compute Cloud) fournit des serveurs virtuels à la demande, appelés instances : on choisit le type (CPU, RAM) et l'image système (AMI), et on paie à l'usage. Les autres : S3 stocke des fichiers (objets), CloudFront est le CDN et Route 53 le DNS d'AWS."
   },
   {
     "id": 68,
@@ -1469,7 +1469,7 @@
     ],
     "correctIndex": 1,
     "timeLimit": 20,
-    "explanation": "'pwd' (print working directory) affiche le chemin absolu du dossier où vous vous trouvez."
+    "explanation": "'pwd' (print working directory) affiche le chemin absolu du dossier où vous vous trouvez, par exemple /home/kevin/projets. 'cwd' n'est que l'abréviation de « current working directory », pas une commande, et 'where' ou 'path' n'existent pas dans bash. Un réflexe utile avant un 'rm' ou un 'cp'."
   },
   {
     "id": 93,
@@ -1693,7 +1693,7 @@
     ],
     "correctIndex": 3,
     "timeLimit": 20,
-    "explanation": "HTTPS (HTTP chiffré par TLS) utilise le port 443. HTTP utilise le 80, SSH le 22."
+    "explanation": "HTTPS, c'est HTTP chiffré par TLS, et il écoute par défaut sur le port 443. Les autres : 80 est le port de HTTP en clair, 22 celui de SSH, et 8080 un port alternatif souvent utilisé par les serveurs web de développement ou les proxys."
   },
   {
     "id": 107,

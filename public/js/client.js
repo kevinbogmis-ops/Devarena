@@ -17,6 +17,25 @@ function escapeHtmlCommon(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Explication d'une question en HTML sûr : les commandes citées entre apostrophes
+// ('docker ps') sont rendues en <code>. L'apostrophe ouvrante doit suivre un espace
+// ou un début de texte, pour ne pas confondre avec les élisions (« l'image », « C'est »).
+const EXPLANATION_QUOTE_RE = /(^|[\s(«])'([^'\n]{1,60}?)'(?=[\s.,;:!?)»]|$)/g;
+
+function formatExplanationHtml(text) {
+  const raw = String(text || '');
+  let html = '';
+  let last = 0;
+  let match;
+  EXPLANATION_QUOTE_RE.lastIndex = 0;
+  while ((match = EXPLANATION_QUOTE_RE.exec(raw)) !== null) {
+    const quoteStart = match.index + match[1].length;
+    html += escapeHtmlCommon(raw.slice(last, quoteStart)) + `<code>${escapeHtmlCommon(match[2])}</code>`;
+    last = quoteStart + match[2].length + 2;
+  }
+  return html + escapeHtmlCommon(raw.slice(last));
+}
+
 // Date courte d'une partie (ex : « 3 sept. 2026 ») — distingue les homonymes du Hall of Fame
 function formatGameDate(isoDate) {
   if (!isoDate) return '';

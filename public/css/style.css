@@ -1676,6 +1676,28 @@ body.under-ddos {
   line-height: 1.55;
 }
 
+/* Explication de fin de manche (joueur et grand écran) : lisible, pas en gris discret */
+.explanation-text {
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+.explanation-player {
+  font-size: 0.98rem;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 10px;
+}
+
+.explanation-host {
+  font-size: 1.1rem;
+}
+
+.explanation-label {
+  color: var(--color-c);
+  font-weight: 700;
+}
+
+.explanation-text code,
 .recap-explanation code {
   background: var(--bg-panel-secondary);
   border: 1px solid var(--border-color);
