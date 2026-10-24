@@ -154,6 +154,39 @@ app.post('/api/labs/:id/reveal', (req, res) => {
 });
 
 // ==========================================================================
+// MODE RÉVISION — quiz solo sur la banque de questions, sans hôte ni chrono.
+// Même principe que la partie : les questions partent sans la bonne réponse,
+// et chaque réponse est vérifiée ici. La progression vit dans le navigateur.
+// ==========================================================================
+app.get('/api/revision/questions', (req, res) => {
+  res.json({
+    questions: allQuestions.map(q => ({
+      id: q.id,
+      category: q.category,
+      difficulty: q.difficulty,
+      question: q.question,
+      codeSnippet: q.codeSnippet || null,
+      options: q.options
+    }))
+  });
+});
+
+app.post('/api/revision/:id/check', (req, res) => {
+  const question = allQuestions.find(q => q.id === parseInt(req.params.id, 10));
+  if (!question) return res.status(404).json({ error: 'Question introuvable.' });
+  const answerIndex = req.body && req.body.answerIndex;
+  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex > 3) {
+    return res.status(400).json({ error: 'answerIndex doit être un entier entre 0 et 3.' });
+  }
+  res.json({
+    correct: answerIndex === question.correctIndex,
+    correctIndex: question.correctIndex,
+    correctAnswerText: question.options[question.correctIndex],
+    explanation: question.explanation || null
+  });
+});
+
+// ==========================================================================
 // ÉDITEUR DE QUESTIONS — API admin protégée par token (header x-admin-token).
 // questions.json reste la source de vérité : chaque écriture réécrit le
 // fichier PUIS resynchronise PostgreSQL (upsert + delete ciblé).
@@ -1199,6 +1232,7 @@ function endQuestionRound(pin) {
     if (!isCorrect) {
       if (!Array.isArray(player.mistakes)) player.mistakes = [];
       player.mistakes.push({
+        questionId: currentQ.id,
         questionNumber: room.currentQuestionIndex + 1,
         category: currentQ.category,
         difficulty: currentQ.difficulty,

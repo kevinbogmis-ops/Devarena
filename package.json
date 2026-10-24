@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test_validation.js && node test_e2e.js && node test_reconnect.js && node test_jokers.js && node test_host_reconnect.js && node test_hardening.js && node test_admin.js && node test_labs.js && node test_recap.js",
+    "test": "node test_validation.js && node test_e2e.js && node test_reconnect.js && node test_jokers.js && node test_host_reconnect.js && node test_hardening.js && node test_admin.js && node test_labs.js && node test_recap.js && node test_revision.js",
     "test:db": "node test_pg_persistence.js"
   },
   "keywords": [

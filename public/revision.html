@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevArena | Révision solo</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+</head>
+<body>
+  <!-- Barre d'en-tête globale -->
+  <header class="app-header">
+    <a href="index.html" class="logo-link">
+      <span style="font-size: 1.6rem;">⚡</span>
+      <span class="logo-text">Dev<span class="highlight">Arena</span></span>
+      <span class="logo-tag">RÉVISION</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="index.html" class="btn-sound-toggle" style="text-decoration: none;">← Accueil</a>
+      <a href="labs.html" class="btn-sound-toggle" style="text-decoration: none;">⌨️ Labs</a>
+      <button id="sound-toggle-btn" class="btn-sound-toggle">🔊 Son: ON</button>
+    </div>
+  </header>
+
+  <main class="container labs-page">
+
+    <!-- ================= VUE 1 : PROGRESSION ET FILTRES ================= -->
+    <section id="view-setup" class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-revision --stats</span>
+        <div class="terminal-status"><span id="rev-mastered-text">0 / 0 maîtrisées</span></div>
+      </div>
+      <div class="labs-panel-body">
+        <p class="labs-intro">
+          Révise seul, à ton rythme, sans chrono. Les questions ratées reviennent dans la session et dans
+          les suivantes jusqu'à ce que tu les réussisses ; une question est maîtrisée après deux bonnes
+          réponses d'affilée. Les erreurs de tes parties en multijoueur arrivent aussi ici.
+          Ta progression reste dans ce navigateur.
+        </p>
+
+        <div class="rev-stats">
+          <div class="rev-stat"><span id="rev-stat-review" class="rev-stat-value rev-review">0</span><span class="rev-stat-label">🔁 à revoir</span></div>
+          <div class="rev-stat"><span id="rev-stat-learning" class="rev-stat-value rev-learning">0</span><span class="rev-stat-label">📈 en cours</span></div>
+          <div class="rev-stat"><span id="rev-stat-mastered" class="rev-stat-value rev-mastered">0</span><span class="rev-stat-label">✅ maîtrisées</span></div>
+          <div class="rev-stat"><span id="rev-stat-new" class="rev-stat-value">0</span><span class="rev-stat-label">🆕 jamais vues</span></div>
+        </div>
+
+        <div class="labs-filter-label">📚 Catégorie <span class="rev-chip-hint">(maîtrisées / total)</span></div>
+        <div id="rev-category-chips" class="filter-chips"></div>
+
+        <div class="labs-filter-label">🎯 Niveau</div>
+        <div id="rev-difficulty-chips" class="filter-chips"></div>
+
+        <div class="labs-filter-label">⏱ Taille de la session</div>
+        <div id="rev-size-chips" class="filter-chips"></div>
+
+        <div class="labs-progress" aria-hidden="true">
+          <div id="rev-progress-fill" class="labs-progress-fill"></div>
+        </div>
+        <p id="rev-filter-summary" class="rev-filter-summary"></p>
+
+        <div class="rev-setup-actions">
+          <button type="button" id="rev-start-btn" class="btn btn-primary">▶ Lancer la session</button>
+          <button type="button" id="rev-review-btn" class="btn btn-secondary">🔁 Revoir mes erreurs</button>
+        </div>
+        <button type="button" id="rev-reset-btn" class="btn-abort rev-reset">Réinitialiser ma progression</button>
+      </div>
+    </section>
+
+    <!-- ================= VUE 2 : SESSION DE QUESTIONS ================= -->
+    <section id="view-session" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title" id="rev-term-title">student@devarena:~/revision</span>
+        <div class="terminal-status"><span id="rev-position"></span></div>
+      </div>
+      <div class="lab-body">
+        <div class="lab-badges">
+          <span id="rev-category-badge" class="badge"></span>
+          <span id="rev-difficulty-badge" class="badge badge-devops"></span>
+          <span id="rev-status-badge" class="badge" style="display: none;"></span>
+        </div>
+        <h2 id="rev-question-text" class="rev-question-text"></h2>
+        <pre id="rev-code-box" class="code-snippet-box" style="display: none;"></pre>
+
+        <div class="player-grid-mobile rev-grid">
+          <button type="button" class="key-btn key-a rev-option" data-index="0"><span class="key-badge">A</span><span class="key-text"></span></button>
+          <button type="button" class="key-btn key-b rev-option" data-index="1"><span class="key-badge">B</span><span class="key-text"></span></button>
+          <button type="button" class="key-btn key-c rev-option" data-index="2"><span class="key-badge">C</span><span class="key-text"></span></button>
+          <button type="button" class="key-btn key-d rev-option" data-index="3"><span class="key-badge">D</span><span class="key-text"></span></button>
+        </div>
+        <p class="rev-keys-hint">Clavier : touches A à D ou 1 à 4, puis Entrée pour continuer.</p>
+
+        <div id="rev-feedback" class="rev-feedback" style="display: none;">
+          <div id="rev-feedback-title" class="rev-feedback-title"></div>
+          <div id="rev-feedback-explanation" class="explanation-text"></div>
+          <div id="rev-feedback-requeue" class="rev-requeue" style="display: none;">🔁 Elle reviendra un peu plus loin dans cette session.</div>
+        </div>
+
+        <div class="lab-actions">
+          <button type="button" id="rev-stop-btn" class="btn btn-secondary lab-action">⏹ Terminer</button>
+          <button type="button" id="rev-next-btn" class="btn btn-primary lab-action" style="display: none;">Suivant →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VUE 3 : BILAN DE SESSION ================= -->
+    <section id="view-summary" class="terminal-window" style="display: none;">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-revision --summary</span>
+        <div class="terminal-status"><span>SESSION TERMINÉE</span></div>
+      </div>
+      <div class="lab-body rev-summary">
+        <div id="rev-summary-score" class="rev-summary-score"></div>
+        <p id="rev-summary-text" class="rev-summary-text"></p>
+        <div class="rev-setup-actions">
+          <button type="button" id="rev-summary-review-btn" class="btn btn-secondary">🔁 Revoir mes erreurs</button>
+          <button type="button" id="rev-summary-again-btn" class="btn btn-primary">▶ Nouvelle session</button>
+        </div>
+        <button type="button" id="rev-summary-setup-btn" class="btn-sound-toggle rev-back">← Progression et filtres</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+    &copy; 2026 <strong>DevArena</strong> &bull; Conçu et développé par <strong>Kevin BOGMIS</strong>
+  </footer>
+
+  <script src="js/sound.js"></script>
+  <script src="js/client.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/revision.js"></script>
+</body>
+</html>

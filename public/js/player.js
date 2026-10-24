@@ -657,6 +657,14 @@ socket.on('player:game_recap', ({ totalQuestions, mistakes }) => {
       </div>`).join('');
   }
 
+  // Les questions ratées rejoignent le mode révision (« à revoir » sur cet appareil)
+  const missedIds = mistakes.map(m => m.questionId).filter(Number.isInteger);
+  if (missedIds.length > 0 && typeof markQuestionsForReview === 'function') {
+    markQuestionsForReview(missedIds);
+  }
+  const revisionLink = document.getElementById('player-recap-revision-link');
+  if (revisionLink) revisionLink.style.display = missedIds.length > 0 ? '' : 'none';
+
   recap.style.display = 'block';
   if (window.fx) window.fx.staggerList(list, 60);
 });

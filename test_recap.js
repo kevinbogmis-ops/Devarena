@@ -83,6 +83,7 @@ async function run() {
   bobRecap.mistakes.forEach((m, i) => {
     const q = bank[i];
     assert(m.questionNumber === i + 1, `Erreur ${i + 1} : numéro de question incorrect (${m.questionNumber})`);
+    assert(m.questionId === q.id, `Erreur ${i + 1} : identifiant de question manquant (utilisé par le mode révision)`);
     assert(m.question === q.question, `Erreur ${i + 1} : énoncé incorrect`);
     assert(m.yourAnswer === q.options[wrong(q)], `Erreur ${i + 1} : « ta réponse » incorrecte`);
     assert(m.correctAnswer === q.options[q.correctIndex], `Erreur ${i + 1} : bonne réponse incorrecte`);

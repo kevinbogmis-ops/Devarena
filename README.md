@@ -88,6 +88,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 - **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
 - **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
 - **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
+- **Mode révision** : quiz solo sur les 200 questions, sans hôte ni chrono ; les questions ratées reviennent jusqu'à ce qu'elles soient réussies, y compris celles ratées en partie multijoueur (voir [Mode révision](#-mode-révision-quiz-solo)).
 - **Labs commandes** : entraînement solo dans un terminal simulé, directement dans le navigateur et sur mobile : une mission, tu tapes la commande (voir [Labs commandes](#️-labs-commandes-dans-le-navigateur)).
 - **Labs pratiques** : terminal Docker reproductible avec DSOXLab pour pratiquer Terraform, Docker, Linux… sur de vrais systèmes (voir [Labs pratiques](#-labs-pratiques-dsoxlab)).
 - **Design « Dark IDE / Terminal »** : police `Fira Code`, touches façon clavier mécanique 3D, animations (machine à écrire, podium, confettis).
@@ -117,6 +118,7 @@ devarena/
     ├── player.html            # Écran joueur mobile-first (4 touches, jokers)
     ├── admin.html             # Éditeur de questions
     ├── labs.html              # Labs commandes (terminal d'entraînement solo)
+    ├── revision.html          # Mode révision (quiz solo, progression locale)
     ├── css/style.css          # Design system Dark IDE
     └── js/
         ├── client.js          # Utilitaires partagés
@@ -154,7 +156,7 @@ Sans base PostgreSQL, le serveur fonctionne en **mode fichier** (pas de Hall of 
 ```bash
 npm test
 ```
-9 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes, récapitulatif de fin de partie.
+10 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes, récapitulatif de fin de partie, mode révision.
 
 Les mêmes tests tournent automatiquement sur GitHub Actions à chaque push (avec l'audit de sécurité des dépendances et le build de l'image Docker), ainsi que chaque lundi pour repérer les nouvelles failles publiées.
 
@@ -263,6 +265,19 @@ docker compose --profile tunnel down     # ou --profile tunnel-named
 ```
 
 > 🔒 En exposition publique, pensez à restreindre `CORS_ORIGIN` à votre domaine (voir le tableau des variables d'environnement).
+
+---
+
+## 📚 Mode révision (quiz solo)
+
+Pour réviser seul les 200 questions, à son rythme : **`http://localhost:3300/revision.html`** (bouton « 📚 Révision » dans l'en-tête de l'accueil). Pas d'hôte, pas de chrono, et ça marche sur téléphone.
+
+- **Après chaque réponse** : la bonne réponse et l'explication (« 💡 Pourquoi ? »).
+- **Les erreurs reviennent** : une question ratée revient un peu plus loin dans la même session, puis en tête des sessions suivantes, jusqu'à ce qu'elle soit réussie. Elle est **maîtrisée** après deux bonnes réponses d'affilée.
+- **Lien avec le multijoueur** : les questions ratées en partie sont ajoutées « à revoir », et le récapitulatif de fin de partie propose de les réviser tout de suite.
+- **Progression** par catégorie (maîtrisées / total), filtres par catégorie et niveau, sessions de 10, 20 ou 50 questions, bouton « Revoir mes erreurs ».
+- **Clavier** : touches A à D (ou 1 à 4) pour répondre, Entrée pour continuer.
+- **Sans compte** : la progression reste dans le navigateur (bouton de réinitialisation à double confirmation). Comme en partie, la bonne réponse n'est envoyée qu'après la réponse du joueur.
 
 ---
 

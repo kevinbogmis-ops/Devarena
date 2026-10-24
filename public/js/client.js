@@ -36,6 +36,50 @@ function formatExplanationHtml(text) {
   return html + escapeHtmlCommon(raw.slice(last));
 }
 
+// Progression du mode révision, partagée entre revision.html et la fin de partie
+// multijoueur (les questions ratées en partie reviennent en révision).
+// Par question : { attempts, correct, streak, lastResult: 'ok' | 'ko', lastSeen }.
+const REVISION_PROGRESS_KEY = 'devarena_revision_progress';
+
+function loadRevisionProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(REVISION_PROGRESS_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveRevisionProgress(progress) {
+  try {
+    localStorage.setItem(REVISION_PROGRESS_KEY, JSON.stringify(progress));
+  } catch (e) {
+    /* stockage indisponible (navigation privée...) : progression non conservée */
+  }
+}
+
+// Enregistre une réponse : une erreur remet la série à zéro et place la question « à revoir »
+function recordRevisionAnswer(progress, questionId, isCorrect) {
+  const entry = progress[questionId] || { attempts: 0, correct: 0, streak: 0, lastResult: null, lastSeen: 0 };
+  entry.attempts += 1;
+  entry.lastSeen = Date.now();
+  if (isCorrect) {
+    entry.correct += 1;
+    entry.streak += 1;
+    entry.lastResult = 'ok';
+  } else {
+    entry.streak = 0;
+    entry.lastResult = 'ko';
+  }
+  progress[questionId] = entry;
+  return entry;
+}
+
+function markQuestionsForReview(questionIds) {
+  const progress = loadRevisionProgress();
+  questionIds.forEach(id => recordRevisionAnswer(progress, id, false));
+  saveRevisionProgress(progress);
+}
+
 // Date courte d'une partie (ex : « 3 sept. 2026 ») — distingue les homonymes du Hall of Fame
 function formatGameDate(isoDate) {
   if (!isoDate) return '';

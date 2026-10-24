@@ -120,6 +120,7 @@ const requiredFiles = [
   'public/player.html',
   'public/admin.html',
   'public/labs.html',
+  'public/revision.html',
   'public/css/style.css',
   'public/js/sound.js',
   'public/js/fx.js',
@@ -129,6 +130,7 @@ const requiredFiles = [
   'public/js/player.js',
   'public/js/admin.js',
   'public/js/labs.js',
+  'public/js/revision.js',
   'command-labs.js',
   'commands.json',
   'Dockerfile',
@@ -149,7 +151,7 @@ requiredFiles.forEach(file => {
 
 // 3. Vérification des balises script et liens CSS dans les HTML
 console.log('\n3. Cohérence des imports dans les fichiers HTML...');
-const httpOnlyPages = ['public/admin.html', 'public/labs.html'];
+const httpOnlyPages = ['public/admin.html', 'public/labs.html', 'public/revision.html'];
 ['public/index.html', 'public/host.html', 'public/player.html', ...httpOnlyPages].forEach(htmlFile => {
   const content = fs.readFileSync(path.join(__dirname, htmlFile), 'utf8');
   if (!content.includes('css/style.css')) {
