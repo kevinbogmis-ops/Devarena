@@ -151,6 +151,19 @@ body {
   background-color: var(--bg-panel);
 }
 
+/* Petit écran : les boutons de l'en-tête passent à la ligne au lieu de déborder */
+@media (max-width: 600px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .app-header > div {
+    flex-wrap: wrap;
+  }
+}
+
 .logo-link {
   text-decoration: none;
   display: flex;
@@ -1308,4 +1321,271 @@ body.under-ddos {
   border-color: var(--color-a);
   color: #fff;
   font-weight: 700;
+}
+
+/* ==========================================================================
+   LABS « TAPE LA COMMANDE » - terminal d'entraînement solo (labs.html)
+   ========================================================================== */
+
+.labs-page {
+  width: 100%;
+  max-width: 860px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.labs-panel-body {
+  padding: 20px 24px;
+}
+
+/* Titres de terminal longs (chemin du lab) : tronqués plutôt que de pousser le compteur hors du cadre */
+.labs-page .terminal-header {
+  gap: 10px;
+}
+
+.labs-page .terminal-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.labs-page .terminal-status {
+  flex-shrink: 0;
+}
+
+.labs-intro {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+}
+
+.labs-filter-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 14px 0 8px 0;
+}
+
+.labs-todo-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.labs-todo-toggle input {
+  accent-color: var(--color-d);
+  width: 16px;
+  height: 16px;
+}
+
+.labs-progress {
+  margin-top: 16px;
+  height: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.labs-progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-d);
+  transition: width 0.4s ease;
+}
+
+.lab-body {
+  padding: 20px 24px 24px 24px;
+}
+
+.lab-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lab-mission-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.lab-context {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-code);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.lab-log {
+  margin-top: 18px;
+  min-height: 72px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  background: #05080c;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-size: 0.88rem;
+}
+
+.lab-log-line {
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+
+.lab-log-line.cmd { color: var(--text-main); }
+.lab-log-line.ok { color: var(--color-d); font-weight: 700; }
+.lab-log-line.ko { color: var(--color-a); }
+.lab-log-line.warn { color: var(--color-c); }
+
+.lab-comment {
+  color: var(--text-muted);
+}
+
+.lab-ps1 {
+  color: var(--color-d);
+  font-weight: 700;
+}
+
+.lab-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  background: #05080c;
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.lab-prompt:focus-within {
+  border-color: var(--color-b);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+.lab-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 1rem; /* >= 16px : évite le zoom automatique d'iOS au focus */
+  padding: 6px 0;
+}
+
+.lab-input::placeholder {
+  color: #484f58;
+}
+
+.lab-input:disabled {
+  opacity: 0.5;
+}
+
+.lab-submit {
+  padding: 8px 16px;
+}
+
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.lab-action {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+}
+
+.lab-action:disabled,
+.lab-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lab-action.is-armed {
+  background: var(--color-a);
+  border-color: var(--color-a);
+  color: #fff;
+}
+
+#lab-next-btn {
+  margin-left: auto;
+}
+
+.lab-hint,
+.lab-explanation {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.lab-hint {
+  background: var(--color-c-glow);
+  border: 1px solid rgba(227, 179, 65, 0.5);
+}
+
+.lab-explanation {
+  background: rgba(63, 185, 80, 0.1);
+  border: 1px solid rgba(63, 185, 80, 0.45);
+}
+
+.lab-solution {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.lab-hint code,
+.lab-explanation code {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--text-code);
+  font-size: 0.85em;
+}
+
+.lab-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .labs-panel-body,
+  .lab-body {
+    padding: 16px;
+  }
+
+  #lab-next-btn {
+    margin-left: 0;
+    flex: 1 1 100%;
+  }
+
+  .lab-action {
+    flex: 1;
+  }
 }

@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const db = require('./db');
+const commandLabs = require('./command-labs');
 
 const app = express();
 const server = http.createServer(app);
@@ -104,6 +105,52 @@ app.get('/api/questions/stats', (req, res) => {
     total: allQuestions.length,
     categories
   });
+});
+
+// ==========================================================================
+// LABS « TAPE LA COMMANDE » — entraînement solo dans un terminal simulé.
+// Les solutions restent côté serveur : le navigateur soumet sa commande.
+// ==========================================================================
+const COMMANDS_FILE = process.env.COMMANDS_FILE || path.join(__dirname, 'commands.json');
+let allLabs = [];
+try {
+  allLabs = commandLabs.loadLabs(COMMANDS_FILE);
+  console.log(`[DevArena] ${allLabs.length} labs de commandes chargés depuis commands.json.`);
+} catch (err) {
+  console.error('[DevArena] Erreur lors du chargement de commands.json:', err.message);
+}
+
+function findLab(req, res) {
+  const lab = allLabs.find(l => l.id === parseInt(req.params.id, 10));
+  if (!lab) res.status(404).json({ error: 'Lab introuvable.' });
+  return lab;
+}
+
+app.get('/api/labs', (req, res) => {
+  res.json({ labs: allLabs.map(commandLabs.publicLab) });
+});
+
+app.post('/api/labs/:id/check', (req, res) => {
+  const lab = findLab(req, res);
+  if (!lab) return;
+  const answer = req.body && req.body.answer;
+  if (typeof answer !== 'string' || !answer.trim()) {
+    return res.status(400).json({ error: 'Commande vide.' });
+  }
+  if (answer.length > commandLabs.MAX_ANSWER_LENGTH) {
+    return res.status(400).json({ error: `Commande trop longue (${commandLabs.MAX_ANSWER_LENGTH} caractères max).` });
+  }
+  if (commandLabs.isAccepted(lab, answer)) {
+    return res.json({ correct: true, solution: lab.solution, explanation: lab.explanation });
+  }
+  res.json({ correct: false, near: commandLabs.nearMiss(lab, answer) });
+});
+
+// Abandon : la solution est révélée (le client ne compte pas le lab comme réussi)
+app.post('/api/labs/:id/reveal', (req, res) => {
+  const lab = findLab(req, res);
+  if (!lab) return;
+  res.json({ solution: lab.solution, explanation: lab.explanation });
 });
 
 // ==========================================================================

@@ -85,6 +85,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 - **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
 - **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
 - **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
+- **Labs commandes** : entraînement solo dans un terminal simulé, directement dans le navigateur et sur mobile : une mission, tu tapes la commande (voir [Labs commandes](#️-labs-commandes-dans-le-navigateur)).
 - **Labs pratiques** : terminal Docker reproductible avec DSOXLab pour pratiquer Terraform, Docker, Linux… sur de vrais systèmes (voir [Labs pratiques](#-labs-pratiques-dsoxlab)).
 - **Design « Dark IDE / Terminal »** : police `Fira Code`, touches façon clavier mécanique 3D, animations (machine à écrire, podium, confettis).
 - **Son 100 % généré** : bruitages 8-bit et musique de fond chiptune synthétisés par la Web Audio API, **aucun fichier audio**.
@@ -99,6 +100,8 @@ devarena/
 ├── server.js                  # Serveur Express + Socket.io : salles, scores, jokers, API admin
 ├── db.js                      # Module PostgreSQL (schéma, seed, parties, top scores)
 ├── questions.json             # Banque de 200 questions (source de vérité)
+├── commands.json              # 45 labs « tape la commande » (mission, variantes, indice, explication)
+├── command-labs.js            # Vérification des commandes côté serveur
 ├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel et labs
 ├── Dockerfile                 # Image Alpine multi-stage, non-root, HEALTHCHECK
 ├── package.json               # Dépendances (express, socket.io, pg, cors)
@@ -110,6 +113,7 @@ devarena/
     ├── host.html              # Écran Maître du jeu (PIN, QR code, filtres, podium)
     ├── player.html            # Écran joueur mobile-first (4 touches, jokers)
     ├── admin.html             # Éditeur de questions
+    ├── labs.html              # Labs commandes (terminal d'entraînement solo)
     ├── css/style.css          # Design system Dark IDE
     └── js/
         ├── client.js          # Utilitaires partagés
@@ -147,7 +151,7 @@ Sans base PostgreSQL, le serveur fonctionne en **mode fichier** (pas de Hall of 
 ```bash
 npm test
 ```
-7 suites : validation des questions et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur.
+8 suites : validation des questions, des labs et du HTML, cycle de jeu complet, reconnexion joueur, jokers, reconnexion hôte, durcissement, éditeur, labs commandes.
 
 Sans Node.js installé, les tests peuvent tourner dans un conteneur jetable :
 ```bash
@@ -254,6 +258,24 @@ docker compose --profile tunnel down     # ou --profile tunnel-named
 ```
 
 > 🔒 En exposition publique, pensez à restreindre `CORS_ORIGIN` à votre domaine (voir le tableau des variables d'environnement).
+
+---
+
+## ⌨️ Labs commandes (dans le navigateur)
+
+Pour mémoriser les commandes, sans rien installer : **`http://localhost:3300/labs.html`** (bouton « ⌨️ Labs » dans l'en-tête de l'accueil). Ça marche aussi sur téléphone.
+
+Chaque lab donne une **mission** (« Liste les pods de tous les namespaces ») et tu tapes la commande dans un terminal simulé :
+
+- **Variantes acceptées** : ordre des options, formes longues (`--all` pour `-a`), abréviations Cisco (`sh ip int br`), `sudo` ou invite `$` collée.
+- **Retour immédiat** : « Presque » si l'outil et la sous-commande sont bons, sinon un message plus général. Après deux erreurs, un rappel de l'indice.
+- **💡 Indice**, puis **👁 Solution** (deux clics), suivie d'une **explication** du pourquoi. Un lab dont la solution a été vue n'est pas compté comme réussi : il faudra le retenter.
+- **Filtres** par catégorie et niveau, mode « seulement les labs pas encore réussis », **progression** gardée dans le navigateur (sans compte).
+- **Anti-triche** : comme pour le quiz, les solutions ne sont jamais envoyées au navigateur ; chaque commande est vérifiée par le serveur.
+
+45 labs pour commencer : Docker (7), Kubernetes (7), Git (6), Linux (8), Terraform (6), Ansible (3), Réseau (4), Cisco (2), AWS (2).
+
+**Ajouter un lab** : une entrée dans [`commands.json`](commands.json) avec `mission`, `solution`, `hint`, `explanation` et, si besoin, `accepted` (autres écritures exactes) ou `patterns` (expressions régulières ancrées, pour les options dans le désordre). `npm test` vérifie le format et que la solution est bien acceptée.
 
 ---
 

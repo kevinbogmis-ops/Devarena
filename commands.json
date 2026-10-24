@@ -1,0 +1,475 @@
+[
+  {
+    "id": 1,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "mission": "Liste tous les conteneurs, y compris ceux qui sont arrêtés.",
+    "solution": "docker ps -a",
+    "accepted": ["docker ps --all", "docker container ls -a", "docker container ls --all", "docker container list -a", "docker container list --all", "docker container ps -a", "docker container ps --all"],
+    "hint": "Sans option, la commande n'affiche que les conteneurs qui tournent. Une option ajoute tous les autres.",
+    "explanation": "`docker ps` liste les conteneurs en cours d'exécution. L'option `-a` (`--all`) ajoute ceux qui sont arrêtés ou terminés. `docker container ls` est la forme longue équivalente."
+  },
+  {
+    "id": 2,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "mission": "Télécharge l'image nginx en version 1.27, sans lancer de conteneur.",
+    "solution": "docker pull nginx:1.27",
+    "accepted": ["docker image pull nginx:1.27"],
+    "hint": "Le tag de version s'écrit après le nom de l'image, séparé par deux-points.",
+    "explanation": "`docker pull` récupère une image depuis le registre (Docker Hub par défaut) sans créer de conteneur. Le tag `:1.27` fixe la version ; sans tag, Docker prend `latest`."
+  },
+  {
+    "id": 3,
+    "category": "Docker",
+    "difficulty": "Débutant",
+    "mission": "Lance un conteneur nginx en arrière-plan, en publiant le port 80 du conteneur sur le port 8080 de ta machine.",
+    "solution": "docker run -d -p 8080:80 nginx",
+    "patterns": [
+      "^docker (container )?run (-d|--detach) (-p |--publish[ =])8080:80 nginx(:latest)?$",
+      "^docker (container )?run (-p |--publish[ =])8080:80 (-d|--detach) nginx(:latest)?$",
+      "^docker (container )?run -dp 8080:80 nginx(:latest)?$"
+    ],
+    "hint": "Deux options : une pour le mode détaché, une pour publier un port au format hôte:conteneur.",
+    "explanation": "`-d` lance le conteneur en arrière-plan et rend la main. `-p 8080:80` publie le port 80 du conteneur sur le port 8080 de l'hôte : l'ordre est toujours hôte:conteneur."
+  },
+  {
+    "id": 4,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "mission": "Affiche les logs du conteneur web et continue de suivre les nouvelles lignes en temps réel.",
+    "solution": "docker logs -f web",
+    "patterns": ["^docker (container )?logs ((-f|--follow) web|web (-f|--follow))$"],
+    "hint": "C'est la même option que pour suivre un fichier avec tail.",
+    "explanation": "`docker logs` affiche la sortie du conteneur. `-f` (`--follow`) garde le flux ouvert, comme `tail -f`. Ctrl+C arrête le suivi, pas le conteneur."
+  },
+  {
+    "id": 5,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "mission": "Ouvre un shell bash interactif dans le conteneur api, qui est déjà en cours d'exécution.",
+    "solution": "docker exec -it api bash",
+    "patterns": ["^docker (container )?exec (-it|-ti|-i -t|-t -i|--interactive --tty|--tty --interactive) api (/bin/)?bash$"],
+    "hint": "Il faut exécuter une commande dans un conteneur existant, avec deux options : garder l'entrée ouverte et allouer un terminal.",
+    "explanation": "`docker exec` lance une commande dans un conteneur qui tourne déjà (`docker run` en créerait un nouveau). `-i` garde l'entrée standard ouverte et `-t` alloue un terminal : ensemble, ils donnent un shell interactif."
+  },
+  {
+    "id": 6,
+    "category": "Docker",
+    "difficulty": "Intermédiaire",
+    "mission": "Construis une image à partir du Dockerfile du dossier courant et nomme-la monapp:1.0.",
+    "solution": "docker build -t monapp:1.0 .",
+    "patterns": ["^docker (image |buildx )?build ((-t |--tag[ =])monapp:1\\.0 \\.|\\. (-t |--tag[ =])monapp:1\\.0)$"],
+    "hint": "N'oublie pas le contexte de build : le dossier courant se note avec un point.",
+    "explanation": "`docker build` construit une image depuis un Dockerfile. `-t` lui donne un nom et un tag, et le `.` final désigne le contexte de build : les fichiers envoyés au moteur, ici le dossier courant."
+  },
+  {
+    "id": 7,
+    "category": "Docker",
+    "difficulty": "Avancé",
+    "mission": "Affiche une seule fois la consommation CPU et mémoire de tous les conteneurs, sans flux continu.",
+    "solution": "docker stats --no-stream",
+    "accepted": ["docker container stats --no-stream"],
+    "hint": "Par défaut, la commande se rafraîchit en continu. Une option l'arrête après le premier relevé.",
+    "explanation": "`docker stats` affiche CPU, mémoire, réseau et disque par conteneur, en continu. `--no-stream` prend un seul relevé et rend la main : pratique dans un script."
+  },
+  {
+    "id": 8,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "mission": "Liste les pods de tous les namespaces du cluster.",
+    "solution": "kubectl get pods -A",
+    "patterns": [
+      "^kubectl get (pods|pod|po) (-A|--all-namespaces)$",
+      "^kubectl get (-A|--all-namespaces) (pods|pod|po)$"
+    ],
+    "hint": "Par défaut, kubectl ne regarde que le namespace courant. Une option d'une lettre majuscule les englobe tous.",
+    "explanation": "`kubectl get pods` liste les pods du namespace courant. `-A` (`--all-namespaces`) élargit à tout le cluster, y compris `kube-system`."
+  },
+  {
+    "id": 9,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "mission": "Le pod web-7f9c ne démarre pas. Affiche ses détails, événements récents compris.",
+    "context": "$ kubectl get pods\nNAME       READY   STATUS             RESTARTS\nweb-7f9c   0/1     ImagePullBackOff   0",
+    "solution": "kubectl describe pod web-7f9c",
+    "patterns": [
+      "^kubectl describe (pods?|po) web-7f9c$",
+      "^kubectl describe (pods?|po)/web-7f9c$"
+    ],
+    "hint": "`get` donne un résumé ; une autre sous-commande donne le détail complet et les événements.",
+    "explanation": "`kubectl describe` affiche l'état détaillé d'un objet et, en bas, ses événements (planification, téléchargement d'image, redémarrages). C'est le premier réflexe quand un pod ne démarre pas."
+  },
+  {
+    "id": 10,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "mission": "Applique le manifeste deploy.yaml au cluster.",
+    "solution": "kubectl apply -f deploy.yaml",
+    "patterns": ["^kubectl apply (-f |--filename[ =])deploy\\.yaml$"],
+    "hint": "Une sous-commande déclarative, et l'option qui désigne un fichier.",
+    "explanation": "`kubectl apply -f` crée l'objet s'il n'existe pas, ou le met à jour pour qu'il corresponde au fichier : c'est l'approche déclarative, rejouable sans erreur."
+  },
+  {
+    "id": 11,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "mission": "Passe le déploiement api à 5 réplicas.",
+    "solution": "kubectl scale deployment api --replicas=5",
+    "patterns": [
+      "^kubectl scale (deployments?|deploy)( |/)api --replicas[ =]5$",
+      "^kubectl scale --replicas[ =]5 (deployments?|deploy)( |/)api$"
+    ],
+    "hint": "La sous-commande porte le nom de l'action : changer d'échelle.",
+    "explanation": "`kubectl scale` change le nombre de réplicas d'un déploiement. Attention : si le déploiement est géré par un fichier ou un outil GitOps, la valeur sera écrasée au prochain `apply`."
+  },
+  {
+    "id": 12,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "mission": "Le pod api-0 redémarre en boucle. Affiche les logs de son conteneur tel qu'il était avant le dernier redémarrage.",
+    "context": "$ kubectl get pods\nNAME    READY   STATUS             RESTARTS\napi-0   0/1     CrashLoopBackOff   6",
+    "solution": "kubectl logs api-0 --previous",
+    "patterns": ["^kubectl logs ((pods?/)?api-0 (-p|--previous)|(-p|--previous) (pods?/)?api-0)$"],
+    "hint": "Le conteneur a déjà redémarré : les logs utiles sont ceux de l'instance précédente.",
+    "explanation": "`kubectl logs` montre l'instance actuelle du conteneur. `--previous` (`-p`) montre celle d'avant le redémarrage, souvent la seule qui contient l'erreur fatale."
+  },
+  {
+    "id": 13,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "mission": "Redirige le port 8080 de ta machine vers le port 80 du service web.",
+    "solution": "kubectl port-forward svc/web 8080:80",
+    "patterns": ["^kubectl port-forward (svc|service|services)/web 8080:80$"],
+    "hint": "Le service se désigne sous la forme type/nom, puis port_local:port_distant.",
+    "explanation": "`kubectl port-forward` ouvre un tunnel depuis ta machine vers le cluster, sans exposer le service. Le format est `port_local:port_distant`, et l'objet s'écrit `svc/web`."
+  },
+  {
+    "id": 14,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "mission": "La dernière mise à jour du déploiement api est cassée. Reviens à la révision précédente.",
+    "solution": "kubectl rollout undo deployment/api",
+    "patterns": ["^kubectl rollout undo (deployments?|deploy)( |/)api$"],
+    "hint": "Les mises à jour d'un déploiement sont des rollouts, et un rollout s'annule.",
+    "explanation": "`kubectl rollout undo` revient à la révision précédente du déploiement. `kubectl rollout history` liste les révisions, et `--to-revision` cible une révision précise."
+  },
+  {
+    "id": 15,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "mission": "Affiche l'état du dépôt : fichiers modifiés, indexés et non suivis.",
+    "solution": "git status",
+    "accepted": ["git status -s", "git status --short"],
+    "hint": "Le mot anglais pour « état ».",
+    "explanation": "`git status` montre la branche courante, les fichiers indexés (prêts pour le commit), modifiés et non suivis. `-s` en donne une version compacte."
+  },
+  {
+    "id": 16,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "mission": "Crée la branche feature/login et bascule dessus, en une seule commande.",
+    "solution": "git switch -c feature/login",
+    "accepted": ["git switch --create feature/login", "git checkout -b feature/login"],
+    "hint": "Deux écritures existent : la moderne avec switch, l'historique avec checkout.",
+    "explanation": "`git switch -c` crée la branche et s'y place. `git checkout -b` fait la même chose : c'est l'ancienne syntaxe, toujours valable."
+  },
+  {
+    "id": 17,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "mission": "Affiche l'historique de toutes les branches, un commit par ligne, sous forme de graphe.",
+    "solution": "git log --oneline --graph --all",
+    "patterns": ["^git log(?=.* --oneline( |$))(?=.* --graph( |$))(?=.* --all( |$))( (--oneline|--graph|--all))+$"],
+    "hint": "Trois options de git log : une ligne par commit, un dessin des branches, et toutes les branches.",
+    "explanation": "`--oneline` résume chaque commit, `--graph` dessine les branches et les fusions, `--all` inclut toutes les références et pas seulement la branche courante. L'ordre des options n'a pas d'importance."
+  },
+  {
+    "id": 18,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "mission": "Retire config.yml de l'index (staging), sans perdre tes modifications dans le fichier.",
+    "solution": "git restore --staged config.yml",
+    "accepted": ["git restore --staged -- config.yml", "git reset config.yml", "git reset HEAD config.yml", "git reset -- config.yml", "git reset HEAD -- config.yml"],
+    "hint": "La commande moderne qui restaure des fichiers, avec une option qui vise l'index.",
+    "explanation": "`git restore --staged` retire le fichier de l'index : il redevient « modifié, non indexé », et ton travail reste intact. `git reset <fichier>` fait la même chose avec l'ancienne syntaxe. À ne pas confondre avec `git rm --cached`, qui arrête de suivre le fichier."
+  },
+  {
+    "id": 19,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "mission": "Mets de côté tes modifications en cours, fichiers non suivis compris, pour pouvoir changer de branche.",
+    "solution": "git stash -u",
+    "patterns": ["^git stash( push)? (-u|--include-untracked)$"],
+    "hint": "La remise de Git, avec une option pour inclure les fichiers que Git ne suit pas encore.",
+    "explanation": "`git stash` met de côté les modifications des fichiers suivis. Sans `-u` (`--include-untracked`), les nouveaux fichiers restent dans le dossier de travail. `git stash pop` récupère le tout."
+  },
+  {
+    "id": 20,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "mission": "Annule le dernier commit, déjà poussé et partagé, en créant un commit inverse plutôt qu'en réécrivant l'historique.",
+    "solution": "git revert HEAD",
+    "patterns": ["^git revert( --no-edit)? (HEAD|@)( --no-edit)?$"],
+    "hint": "Réécrire un historique partagé est interdit ici : il faut une commande qui ajoute un commit.",
+    "explanation": "`git revert HEAD` crée un nouveau commit qui défait le précédent. L'historique reste intact, donc les collègues n'ont rien à réparer. `git reset`, lui, réécrit l'historique : à éviter sur une branche partagée."
+  },
+  {
+    "id": 21,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "mission": "Liste le contenu du dossier courant au format détaillé, fichiers cachés compris.",
+    "solution": "ls -la",
+    "patterns": [
+      "^ls -(?=[lahA]*l)(?=[lahA]*[aA])[lahA]+$",
+      "^ls (-l -[aA]|-[aA] -l)$"
+    ],
+    "hint": "Une option pour le format long, une autre pour tout afficher, y compris ce qui commence par un point.",
+    "explanation": "`-l` affiche permissions, propriétaire, taille et date. `-a` montre aussi les fichiers cachés, ceux dont le nom commence par un point. Les options courtes se combinent : `-la`."
+  },
+  {
+    "id": 22,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "mission": "Rends le script deploy.sh exécutable.",
+    "solution": "chmod +x deploy.sh",
+    "accepted": ["chmod u+x deploy.sh", "chmod a+x deploy.sh", "chmod ugo+x deploy.sh"],
+    "hint": "Changer le mode du fichier, en ajoutant le droit d'exécution.",
+    "explanation": "`chmod +x` ajoute le droit d'exécution. `u+x` le limite au propriétaire. On lance ensuite le script avec `./deploy.sh`."
+  },
+  {
+    "id": 23,
+    "category": "Linux",
+    "difficulty": "Débutant",
+    "mission": "Cherche le mot error dans tous les fichiers du dossier /var/log, sous-dossiers compris.",
+    "solution": "grep -r error /var/log",
+    "patterns": [
+      "^grep -[rRniIH]*[rR][rRniIH]* error /var/log/?$",
+      "^grep --recursive error /var/log/?$",
+      "^grep error (-[rR]|--recursive) /var/log/?$"
+    ],
+    "hint": "L'outil de recherche de texte, avec une option pour descendre dans les dossiers.",
+    "explanation": "`grep -r` cherche récursivement dans tous les fichiers d'un dossier. Ajoute `-i` pour ignorer la casse et `-n` pour afficher les numéros de ligne."
+  },
+  {
+    "id": 24,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "mission": "Affiche les 50 dernières lignes de /var/log/syslog, puis continue d'afficher les nouvelles en temps réel.",
+    "solution": "tail -n 50 -f /var/log/syslog",
+    "patterns": ["^tail ((-n ?50|--lines[ =]50) (-f|-F|--follow)|(-f|-F|--follow) (-n ?50|--lines[ =]50)|-[fF]n ?50|-50[fF]) /var/log/syslog$"],
+    "hint": "Deux options : le nombre de lignes, et le suivi du fichier.",
+    "explanation": "`tail -n 50` affiche les 50 dernières lignes, `-f` continue de lire le fichier au fur et à mesure qu'il grandit. `-F` fait pareil et survit à la rotation des logs."
+  },
+  {
+    "id": 25,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "mission": "Redémarre le service nginx avec systemd.",
+    "solution": "systemctl restart nginx",
+    "accepted": ["systemctl restart nginx.service"],
+    "hint": "L'outil de pilotage de systemd, et l'action qui arrête puis relance.",
+    "explanation": "`systemctl restart` arrête puis relance le service. `systemctl reload nginx` recharge seulement la configuration, sans couper les connexions en cours, quand le service le permet."
+  },
+  {
+    "id": 26,
+    "category": "Linux",
+    "difficulty": "Intermédiaire",
+    "mission": "Affiche les ports TCP en écoute avec le processus associé, sans résolution de noms.",
+    "solution": "ss -tlnp",
+    "patterns": [
+      "^ss -(?=[tlnp]*t)(?=[tlnp]*l)(?=[tlnp]*n)(?=[tlnp]*p)[tlnp]{4}$",
+      "^netstat -(?=[tlnp]*t)(?=[tlnp]*l)(?=[tlnp]*n)(?=[tlnp]*p)[tlnp]{4}$"
+    ],
+    "hint": "L'outil moderne qui remplace netstat, avec quatre options courtes : TCP, en écoute, numérique, processus.",
+    "explanation": "`ss -t` (TCP) `-l` (en écoute) `-n` (pas de résolution de noms) `-p` (processus). Il faut souvent `sudo` pour voir les processus des autres utilisateurs."
+  },
+  {
+    "id": 27,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "mission": "Trouve tous les fichiers de plus de 100 Mo sous /var.",
+    "solution": "find /var -type f -size +100M",
+    "patterns": ["^find /var/?( -type f)? -size \\+100M( -type f)?$"],
+    "hint": "L'outil de recherche de fichiers, avec un test sur la taille. Le signe + veut dire « plus de ».",
+    "explanation": "`find /var -size +100M` cherche les fichiers de plus de 100 Mo, et `-type f` se limite aux fichiers ordinaires. Ajoute `-exec ls -lh {} +` pour voir leur taille."
+  },
+  {
+    "id": 28,
+    "category": "Linux",
+    "difficulty": "Avancé",
+    "mission": "Affiche l'espace disque occupé par chaque sous-dossier direct de /home, en unités lisibles.",
+    "solution": "du -h --max-depth=1 /home",
+    "patterns": [
+      "^du (-h --max-depth[ =]1|--max-depth[ =]1 -h|-h -d ?1|-d ?1 -h|-hd ?1) /home/?$",
+      "^du -(sh|hs) /home/\\*$"
+    ],
+    "hint": "L'outil d'usage disque, en unités lisibles, limité à un niveau de profondeur.",
+    "explanation": "`du -h --max-depth=1 /home` (ou `-d 1`) totalise chaque sous-dossier sans descendre plus bas. `du -sh /home/*` donne un résultat proche. Pour l'espace libre des partitions, c'est `df -h`."
+  },
+  {
+    "id": 29,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "mission": "Initialise le dossier de travail Terraform et télécharge les providers.",
+    "solution": "terraform init",
+    "hint": "La première commande de tout projet Terraform.",
+    "explanation": "`terraform init` prépare le dossier : téléchargement des providers et des modules, configuration du backend. À relancer après chaque ajout de provider ou de module."
+  },
+  {
+    "id": 30,
+    "category": "Terraform",
+    "difficulty": "Débutant",
+    "mission": "Affiche ce que Terraform va changer, sans rien appliquer.",
+    "solution": "terraform plan",
+    "hint": "Le plan, avant l'action.",
+    "explanation": "`terraform plan` compare le code, le state et l'infrastructure réelle, puis affiche les ajouts (+), modifications (~) et suppressions (-) prévus. Rien n'est modifié."
+  },
+  {
+    "id": 31,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "mission": "Applique les changements sans demande de confirmation interactive.",
+    "solution": "terraform apply -auto-approve",
+    "accepted": ["terraform apply --auto-approve"],
+    "hint": "Une option qui approuve automatiquement le plan.",
+    "explanation": "`-auto-approve` saute la question « yes ». Pratique en CI, risqué à la main : on applique sans avoir relu le plan."
+  },
+  {
+    "id": 32,
+    "category": "Terraform",
+    "difficulty": "Intermédiaire",
+    "mission": "Reformate tous les fichiers .tf du dossier courant et de ses sous-dossiers.",
+    "solution": "terraform fmt -recursive",
+    "accepted": ["terraform fmt --recursive"],
+    "hint": "La commande de formatage, avec une option pour descendre dans les sous-dossiers.",
+    "explanation": "`terraform fmt` applique le style officiel. Sans `-recursive`, il ne traite que le dossier courant. `-check` permet de vérifier en CI sans rien modifier."
+  },
+  {
+    "id": 33,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "mission": "Liste toutes les ressources présentes dans le state.",
+    "solution": "terraform state list",
+    "hint": "Les sous-commandes de state permettent d'inspecter ce que Terraform suit.",
+    "explanation": "`terraform state list` affiche les adresses des ressources suivies. `terraform state show <adresse>` détaille l'une d'elles."
+  },
+  {
+    "id": 34,
+    "category": "Terraform",
+    "difficulty": "Avancé",
+    "mission": "Importe le bucket S3 existant mon-bucket dans la ressource aws_s3_bucket.logs, déjà déclarée dans le code.",
+    "solution": "terraform import aws_s3_bucket.logs mon-bucket",
+    "hint": "La commande prend l'adresse Terraform d'abord, puis l'identifiant réel.",
+    "explanation": "`terraform import ADRESSE ID` rattache une ressource existante au state, sans rien recréer. Depuis Terraform 1.5, un bloc `import` dans le code fait la même chose en passant par le plan."
+  },
+  {
+    "id": 35,
+    "category": "Ansible",
+    "difficulty": "Débutant",
+    "mission": "Vérifie que tous les hôtes de l'inventaire hosts.ini répondent, avec le module ping.",
+    "solution": "ansible all -i hosts.ini -m ping",
+    "patterns": ["^ansible(?=.* all( |$))(?=.* (-i |--inventory[ =])hosts\\.ini( |$))(?=.* (-m |--module-name[ =])ping( |$))( (all|(-i |--inventory[ =])hosts\\.ini|(-m |--module-name[ =])ping))+$"],
+    "hint": "Une commande ad hoc : le groupe d'hôtes, l'inventaire et le module.",
+    "explanation": "`ansible all -i hosts.ini -m ping` teste la connexion SSH et la présence de Python sur chaque hôte. Ce n'est pas un ping ICMP : le module se connecte vraiment à la machine."
+  },
+  {
+    "id": 36,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "mission": "Lance le playbook site.yml en mode simulation, sans rien modifier sur les hôtes.",
+    "solution": "ansible-playbook site.yml --check",
+    "patterns": ["^ansible-playbook (site\\.yml (--check|-C)|(--check|-C) site\\.yml)$"],
+    "hint": "Une option fait tourner le playbook « pour voir ».",
+    "explanation": "`--check` simule l'exécution et indique ce qui changerait. Combine-le avec `--diff` pour voir le contenu des fichiers modifiés."
+  },
+  {
+    "id": 37,
+    "category": "Ansible",
+    "difficulty": "Intermédiaire",
+    "mission": "Vérifie la syntaxe du playbook site.yml sans l'exécuter.",
+    "solution": "ansible-playbook site.yml --syntax-check",
+    "patterns": ["^ansible-playbook (site\\.yml --syntax-check|--syntax-check site\\.yml)$"],
+    "hint": "L'option porte presque le nom de la mission, en anglais.",
+    "explanation": "`--syntax-check` analyse le playbook sans se connecter aux hôtes. Pour aller plus loin, `ansible-lint` signale aussi les mauvaises pratiques."
+  },
+  {
+    "id": 38,
+    "category": "Réseau",
+    "difficulty": "Débutant",
+    "mission": "Depuis Linux, envoie exactement 4 paquets ICMP vers 8.8.8.8.",
+    "solution": "ping -c 4 8.8.8.8",
+    "patterns": ["^ping (-c ?4 8\\.8\\.8\\.8|8\\.8\\.8\\.8 -c ?4)$"],
+    "hint": "Sous Linux, ping tourne sans fin par défaut : une option limite le nombre d'envois (count).",
+    "explanation": "`ping -c 4` s'arrête après 4 paquets. Sous Windows, l'équivalent est `ping -n 4`, qui est d'ailleurs le comportement par défaut."
+  },
+  {
+    "id": 39,
+    "category": "Réseau",
+    "difficulty": "Débutant",
+    "mission": "Affiche les adresses IP de toutes les interfaces réseau, avec la commande moderne d'iproute2.",
+    "solution": "ip a",
+    "accepted": ["ip addr", "ip address", "ip addr show", "ip address show", "ip a show", "ip -c a", "ip -c addr"],
+    "hint": "La commande moderne qui remplace ifconfig, avec l'objet « adresse ».",
+    "explanation": "`ip a` (abréviation de `ip address`) liste les interfaces et leurs adresses IPv4 et IPv6. `ifconfig` est l'ancienne commande, souvent absente des distributions récentes."
+  },
+  {
+    "id": 40,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "mission": "Affiche la table de routage de la machine Linux.",
+    "solution": "ip route",
+    "accepted": ["ip r", "ip route show", "ip r show", "ip route list", "route -n", "netstat -rn", "netstat -nr"],
+    "hint": "La même commande moderne, avec l'objet « route ».",
+    "explanation": "`ip route` affiche les routes, dont la passerelle par défaut (`default via ...`). `route -n` et `netstat -rn` sont les anciennes équivalentes."
+  },
+  {
+    "id": 41,
+    "category": "Réseau",
+    "difficulty": "Intermédiaire",
+    "mission": "Interroge le serveur DNS 1.1.1.1 pour obtenir l'enregistrement MX de example.com.",
+    "solution": "dig @1.1.1.1 example.com MX",
+    "patterns": ["^dig(?=.* @1\\.1\\.1\\.1( |$))(?=.* (-t )?(MX|mx)( |$))(?=.* example\\.com\\.?( |$))( (@1\\.1\\.1\\.1|(-t )?(MX|mx)|example\\.com\\.?))+$"],
+    "hint": "L'outil DNS des admins : le serveur se préfixe par @, puis viennent le nom et le type d'enregistrement.",
+    "explanation": "`dig @serveur nom type` interroge un serveur DNS précis. MX donne les serveurs de messagerie du domaine. Ajoute `+short` pour n'avoir que la réponse."
+  },
+  {
+    "id": 42,
+    "category": "Cisco",
+    "difficulty": "Débutant",
+    "mission": "Sur un routeur Cisco, en mode privilégié, affiche un résumé de toutes les interfaces avec leur adresse IP et leur état.",
+    "solution": "show ip interface brief",
+    "patterns": ["^sh(o|ow)? ip int(e|er|erf|erfa|erfac|erface)? br(i|ie|ief)?$"],
+    "hint": "Commande show, protocole ip, objet interface, et un format résumé. Les abréviations sont acceptées.",
+    "explanation": "`show ip interface brief` (abrégé `sh ip int br`) affiche chaque interface, son IP, et ses états Status (couche 1) et Protocol (couche 2). C'est le premier contrôle après une configuration."
+  },
+  {
+    "id": 43,
+    "category": "Cisco",
+    "difficulty": "Intermédiaire",
+    "mission": "Sauvegarde la configuration en cours d'un équipement Cisco pour qu'elle survive au redémarrage.",
+    "solution": "copy running-config startup-config",
+    "patterns": ["^(copy run(ning-config)? start(up-config)?|wr(ite)?( mem(ory)?)?)$"],
+    "hint": "Copier la configuration active (running) vers celle de démarrage (startup).",
+    "explanation": "La running-config vit en RAM et se perd au redémarrage. `copy running-config startup-config` (ou `copy run start`, ou l'ancien `write memory`) l'enregistre en NVRAM."
+  },
+  {
+    "id": 44,
+    "category": "AWS",
+    "difficulty": "Débutant",
+    "mission": "Vérifie avec quelle identité (compte, utilisateur ou rôle) l'AWS CLI est authentifiée.",
+    "solution": "aws sts get-caller-identity",
+    "hint": "Le service STS répond à la question « qui suis-je ? ».",
+    "explanation": "`aws sts get-caller-identity` renvoie le numéro de compte, l'ARN et l'identifiant de l'appelant. Elle fonctionne même sans aucune permission IAM : c'est le test de connexion idéal."
+  },
+  {
+    "id": 45,
+    "category": "AWS",
+    "difficulty": "Intermédiaire",
+    "mission": "Liste le contenu du bucket S3 mon-bucket.",
+    "solution": "aws s3 ls s3://mon-bucket",
+    "patterns": ["^aws s3 ls s3://mon-bucket/?$"],
+    "hint": "Les commandes de haut niveau d'S3, avec l'adresse du bucket au format s3://.",
+    "explanation": "`aws s3 ls s3://mon-bucket` liste les objets et les préfixes à la racine du bucket. Ajoute `--recursive` pour tout parcourir et `--human-readable` pour les tailles."
+  }
+]

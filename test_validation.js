@@ -67,6 +67,51 @@ try {
   errors.push(`Erreur de lecture/parsing de questions.json : ${e.message}`);
 }
 
+// 1bis. Validation de commands.json (labs « tape la commande »)
+console.log('\n1bis. Vérification de commands.json...');
+try {
+  const labs = JSON.parse(fs.readFileSync(path.join(__dirname, 'commands.json'), 'utf8'));
+  const css = fs.readFileSync(path.join(__dirname, 'public/css/style.css'), 'utf8');
+  const validLevels = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
+  const seenIds = new Set();
+  const labCategories = {};
+
+  if (!Array.isArray(labs)) {
+    errors.push('commands.json ne contient pas un tableau JSON valide.');
+  } else {
+    labs.forEach((lab, idx) => {
+      const ref = `Lab #${lab.id ?? idx + 1}`;
+      if (!Number.isInteger(lab.id)) errors.push(`${ref} : 'id' entier manquant.`);
+      if (seenIds.has(lab.id)) errors.push(`${ref} : 'id' en double.`);
+      seenIds.add(lab.id);
+      ['category', 'mission', 'solution', 'hint', 'explanation'].forEach(field => {
+        if (typeof lab[field] !== 'string' || !lab[field].trim()) {
+          errors.push(`${ref} : '${field}' manquant ou vide.`);
+        }
+      });
+      if (!validLevels.includes(lab.difficulty)) {
+        errors.push(`${ref} : difficulté "${lab.difficulty}" hors échelle (${validLevels.join(', ')}).`);
+      }
+      if (lab.accepted !== undefined && (!Array.isArray(lab.accepted) || lab.accepted.some(a => typeof a !== 'string' || !a.trim()))) {
+        errors.push(`${ref} : 'accepted' doit être un tableau de commandes non vides.`);
+      }
+      (lab.patterns || []).forEach(p => {
+        if (typeof p !== 'string' || !p.startsWith('^') || !p.endsWith('$')) {
+          errors.push(`${ref} : motif non ancré (doit commencer par ^ et finir par $) : ${p}`);
+        }
+        try { new RegExp(p); } catch (e) { errors.push(`${ref} : motif invalide (${e.message}).`); }
+      });
+      if (lab.category && !css.includes(`.badge-${lab.category.toLowerCase()}`)) {
+        warnings.push(`${ref} : pas de style .badge-${lab.category.toLowerCase()} dans style.css.`);
+      }
+      labCategories[lab.category] = (labCategories[lab.category] || 0) + 1;
+    });
+    console.log(`   ✓ ${labs.length} labs de commandes :`, labCategories);
+  }
+} catch (e) {
+  errors.push(`Erreur de lecture/parsing de commands.json : ${e.message}`);
+}
+
 // 2. Validation des fichiers statiques & HTML
 console.log('\n2. Vérification des fichiers du Frontend...');
 const requiredFiles = [
@@ -74,6 +119,7 @@ const requiredFiles = [
   'public/host.html',
   'public/player.html',
   'public/admin.html',
+  'public/labs.html',
   'public/css/style.css',
   'public/js/sound.js',
   'public/js/fx.js',
@@ -82,6 +128,9 @@ const requiredFiles = [
   'public/js/host.js',
   'public/js/player.js',
   'public/js/admin.js',
+  'public/js/labs.js',
+  'command-labs.js',
+  'commands.json',
   'Dockerfile',
   '.dockerignore',
   'package.json',
@@ -100,13 +149,14 @@ requiredFiles.forEach(file => {
 
 // 3. Vérification des balises script et liens CSS dans les HTML
 console.log('\n3. Cohérence des imports dans les fichiers HTML...');
-['public/index.html', 'public/host.html', 'public/player.html', 'public/admin.html'].forEach(htmlFile => {
+const httpOnlyPages = ['public/admin.html', 'public/labs.html'];
+['public/index.html', 'public/host.html', 'public/player.html', ...httpOnlyPages].forEach(htmlFile => {
   const content = fs.readFileSync(path.join(__dirname, htmlFile), 'utf8');
   if (!content.includes('css/style.css')) {
     warnings.push(`${htmlFile} ne semble pas lier css/style.css`);
   }
-  // La page admin est purement HTTP (API REST), pas de temps réel
-  if (htmlFile !== 'public/admin.html' && !content.includes('/socket.io/socket.io.js')) {
+  // Les pages admin et labs sont purement HTTP (API REST), pas de temps réel
+  if (!httpOnlyPages.includes(htmlFile) && !content.includes('/socket.io/socket.io.js')) {
     warnings.push(`${htmlFile} ne charge pas le client Socket.io`);
   }
 

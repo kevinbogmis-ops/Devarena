@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevArena | Labs commandes</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%22100%22%20%22100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
+</head>
+<body>
+  <!-- Barre d'en-tête globale -->
+  <header class="app-header">
+    <a href="index.html" class="logo-link">
+      <span style="font-size: 1.6rem;">⚡</span>
+      <span class="logo-text">Dev<span class="highlight">Arena</span></span>
+      <span class="logo-tag">LABS</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="index.html" class="btn-sound-toggle" style="text-decoration: none;">← Accueil</a>
+      <button id="sound-toggle-btn" class="btn-sound-toggle">🔊 Son: ON</button>
+    </div>
+  </header>
+
+  <main class="container labs-page">
+
+    <!-- ================= FILTRES ET PROGRESSION ================= -->
+    <section class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title">devarena-labs --list</span>
+        <div class="terminal-status"><span id="labs-progress-text">0 / 0 réussis</span></div>
+      </div>
+      <div class="labs-panel-body">
+        <p class="labs-intro">
+          Une mission, un terminal : tape la commande qui répond. Les variantes courantes sont acceptées
+          (ordre des options, formes longues, abréviations). Ta progression reste dans ce navigateur.
+        </p>
+
+        <div class="labs-filter-label">📚 Catégorie</div>
+        <div id="lab-category-chips" class="filter-chips"></div>
+
+        <div class="labs-filter-label">🎯 Niveau</div>
+        <div id="lab-difficulty-chips" class="filter-chips"></div>
+
+        <label class="labs-todo-toggle">
+          <input type="checkbox" id="lab-todo-only">
+          Seulement les labs pas encore réussis
+        </label>
+
+        <div class="labs-progress" aria-hidden="true">
+          <div id="labs-progress-fill" class="labs-progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TERMINAL D'ENTRAÎNEMENT ================= -->
+    <section class="terminal-window" id="lab-terminal">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <span class="terminal-title" id="lab-term-title">student@devarena:~/labs</span>
+        <div class="terminal-status"><span id="lab-position"></span></div>
+      </div>
+
+      <div class="lab-body" id="lab-body">
+        <div class="lab-mission">
+          <div class="lab-badges">
+            <span id="lab-category-badge" class="badge"></span>
+            <span id="lab-difficulty-badge" class="badge badge-devops"></span>
+            <span id="lab-status-badge" class="badge" style="display: none;"></span>
+          </div>
+          <p id="lab-mission" class="lab-mission-text"></p>
+          <pre id="lab-context" class="lab-context" style="display: none;"></pre>
+        </div>
+
+        <div id="lab-log" class="lab-log" aria-live="polite"></div>
+
+        <form id="lab-form" class="lab-prompt" autocomplete="off">
+          <span class="lab-ps1">$</span>
+          <input id="lab-input" class="lab-input" type="text" maxlength="300"
+                 placeholder="tape ta commande ici…" aria-label="Commande"
+                 autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+          <button type="submit" class="btn btn-primary lab-submit" id="lab-submit">⏎</button>
+        </form>
+
+        <div class="lab-actions">
+          <button type="button" class="btn btn-secondary lab-action" id="lab-hint-btn">💡 Indice</button>
+          <button type="button" class="btn btn-secondary lab-action" id="lab-reveal-btn">👁 Solution</button>
+          <button type="button" class="btn btn-primary lab-action" id="lab-next-btn">Suivant →</button>
+        </div>
+
+        <div id="lab-hint" class="lab-hint" style="display: none;"></div>
+        <div id="lab-explanation" class="lab-explanation" style="display: none;"></div>
+      </div>
+
+      <div id="lab-empty" class="lab-empty" style="display: none;"></div>
+    </section>
+
+  </main>
+
+  <footer style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-color);">
+    &copy; 2026 <strong>DevArena</strong> &bull; Conçu et développé par <strong>Kevin BOGMIS</strong>
+  </footer>
+
+  <script src="js/sound.js"></script>
+  <script src="js/client.js"></script>
+  <script src="js/labs.js"></script>
+</body>
+</html>
