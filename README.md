@@ -80,7 +80,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 ## 🚀 Fonctionnalités clés
 
 - **Temps réel avec WebSockets** : synchronisation instantanée via `Socket.io` entre l'écran du Host et les smartphones.
-- **Banque de 200 questions techniques** : 10 catégories, **Cisco (24), Docker (24), AWS (24), Linux (24), Réseau (20), Terraform (20), Ansible (20), Supabase (20), Git (12), Kubernetes (12)**, sur 4 niveaux : **Débutant, Intermédiaire, Avancé, Expert**.
+- **Banque de 218 questions techniques** : 10 catégories, **Cisco (25), Docker (24), AWS (24), Linux (24), Réseau (21), Terraform (20), Ansible (20), Supabase (20), Git (20), Kubernetes (20)**, sur 4 niveaux : **Débutant, Intermédiaire, Avancé, Expert**.
 - **Parties sur mesure** : filtres multi-sélection par catégorie et niveau, de 5 à 50 questions (mode Marathon).
 - **Jokers & jauge d'énergie** : voir [Les jokers](#-les-jokers).
 - **Classements** : Top 5 envoyé aux joueurs après chaque question, podium animé, **Hall of Fame** all-time (PostgreSQL).
@@ -88,7 +88,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 - **Reconnexion** : un joueur qui perd le réseau revient avec son score et sa série ; si l'écran Host se ferme, la partie continue 45 s le temps qu'il revienne.
 - **Contrôle du Host** : arrêt de partie à tout moment, retour au lobby avec les mêmes joueurs pour relancer.
 - **Éditeur de questions** : interface d'administration protégée par token (voir plus bas).
-- **Mode révision** : quiz solo sur les 200 questions, sans hôte ni chrono ; les questions ratées reviennent jusqu'à ce qu'elles soient réussies, y compris celles ratées en partie multijoueur (voir [Mode révision](#-mode-révision-quiz-solo)).
+- **Mode révision** : quiz solo sur les 218 questions, sans hôte ni chrono ; les questions ratées reviennent jusqu'à ce qu'elles soient réussies, y compris celles ratées en partie multijoueur (voir [Mode révision](#-mode-révision-quiz-solo)).
 - **Labs commandes** : entraînement solo dans un terminal simulé, directement dans le navigateur et sur mobile : une mission, tu tapes la commande (voir [Labs commandes](#️-labs-commandes-dans-le-navigateur)).
 - **Labs pratiques** : terminal Docker reproductible avec DSOXLab pour pratiquer Terraform, Docker, Linux… sur de vrais systèmes (voir [Labs pratiques](#-labs-pratiques-dsoxlab)).
 - **Design « Dark IDE / Terminal »** : police `Fira Code`, touches façon clavier mécanique 3D, animations (machine à écrire, podium, confettis).
@@ -103,7 +103,7 @@ $$\text{Points} = \max\left(150,\ 1000 \times \left(1 - \frac{\text{Temps de ré
 devarena/
 ├── server.js                  # Serveur Express + Socket.io : salles, scores, jokers, API admin
 ├── db.js                      # Module PostgreSQL (schéma, seed, parties, top scores)
-├── questions.json             # Banque de 200 questions (source de vérité)
+├── questions.json             # Banque de 218 questions (source de vérité)
 ├── commands.json              # 45 labs « tape la commande » (mission, variantes, indice, explication)
 ├── command-labs.js            # Vérification des commandes côté serveur
 ├── docker-compose.yml         # App + PostgreSQL + profils Cloudflare Tunnel et labs
@@ -274,7 +274,7 @@ docker compose --profile tunnel down     # ou --profile tunnel-named
 
 ## 📚 Mode révision (quiz solo)
 
-Pour réviser seul les 200 questions, à son rythme : **`http://localhost:3300/revision.html`** (bouton « 📚 Révision » dans l'en-tête de l'accueil). Pas d'hôte, pas de chrono, et ça marche sur téléphone.
+Pour réviser seul les 218 questions, à son rythme : **`http://localhost:3300/revision.html`** (bouton « 📚 Révision » dans l'en-tête de l'accueil). Pas d'hôte, pas de chrono, et ça marche sur téléphone.
 
 - **Après chaque réponse** : la bonne réponse et l'explication (« 💡 Pourquoi ? »).
 - **Les erreurs reviennent** : une question ratée revient un peu plus loin dans la même session, puis en tête des sessions suivantes, jusqu'à ce qu'elle soit réussie. Elle est **maîtrisée** après deux bonnes réponses d'affilée.

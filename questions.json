@@ -3198,5 +3198,293 @@
     "correctIndex": 0,
     "timeLimit": 35,
     "explanation": "Le scheduler place le pod selon ses requests. Les limits plafonnent : CPU au-delà → throttling ; mémoire au-delà → OOMKill. Leur bon réglage définit aussi la classe QoS du pod."
+  },
+  {
+    "id": 201,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche l'historique des commits ?",
+    "codeSnippet": null,
+    "options": [
+      "git history",
+      "git log",
+      "git show --all",
+      "git status -v"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "'git log' liste les commits du plus récent au plus ancien, avec l'auteur, la date et le message ; 'git log --oneline' en donne une version compacte. 'git history' n'existe pas, 'git status' montre l'état des fichiers et non l'historique, et 'git show' détaille un seul commit."
+  },
+  {
+    "id": 202,
+    "category": "Git",
+    "difficulty": "Débutant",
+    "question": "Que montre git diff, lancé sans argument ?",
+    "codeSnippet": null,
+    "options": [
+      "La comparaison entre deux branches",
+      "La liste des fichiers ignorés",
+      "Les différences entre le dépôt local et le dépôt distant",
+      "Les modifications du répertoire de travail pas encore indexées (git add)"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 20,
+    "explanation": "Sans argument, 'git diff' compare le répertoire de travail à l'index : ce qui a changé mais n'est pas encore passé par 'git add'. Pour voir ce qui est déjà indexé, donc ce qui partira au prochain commit, c'est 'git diff --staged'."
+  },
+  {
+    "id": 203,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "Quelle commande récupère les nouveautés du dépôt distant SANS modifier ta branche locale ni tes fichiers ?",
+    "codeSnippet": null,
+    "options": [
+      "git pull --no-commit",
+      "git fetch",
+      "git clone --update",
+      "git sync"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 25,
+    "explanation": "'git fetch' met à jour les références distantes ('origin/main'...) sans toucher à ta branche ni à tes fichiers : tu peux ensuite comparer avec 'git log main..origin/main' avant de fusionner. 'git pull' enchaîne fetch et fusion, il modifie donc ta branche ; 'git sync' n'existe pas dans Git."
+  },
+  {
+    "id": 204,
+    "category": "Git",
+    "difficulty": "Intermédiaire",
+    "question": "Ton dernier commit, pas encore poussé, a une faute dans son message. Comment la corriger ?",
+    "codeSnippet": "$ git log --oneline -1\na1b2c3d Ajoute la page de connexoin",
+    "options": [
+      "git commit --amend -m \"Ajoute la page de connexion\"",
+      "git revert HEAD",
+      "git rebase --abort",
+      "git reset --hard HEAD~1"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "'git commit --amend' remplace le dernier commit (message et contenu indexé) par un nouveau. C'est sans risque tant que le commit n'a pas été poussé ; après un push, il faudrait forcer, ce qui réécrit l'historique partagé. 'git revert' ajouterait un commit d'annulation, et 'git reset --hard HEAD~1' supprimerait le commit avec tes modifications."
+  },
+  {
+    "id": 205,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "question": "Quelle est la différence entre git reset --soft HEAD~1 et git reset --hard HEAD~1 ?",
+    "codeSnippet": null,
+    "options": [
+      "Aucune, --soft est un ancien nom de --hard",
+      "--soft annule le commit mais garde ses modifications indexées ; --hard efface aussi les modifications",
+      "--soft agit sur le dépôt distant, --hard sur le dépôt local",
+      "--soft supprime le dernier fichier modifié, --hard tout le commit"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 30,
+    "explanation": "Les deux reculent la branche d'un commit. '--soft' garde les changements dans l'index, prêts à être recommités ; '--mixed' (le mode par défaut) les garde dans les fichiers mais les retire de l'index ; '--hard' efface aussi les fichiers. Avec '--hard', les modifications non commitées sont perdues pour de bon, seul le commit reste récupérable via 'git reflog'."
+  },
+  {
+    "id": 206,
+    "category": "Git",
+    "difficulty": "Avancé",
+    "question": "À quoi sert git bisect ?",
+    "codeSnippet": null,
+    "options": [
+      "Découper un dépôt en deux sous-dépôts",
+      "Fusionner deux branches en résolvant les conflits automatiquement",
+      "Trouver par dichotomie le commit qui a introduit un bug",
+      "Couper un gros commit en deux commits"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 30,
+    "explanation": "On indique un commit sans le bug ('git bisect good') et un commit avec ('git bisect bad') : Git se place au milieu de l'intervalle, tu testes, et la moitié des candidats est éliminée à chaque étape. Sur 1 000 commits, une dizaine d'étapes suffit. 'git bisect run <script>' automatise même les tests."
+  },
+  {
+    "id": 207,
+    "category": "Git",
+    "difficulty": "Expert",
+    "question": "Pourquoi préférer git push --force-with-lease à git push --force ?",
+    "codeSnippet": null,
+    "options": [
+      "Il est plus rapide",
+      "Il refuse d'écraser la branche distante si quelqu'un y a poussé depuis ton dernier fetch",
+      "Il crée une sauvegarde automatique sur le serveur",
+      "Il ne pousse que les commits signés"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "'--force' écrase la branche distante quoi qu'il arrive, au risque d'effacer le travail d'un collègue. '--force-with-lease' vérifie d'abord que la branche distante est restée là où tu l'avais vue à ton dernier fetch, et refuse sinon. Piège : un 'git fetch' juste avant le push met à jour cette référence et annule la protection."
+  },
+  {
+    "id": 208,
+    "category": "Git",
+    "difficulty": "Expert",
+    "question": "Que contient réellement un commit Git ?",
+    "codeSnippet": null,
+    "options": [
+      "La liste des différences par rapport au commit précédent",
+      "Seulement les fichiers modifiés et le message",
+      "Un instantané complet du projet (via un objet tree), le ou les commits parents, l'auteur et le message",
+      "Une copie compressée du dépôt distant"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "Un commit pointe vers un objet 'tree' qui décrit l'état complet du projet à cet instant, plus ses parents, l'auteur, le committer et le message. Les fichiers inchangés ne sont pas dupliqués : ils réutilisent les mêmes objets 'blob', identifiés par leur empreinte. Les diffs, eux, sont calculés à l'affichage."
+  },
+  {
+    "id": 209,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Dans quel format écrit-on le plus souvent les manifestes Kubernetes ?",
+    "codeSnippet": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web",
+    "options": [
+      "XML",
+      "YAML",
+      "INI",
+      "TOML"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "Les manifestes décrivent l'état souhaité (apiVersion, kind, metadata, spec) en YAML, puis s'appliquent avec 'kubectl apply -f'. L'API accepte aussi le JSON, dont le YAML est un sur-ensemble ; XML, INI et TOML ne sont pas utilisés."
+  },
+  {
+    "id": 210,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Quel composant tourne sur chaque nœud et démarre les conteneurs des pods qui lui sont attribués ?",
+    "codeSnippet": null,
+    "options": [
+      "kube-scheduler",
+      "etcd",
+      "kubelet",
+      "kube-proxy"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 20,
+    "explanation": "Le 'kubelet' est l'agent de chaque nœud : il reçoit les pods qui lui sont attribués et les fait tourner via le runtime de conteneurs (containerd, CRI-O...). Le 'kube-scheduler' choisit le nœud, 'etcd' stocke l'état du cluster, et 'kube-proxy' gère les règles réseau des Services."
+  },
+  {
+    "id": 211,
+    "category": "Kubernetes",
+    "difficulty": "Débutant",
+    "question": "Quelle commande affiche les logs du pod api-7d4f ?",
+    "codeSnippet": null,
+    "options": [
+      "kubectl describe api-7d4f",
+      "kubectl logs api-7d4f",
+      "kubectl get logs api-7d4f",
+      "kubectl exec api-7d4f logs"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 20,
+    "explanation": "'kubectl logs <pod>' affiche la sortie du conteneur ; '-f' suit le flux en direct et '-c' choisit le conteneur si le pod en contient plusieurs. 'kubectl describe pod <pod>' montre plutôt l'état du pod et ses événements."
+  },
+  {
+    "id": 212,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "À quoi sert un PersistentVolumeClaim (PVC) ?",
+    "codeSnippet": null,
+    "options": [
+      "À demander du stockage durable pour un pod, sans connaître le disque réel",
+      "À sauvegarder l'état d'etcd",
+      "À limiter la RAM d'un conteneur",
+      "À exposer un pod sur Internet"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Un pod est éphémère : ses fichiers disparaissent avec lui. Le PVC est une demande (« 10 Gi en lecture-écriture ») que Kubernetes associe à un PersistentVolume, souvent créé à la volée par une StorageClass. Le pod monte le PVC sans savoir s'il s'agit d'un disque cloud, d'un partage NFS ou d'un disque local."
+  },
+  {
+    "id": 213,
+    "category": "Kubernetes",
+    "difficulty": "Intermédiaire",
+    "question": "Quel type de Service expose une application sur un même port de chaque nœud du cluster ?",
+    "codeSnippet": null,
+    "options": [
+      "NodePort",
+      "ClusterIP",
+      "ExternalName",
+      "Headless"
+    ],
+    "correctIndex": 0,
+    "timeLimit": 25,
+    "explanation": "Un Service 'NodePort' ouvre le même port (entre 30000 et 32767 par défaut) sur tous les nœuds et redirige vers les pods. 'ClusterIP' reste interne au cluster, 'LoadBalancer' demande en plus un équilibreur au fournisseur cloud, et 'ExternalName' n'est qu'un alias DNS vers un nom externe."
+  },
+  {
+    "id": 214,
+    "category": "Kubernetes",
+    "difficulty": "Avancé",
+    "question": "Quelle ressource garantit qu'un pod tourne sur chaque nœud du cluster, par exemple un agent de logs ou de monitoring ?",
+    "codeSnippet": null,
+    "options": [
+      "Deployment",
+      "StatefulSet",
+      "ReplicaSet",
+      "DaemonSet"
+    ],
+    "correctIndex": 3,
+    "timeLimit": 30,
+    "explanation": "Un 'DaemonSet' place un exemplaire du pod sur chaque nœud (ou sur une sélection de nœuds) et l'ajoute automatiquement aux nouveaux nœuds : idéal pour Fluent Bit, node-exporter ou un agent de sécurité. Un Deployment fixe un nombre de réplicas sans se soucier de leur répartition, et un StatefulSet donne une identité stable à chaque pod."
+  },
+  {
+    "id": 215,
+    "category": "Kubernetes",
+    "difficulty": "Expert",
+    "question": "Pourquoi utiliser un StatefulSet plutôt qu'un Deployment pour une base de données comme PostgreSQL ?",
+    "codeSnippet": null,
+    "options": [
+      "Il démarre plus vite",
+      "Chaque pod garde un nom stable (db-0, db-1...) et son propre volume, et les pods démarrent dans l'ordre",
+      "Il empêche toute mise à jour de l'image",
+      "Il est le seul à pouvoir utiliser des ConfigMaps"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Un StatefulSet donne à chaque pod une identité durable : un nom ordonné ('db-0', 'db-1'), une entrée DNS stable via un Service headless et un PVC dédié qui le suit s'il est recréé. Les pods sont créés et arrêtés dans l'ordre. Un Deployment traite ses pods comme interchangeables, ce qui ne convient pas à une réplication primaire / secondaire."
+  },
+  {
+    "id": 216,
+    "category": "Kubernetes",
+    "difficulty": "Expert",
+    "question": "Sans aucune NetworkPolicy, quel trafic est autorisé entre les pods d'un cluster ?",
+    "codeSnippet": null,
+    "options": [
+      "Aucun : tout est bloqué tant qu'aucune règle n'existe",
+      "Seulement entre les pods d'un même namespace",
+      "Tout : chaque pod peut joindre tous les autres pods du cluster",
+      "Seulement le trafic HTTP et HTTPS"
+    ],
+    "correctIndex": 2,
+    "timeLimit": 35,
+    "explanation": "Le modèle réseau de Kubernetes est ouvert par défaut : tout pod peut joindre tout autre pod, quel que soit le namespace. Dès qu'une NetworkPolicy sélectionne un pod, seul le trafic qu'elle autorise lui parvient. Il faut un plugin réseau (CNI) qui les applique, comme Calico ou Cilium ; sinon, elles sont ignorées."
+  },
+  {
+    "id": 217,
+    "category": "Cisco",
+    "difficulty": "Expert",
+    "question": "Sur un switch Cisco, quel mécanisme coupe un port d'accès quand une adresse MAC non autorisée s'y présente ?",
+    "codeSnippet": null,
+    "options": [
+      "BPDU Guard",
+      "Port Security en mode violation shutdown",
+      "DHCP Snooping",
+      "Storm Control"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "'switchport port-security' limite le nombre d'adresses MAC apprises sur le port ; en mode 'violation shutdown' (le mode par défaut), une adresse en trop fait passer le port en err-disabled. BPDU Guard réagit à la réception de BPDU (un switch branché), DHCP Snooping filtre les faux serveurs DHCP, et Storm Control limite les tempêtes de broadcast."
+  },
+  {
+    "id": 218,
+    "category": "Réseau",
+    "difficulty": "Expert",
+    "question": "Quelle est l'adresse de broadcast du réseau 10.20.30.64/26 ?",
+    "codeSnippet": null,
+    "options": [
+      "10.20.30.255",
+      "10.20.30.127",
+      "10.20.30.95",
+      "10.20.30.128"
+    ],
+    "correctIndex": 1,
+    "timeLimit": 35,
+    "explanation": "Un /26 découpe le dernier octet en blocs de 64 adresses (0, 64, 128, 192). Le réseau 10.20.30.64 couvre donc .64 à .127 : .64 est l'adresse réseau, .127 le broadcast, et les hôtes vont de .65 à .126, soit 62 adresses utilisables."
   }
 ]
